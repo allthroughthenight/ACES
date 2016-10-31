@@ -1,0 +1,537 @@
+<TITLE>ACES CETN</TITLE>
+<BODY BGCOLOR=#C0D9D9 TEXT=#000000 LINK=#0000FF VLINK=#FF0000>
+
+<CENTER><H1>AUTOMATED COASTAL ENGINEERING SYSTEM <BR>(ACES)</H1></CENTER>
+
+<PRE>
+                                  Version 1.07
+
+                                    PURPOSE
+
+     This note discusses a microcomputer-based software package that contains
+reliable state-of-the-art solutions to various coastal engineering problems.
+
+                                   BACKGROUND
+
+     In 1986 the Coastal Engineering Research Center (CERC) recommended to the
+Office, Chief of Engineers that an Automated Coastal Engineering System (ACES)
+be developed to give Corps offices an interactive computer based design
+capability in the field of coastal engineering. The recommendation was in
+response to a charge by the Chief of Engineers, LTG E. R. Heiberg III, to the
+Coastal Engineering Research Board to provide improved design capabilities to
+Corps coastal specialists.
+
+     CERC formed an internal technical committee to develop recommendations for
+implementing an automated design System. This committee obtained input from
+Corps field offices regarding the form and development procedures preferred for
+the system. The information was obtained primarily from six regional workshops
+conducted in July 1986 and attended by more than one hundred coastal
+specialists.
+
+     Based on recommendations from the workshops, a Pilot Committee composed
+primarily of Corps District and Division coastal specialists was formed in
+September 1986 to guide development of the ACES. In addition an Automated
+Coastal Engineering Group was formed in February 1987 within CERC to implement
+its development.
+
+                                  INTRODUCTION
+
+     The ACES is a microcomputer-based design and analysis system in the field
+of coastal engineering. The contents range from simple algebraic expressions
+both theoretical and empirical in origin, to numerically intense algorithms
+spawned by the increasing power and affordability of computers. The methods in
+the ACES range from classical theory describing wave motion, to expressions
+resulting from tests with structures in wave flumes, and to recent numerical
+models describing the exchange of energy from the atmosphere to the sea
+surface.
+
+                                 ACES CONTENTS
+
+     The various methodologies included in ACES are called applications, and
+are organized into categories called functional areas differentiated according
+to general relevant physical processes and design or analysis activities. A
+summary of the applications currently resident in the ACES is given in Table 1.
+
+                                    TABLE 1
+                   Current ACES Applications (Version 1.07)
+===============================================================================
+Functional Area             Application Name
+---------------             -----------------------------------------
+Wave Prediction             Windspeed Adjustment and Wave Growth
+                            Beta-Rayleigh distributions
+                            Extremal Significant Wave Height Analysis
+                            Constituent Tide Record Generation
+
+Wave Theory                 Linear Wave Theory
+                            Cnoidal Wave Theory
+                            Fourier Series Wave Theory
+
+Wave Transformation         Linear Wave Theory with Snell's Law
+                            Irregular Wave Transformation (Goda's method)
+                            Combined Diffraction and Refraction by a Vertical Wedge
+
+Structural Design           Breakwater Design Using Hudson and Related Equations
+                            Toe Protection Design
+                            Nonbreaking Wave Forces on Vertical Walls
+                            Rubble-Mound Revetment Design
+                                    
+Wave Runup, Transmission,   Irregular Wave Runup on Beaches
+ and Overtopping            Wave Runup and Overtopping on Impermeable Structures
+                            Wave Transmission on Impermeable Structures
+                            Wave Transmission Trough Permeable Structures
+
+Littoral Processes          Longshore Sediment Transport
+                            Numerical Simulation of Time-Dependent Beach and Dune Erosion
+                            Calculation of Composite Grain-Size Distribution
+                            Beach Nourishment Overfill Ration and Volume
+
+Inlet Processes             A Spatially Integrated Numerical Model for Inlet Hydraulics
+  
+
+
+                        DESCRIPTION OF ACES APPLICATIONS
+
+     The various applications within the functional areas represent a number of
+different methodologies of varying complexity. A brief description of each
+application follows.
+
+   WAVE PREDICTION FUNCTIONAL AREA
+
+     Windspeed Adjustment and Wave Growth
+
+          The methodologies represented in this ACES application provide quick
+          and simple estimates for wave growth over open-water and restricted
+          fetches in deep and shallow water.  Also, improved methods (over
+          those given in the Shore Protection Manual (SPM), 1984) are included
+          for adjusting the observed winds to those required by wave growth
+          formulas.
+
+     Beta-Rayleigh Distribution
+
+          This application provides a statistical representation for a shallow
+          water wave height distribution.  The Beta-Rayleigh distribution is
+          expressed in familiar wave parameters: Hmo (energy based wave 
+          height), Tp (peak spectral wave period), and d(water depth).  After 
+          constructing the distribution, other statistically based wave height
+          estimates such as Hrms, Hmean, H1/10 can be easily computed.  The 
+          Beta-Rayleigh distribution features a finite upper bound 
+          corresponding to the breaking wave height, and the expression 
+          collapses to the Rayleigh distribution in the deepwater limit.  The 
+          methodology for this portion of the application is taken exclusively
+          from Hughes and Borgman (1987).
+
+     Extremal Significant Wave Height Analysis
+
+          This application provides significant wave height estimates for
+          various return periods.  Confidence intervals are also provided.  The
+          approach developed by Goda (1988) is used to fit five candidate
+          probability distributions to an input array of extreme significant
+          wave heights.  Candidate distribution functions are Fisher-Tippett
+          Type I and Weibull with exponents ranging from 0.75 to 2.0.
+          Goodness-of-fit information is provided for identifying the
+          distributions which best match the input data.
+
+     Constituent Tide Record Generation
+
+          This application predicts a tide elevation record at a specific time
+          and locale using known amplitudes and epochs for individual harmonic
+          constituents.
+
+   WAVE THEORY FUNCTIONAL AREA
+
+     Linear Wave Theory
+
+          This application yields first-order approximations for various
+          parameters of wave motion as predicted by the wave theory bearing the
+          same name (also known as small amplitude, sinusoidal, or Airy
+          theory).  It provides estimates for engineering quantities such as
+          water surface elevation, general wave properties, particle
+          kinematics, and pressure as functions of wave height and period,
+          water depth, and position in the waveform.
+
+     Cnoidal Wave Theory
+
+          This application yields various parameters of wave motion as
+          predicted by first-order (Isobe, 1985) and second-order (Hardy and
+          Kraus, 1987) approximations for cnoidal wave theory.  It provides
+          estimates for common items of interest such as water surface
+          elevation, general wave properties, kinematics, and pressure as
+          functions of wave height and period, water depth, and position in the
+          waveform.
+
+     Fourier Series Wave Theory
+
+          This application yields various parameters for progressive waves of
+          permanent form, as predicted by Fourier series approximation.  It
+          provides estimates for common engineering parameters such as water
+          surface elevation, integral wave properties, and kinematics as
+          functions of wave height, period, water depth, and position in the
+          wave form which is assumed to exist on a uniform co-flowing current.
+          Stokes first and second approximations for celerity (i.e., values of
+          the mean Eulerian current or mean mass transport rate) may be
+          specified.  Fourier series of up to 25 terms may be selected to
+          approximate the wave.
+
+   WAVE TRANSFORMATION FUNCTIONAL AREA
+
+     Linear Wave Theory with Snell's Law
+
+          This application provides a simple estimate for wave shoaling and
+          refraction using Snell's law with wave properties predicted by linear
+          wave theory.  Given wave properties and a crest angle at a known
+          depth, it predicts the values in deep water and at a subject location
+          specified by a new water depth. An important assumption for this
+          application is that all depth contours are assumed to be straight and
+          parallel.  The criteria of Singamsetti and Wind (1980) and Weggel
+          (1972) are employed to provide an estimate for breaker parameters.
+
+     Irregular Wave Transformation (Goda's method)
+
+          This application yields cumulative probability distributions of wave
+          heights as a field of irregular waves propagate from deep water
+          through the surf zone.  The application is based on two random-wave
+          theories by Yoshimi Goda (1975 and 1984).  The 1975 paper concerns
+          transformation of random waves shoaling over a plane bottom with
+          straight parallel contours.  This analysis treated breaking and
+          broken waves and resulted in cumulative probability distributions for
+          wave heights given a water depth.  It did not include refraction,
+          however.  The 1984 article details a refraction procedure for random
+          waves propagating over a plane bottom with straight parallel contours
+          assuming a particular incident spectrum.  This ACES application
+          combines the two approaches by treating directional random waves
+          propagating over a plane bottom with straight parallel contours.
+          This application also uses the theory of Shuto (1974) for the
+          shoaling calculation.  The theories assume a Rayleigh distribution of
+          wave heights in the nearshore zone and a Bretschneider-Mitsuyasu
+          incident directional spectrum.  The processes modeled include: Wave
+          refraction, Wave shoaling, Wave breaking, Wave setup, and Surf beat.
+
+     Combined Diffraction and Reflection by a Vertical Wedge
+
+          This application estimates wave height modification due to combined
+          diffraction and reflection near jettied harbor entrances, quay walls,
+          and other such structures.  Jetties and breakwaters are approximated
+          as a single straight, semi-infinite breakwater by setting the wedge
+          angle to zero.  Corners of docks and quay walls may be represented by
+          setting the wedge angle equal to 90 degrees.  Additionally, such
+          natural diffracting and reflecting obstacles as rocky headlands can
+          be approximated by setting a particular value for the wedge angle.
+
+   STRUCTURAL DESIGN FUNCTIONAL AREA
+
+     Breakwater Design Using Hudson and Related Equations
+
+          A rubble structure is often composed of several layers of
+          random-shaped or random-placed stones, protected with a cover layer
+          of selected armor units of either quarrystone or specially shaped
+          concrete units.  This ACES application provides estimates for the
+          armor weight, minimum crest width, armor thickness, and the number of
+          armor units per unit area of a breakwater using Hudson's and related
+          equations.  The material presented herein can be found in Chapter 7
+          of the SPM (1984).
+
+     Toe Protection Design
+
+          Toe protection consists of armor for the beach or bottom material
+          fronting a structure to prevent wave scour.  This application
+          determines armor stone size and width of a toe protection apron for
+          vertical faced structures such as seawalls, bulkheads, quay walls,
+          breakwaters, and groins.  Apron width is determined by the
+          geotechnical and hydraulic guidelines specified in Engineer Manual
+          1110-2-1614.  Stone size is determined by a method (Tanimoto, Yagyu,
+          and Goda, 1982) whereby a stability equation is applied to a single
+          rubble unit placed at a position equal to the width of the toe apron
+          and subjected to standing waves.
+
+     Nonbreaking Wave Forces on Vertical Walls
+
+          This application provides the pressure distribution and resultant
+          force and moment loading on a vertical wall caused by
+          normally-incident, nonbreaking, regular waves.  The results can be
+          used to design vertical structures in protected or fetch-limited
+          regions when the water depth at the structure is greater than about
+          1.5 times the maximum expected wave height.  The application provides
+          the same results as found using the design curves given in Chapter 7
+          of the SPM (1984).
+
+     Rubble-Mound Revetment Design
+
+          Quarrystone is the most commonly used material for protecting earth
+          embankments from wave attack because, where high-quality stone is
+          available, it provides a stable and unusually durable revetment armor
+          material at relatively low cost.  This ACES application provides
+          estimates for revetment armor and bedding layer stone sizes,
+          thicknesses, and gradation characteristics.  Also calculated are two
+          values of runup on the revetment, an expected extreme, and a
+          conservative runup value.
+
+   WAVE RUNUP, TRANSMISSION, AND OVERTOPPING FUNCTIONAL AREA
+
+     Irregular Wave Runup on Beaches
+
+          This application provides an approach to calculate runup statistical
+          parameters for wave runup on smooth slope linear beaches.  To account
+          for permeable and rough slope natural beaches, the present approach
+          needs to be modified by multiplying the results for the smooth slope
+          linear beaches by a reduction factor.  However, there is no guidance
+          for such a reduction due to the sparsity of good field data on wave
+          runup.  The approach used in this ACES application is based on
+          existing laboratory data on irregular wave runup (Mase and Iwagaki,
+          1984 and Mase, 1989).
+
+     Wave Runup and Overtopping on Impermeable Structures
+
+          This application provides estimates of wave runup and overtopping on
+          rough and smooth slope structures that are assumed to be
+          impermeable.  Run-up heights and overtopping rates are estimated
+          independently or jointly for monochromatic or irregular waves
+          specified at the toe of the structure.  The empirical equations
+          suggested by Ahrens and McCartney (1975), Ahrens and Titus (1985),
+          and Ahrens and Burke (1987) are used to predict runup, and Weggel
+          (1976) to predict overtopping.  Irregular waves are represented by a
+          significant wave height and are assumed to conform to a Rayleigh
+          distribution (Ahrens, 1977).  The overtopping rate is estimated by
+          summing the overtopping contributions from individual runups in the
+          distribution.
+
+     Wave Transmission on Impermeable Structures
+
+          This application provides estimates of wave runup and transmission on
+          rough and smooth slope structures.  It also addresses wave
+          transmission over impermeable vertical walls and composite
+          structures.  In all cases, monochromatic waves are specified at the
+          toe of a structure that is assumed to be impermeable.  For sloped
+          structures, a method suggested by Ahrens and Titus (1985) and Ahrens
+          and Burke (1987) is used to predict runup, while the method of Cross
+          and Sollitt (1971) as modified by Seelig (1980) is used to predict
+          overtopping. For vertical wall and composite structures, a method
+          proposed by Goda, Takeda, and Moriya (1967) and Goda (1969) is used
+          to predict wave transmission.
+
+     Wave Transmission Through Permeable Structures
+
+          Porous rubble-mound structures consisting of quarry stones of various
+          sizes often offer an attractive solution to the problem of protecting
+          a harbor against wave action.  It is important to assess the
+          effectiveness of a given breakwater design by predicting the amount
+          of wave energy transmitted by the structure.  This application
+          determines wave transmission coefficients and transmitted wave
+          heights for permeable breakwaters with crest elevations at or above
+          the still-water level.  This application can be used with breakwaters
+          armored with stone or artificial armor units.  The application uses a
+          method developed for predicting wave transmission by overtopping
+          coefficients using the ratio of breakwater freeboard to wave runup
+          (suggested by Cross and Sollitt, 1971).  The wave transmission by
+          overtopping prediction method is then combined with the model of wave
+          reflection and wave transmission through permeable structures of
+          Madsen and White (1976).  Seelig (1979,1980) had developed a similar
+          version for mainframe processors.
+
+   LITTORAL PROCESSES FUNCTIONAL AREA
+
+     Longshore Sediment Transport
+
+          This application provides estimates of the potential longshore
+          transport rate under the action of waves.  The method used is based
+          on the empirical relationship between the Longshore component of wave
+          energy flux entering the surf zone and the immersed weight of sand
+          moved (Galvin, 1979).  Two methods are available to the user
+          depending on whether available input data are breaker wave height and
+          direction or deepwater wave height and direction.
+
+     Numerical Simulation of Time-Dependent Beach and Dune Erosion
+
+          This application is a numerical beach and dune erosion model that
+          predicts the evolution of an equilibrium beach profile from
+          variations in water level and breaking wave height as occur during a
+          storm.  The model is one-dimensional (only onshore-offshore sediment
+          transport is represented).  It is based on the theory that an
+          equilibrium profile results from uniform wave energy dissipation per
+          unit volume of water in the surf zone.  The general characteristics
+          of the model are based on a model described by Kriebel (1982, 1984a,
+          1984b, 1986).  Because of the complexity of this methodology and the
+          input requirements, familiarization with the above references is
+          strongly recommended.
+
+     Calculation of Composite Grain-Size Distributions
+
+          The major concern in the design of a sediment sampling plan for
+          beach-fill purposes is determining the composite grain size
+          characteristics of both the native beach and the potential borrow
+          site.  This application calculates a composite grain size
+          distribution that reflects textural variability of the samples
+          collected at the native beach or the potential borrow area.
+
+     Beach Nourishment Overfill Ratio and Volume
+
+          The methodologies represented in this ACES application provide two
+          approaches to the planning and design of nourishment projects.  The
+          first approach is the calculation of the overfill ratio, which is
+          defined as the volume of actual borrow material required to produce a
+          unit volume of usable fill.  The second approach is the calculation
+          of a renourishment factor which is germane to the long-term
+          maintenance of a project, and addresses the basic question of how
+          often renourishment will be required if a particular borrow source is
+          selected that is texturally different from the native beach sand.
+
+   INLET PROCESSES FUNCTIONAL AREA
+
+     A Spatially Integrated Numerical Model for Inlet Hydraulics
+
+          This application is a numerical model that estimates coastal inlet
+          velocities, discharges, and bay levels as functions of time for a
+          given time-dependent sea level fluctuation.  Inlet hydraulics are
+          predicted in this model by simultaneously solving the time-dependent
+          momentum equation for flow in the inlet and the continuity equation
+          relating the bay and sea levels to inlet discharge.  The model is
+          designed for cases where the bay water level fluctuates uniformly
+          throughout the bay and the volume of water stored in the inlet
+          between high and low water is negligible compared with the tidal
+          prism of water that moves through the inlet and is stored in the
+          bay.  The model has been previously described by Seelig (1977) and
+          Seelig, Harris, and Herchenroder (1977).
+
+                              SYSTEM REQUIREMENTS
+
+
+     ACES is designed to run on IBM PC-AT (or compatible) machines with 640 Kb
+memory, a hard drive, and an 80287 math co-processor. The screen displays in
+ACES are designed in color. A color adaptor and monitor ( EGA, PGA, or CGA) are
+preferable. Some monochrome display adaptors and monitors will also work. A
+printer is recommended, but not required.  ACES is distributed on one high
+density diskette.
+
+                                  AVAILABILITY
+
+Copies of version 1.07 may be obtained by forwarding a request to:
+
+               US Army Engineer Waterways Experiment Station
+               ATTN:  CEWES-CR
+               3909 Halls Ferry Road
+               Vicksburg, MS 39180-6199
+               <A HREF="MAILTO:a.sherlock@cerc.wes.army.mil">a.sherlock@cerc.wes.army.mil</A>
+
+                                   REFERENCES
+
+
+Ahrens, J. P., and Burke, C. E.  1987.  Unpublished notes of modifications to
+     method cited in above reference.
+
+Ahrens, J. P., and McCartney B. L.  1975.  "Wave Period Effect on the Stability
+     of Riprap," Proceedings of Civil Engineering in the Oceans/III, American
+     Society of Civil Engineers, pp. 1019-1034.
+
+Ahrens, J. P., and Titus, M. F.  1985.  "Wave Runup Formulas for Smooth
+     Slopes," Journal of Waterway, Port, Coastal and Ocean Engineering,
+     American Society of Civil Engineers, Vol. 111, No. 1, pp. 128-133.
+
+Ahrens, J. P.  1977.  "Prediction of Irregular Wave Overtopping," CERC CETA
+     77-7, US Army Engineer Waterways Experiment Station, Vicksburg, MS.
+
+Cross, R. and Sollitt, C.  1971. "Wave Transmission by Overtopping," Technical
+     Note No. 15, Massachusetts Institute of Technology, Ralph M. Parsons
+     Laboratory.
+
+Galvin, C. J.  1979.  "Relation Between Immersed Weight and Volume Rates of
+     Longshore Transport," TP 79-1, U.S. Army, Corps of Engineers, Coastal
+     Engineering Research Center, Fort Belvoir, VA.
+
+Goda, Y., Takeda, H., and Moriya, Y.  1967. "Laboratory Investigation of Wave
+     Transmission over Breakwaters," Report of the Port and Harbour Research
+     Institute, No. 13.
+
+Goda, Y.  1969. "Reanalysis of Laboratory Data on Wave Transmission over
+     Breakwaters," Report of the Port and Harbour Research Institute, Vol. 18,
+     No. 3.
+
+Goda, Y.  1975. "Irregular Wave Deformation in the Surf Zone," Coastal
+     Engineering in Japan, Vol. 18, pp. 13-26.
+
+Goda, Y.  1984. Random Seas & Design of Maritime Structures, University of
+     Tokyo Press, pp. 41-46.
+
+Goda, Y.  1988.  "On the Methodology of Selecting Design Wave Height,"
+     Proceedings, Twenty-first Coastal Engineering Conference, American Society
+     of Civil Engineers, Costa del Sol-Malaga, Spain, pp. 899-913.
+
+Hardy, T. A. and Kraus, N. C. 1987. "A Numerical Model for Shoaling and
+     Refraction of Second-Order Cnoidal Waves Over an Irregular Bottom,"
+     Miscellaneous Paper CERC-87-9, US Army Engineer Waterways Experiment
+     Station, Vicksburg, MS.
+
+Headquarters, Department of the Army. 1985. "Design of Coastal Revetments,
+     Seawalls, and Bulkheads," Engineer Manual 1110-2-1614, Washington, D.C.,
+     Chap. 2, pp. 15-19.
+
+Hughes, S. A., and Borgman, L. E.  1987.  "Beta-Rayleigh Distribution for
+     Shallow Water Wave Heights," Proceedings of the ASCE Specialty Conference
+     on Coastal Hydrodynamics, ASCE, pp. 17-31.
+
+Isobe, M. 1985. "Calculation and Application of First-Order Cnoidal Wave
+     Theory," Coastal Engineering, Vol. 9, pp. 309-325.
+
+Kriebel, D. L.  1982.  "Beach and Dune Response to Hurricanes," M. S. Thesis,
+     Department of Civil Engineering, University of Delaware, Newark, NJ.
+
+Kriebel, D. L.  1984a.  "Beach Erosion Model (EBEACH) Users Manual, Volume I:
+     Description of Computer Model," Beach and Shores Technical and Design
+     Memorandum No. 84-5-I, Division of Beaches and Shores, Florida Department
+     of Natural Resources, Tallahassee, FL.
+
+Kriebel, D. L.  1984b.  "Beach Erosion Model (EBEACH) Users Manual, Volume II:
+     Theory and Background," Beach and Shores Technical and Design Memorandum
+     No. 84-5-II, Division of Beaches and Shores, Florida Department of Natural
+     Resources, Tallahassee, FL.
+
+Kriebel, D. L.  1986.  "Verification Study of a Dune Erosion Model," Shore and
+     Beach, Vol. 54, No. 3, pp. 13-21.
+
+Madsen, O. S. and White, S. M.  1976. "Reflection and Transmission
+     Characteristics of Porous Rubble-Mound Breakwaters," MR 76-5, U.S. Army,
+     Corps of Engineers, Coastal Engineering Research Center, Fort Belvoir, VA.
+
+Mase, H., And Iwagaki, Y.  1984.  "Runup of Random Waves on Gentle Slopes,"
+     Proceedings of the 19th International Conference on Coastal Engineering,
+     Houston, TX, American Society Civil Engineers, pp. 593-609.
+
+Mase, H. 1989.  "Random Wave Runup Height on Gentle Slopes," Journal of the
+     Waterway, Port, Coastal, and Ocean Engineering Division, American Society
+     Civil Engineers, Vol. 115, No. 5, pp 649-661.
+
+Seelig, W. N., Harris, D. L. And Herchenroder, B. E. 1977. "A Spatially
+     Integrated Numerical Model of Inlet Hydraulics," GITI Report 14, U.S. Army
+     Corps of Engineers, Coastal Engineering Research Center, Fort Belvoir, VA.
+
+Seelig, W. N.  1977. "A Simple Computer Model for Evaluating Coastal Inlet
+     Hydraulics," CETA 77-1, U.S. Army Corps of Engineers, Coastal Engineering
+     Research Center, Fort Belvoir, VA.
+
+Seelig, W. N.  1979. "Estimation of Wave Transmission Coefficients for
+     Permeable Breakwaters," CETA 79-6, U.S.Army, Corps of Engineers, Coastal
+     Engineering Research Center, Fort Belvoir, VA.
+
+Seelig, W. N.  1980. "Two-Dimensional Tests of Wave Transmission and Reflection
+     Characteristics of Laboratory Breakwaters," TR 80-1, U.S. Army Corps of
+     Engineers, Coastal Engineering Research Center, Fort Belvoir, VA.
+
+Shore Protection Manual.  1984.  4th ed., 2 Vols., US Army Engineer Waterways
+     Experiment Station, Coastal Engineering Research Center, US Government
+     Printing Office, Washington, DC.
+
+Singamsetti, S. R., and Wind, H. G.  1980.  "Characteristics of Shoaling and
+     Breaking Periodic Waves Normally Incident to Plane Beaches of Constant
+     Slope," Breaking Waves Publication No.  M1371, Waterstaat, The
+     Netherlands, pp. 23-27.
+
+Shuto, N. 1974. "Nonlinear Long Waves in a Channel of Variable Section,"
+     Coastal Engineering in Japan, Vol. 17, pp. 1-12.
+
+Tanimoto, K., Yagyu, T., and Goda, Y. 1982. "Irregular Wave Tests for Composite
+     Breakwater Foundations,"  Proceedings of the 18th Coastal Engineering
+     Conference, American Society of Civil Engineers, Cape Town, Republic of
+     South Africa, Vol. III, pp. 2144-2161.
+
+Weggel, J. R.  1972.  "Maximum Breaker Height," Journal of Waterways, Harbors
+     and Coastal Engineering Division,  American Society of Civil Engineers,
+     Vol. 98,  No. WW4,  pp. 529-548.
+</PRE>

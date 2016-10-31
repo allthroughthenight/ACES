@@ -1,0 +1,23 @@
+
+def AcesCall(formVars):
+    import subprocess
+    
+    WaveHeight=float(formVars['waveHeight'])
+    WaveHeight=min(WaveHeight,3.2) ## set maximum val
+    
+    WavePeriod=float(formVars['wavePeriod'])
+    WavePeriod=min(WavePeriod,20.0) ## set maximum val
+    
+    WaveBrk=float(formVars['waveBrk'])
+    WaveBrk=min(WaveBrk,0.85) ## set maximum val
+
+    WaterDepth=float(formVars['waterDepth'])
+    WaterDepth=min(WaterDepth,0.85) ## set maximum val    
+
+    varList="H=%(H)f;T=%(T)f;d=%(d)f;" %dict(H=WaveHeight,T=WavePeriod,d=WaterDepth)
+    varDict=dict(varList=varList, octFile=request.folder+'/models/Waves/linear_wave_theory.m')
+    cmdString='octave -q --eval="%(varList)ssource(\'%(octFile)s\')"' % varDict
+    a=subprocess.Popen(cmdString, shell=True, stdout=subprocess.PIPE)
+    out,err=a.communicate()
+    session.WaveHeight=WaveHeight
+    return out
