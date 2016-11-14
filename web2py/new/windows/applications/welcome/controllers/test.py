@@ -3,9 +3,9 @@ import sys
 import subprocess
 
 def listing():
-    functionCall = "Listing call"
-    return functionCall
+    ls = os.system("ls")
+    return ls
 
 def hello():
     directory = listing()
-    return listing()
+    return "This is the 'main' call with the directory listing: %i" % directory
