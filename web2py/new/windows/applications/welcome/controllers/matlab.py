@@ -6,7 +6,7 @@ def function():
     functionReturn = os.system('matlab.exe -nodesktop -nosplash -r C:/Users/undergradSTUDENT_1/Documents/aces/matlab/driver/beach_nourishment.m')
     #return functionReturn
 
-def list():
+def start():
     call = function()
     string = "This is the 'start' function calling matlab"
     return string
