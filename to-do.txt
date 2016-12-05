@@ -1,0 +1,7 @@
+docs http://www.web2py.com/books/default/chapter/29/00/preface
+vid1 https://www.youtube.com/playlist?list=PLG0pjuN991OmU891IjbxOss3kYEz_JMR7
+vid2 https://www.youtube.com/playlist?list=PL5E2E223FE3777851
+do tut https://www.digitalocean.com/community/tutorials/how-to-use-the-web2py-framework-to-quickly-build-your-python-app
+web2py 40:00
+use 'octave beta_rayleigh.m' as test function
+able to call function, but not correct formatting
