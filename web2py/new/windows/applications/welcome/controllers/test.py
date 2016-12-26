@@ -2,10 +2,11 @@ import os
 import sys
 import subprocess
 
-def listing():
-    ls = os.system("ls")
-    return ls
+def function():
+    functionReturn = "function call"
+    return functionReturn
 
 def hello():
-    directory = listing()
-    return "This is the 'main' call with the directory listing: %i" % directory
+    call = function()
+    string = "This is the 'hello' function plus the " + call
+    return string
