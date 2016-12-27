@@ -1,7 +1,0 @@
-db.define_table('linearWaveForm',
-                Field('waveHeight','double','default',0.5),
-                Field('wavePeriod','double'),
-                Field('waveBreakRatio','double'),
-    )
-
-db.linearWaveForm.waveHeight.requires<99.00
