@@ -1,0 +1,62 @@
+Functional Area
+	Application Name
+		MATLAB file
+		view, action/function, controller, TBD, etc...
+--------------------------------------------
+Inlet Processes
+	A Spatially Integrated Numerical Model for Inlet Hydraulics
+
+Littoral Processes
+	Beach Nourishment Overfill Ration and Volume
+		beach_nourishment.m
+	Calculation of Composite Grain-Size Distribution
+		compositeGrain.m
+	Longshore Sediment Transport
+		longshore_trans.m
+	Numerical Simulation of Time-Dependent Beach and Dune Erosion
+
+Structural Design
+	Breakwater Design Using Hudson and Related Equations
+		breakwater_Hudson.m
+	Nonbreaking Wave Forces on Vertical Walls
+		wave_forces.m -
+	Rubble-Mound Revetment Design
+		rubble_mound.m -
+	Toe Protection Design
+		toe_design.m
+
+Wave Prediction
+	Beta-Rayleigh distributions
+		beta_rayleigh.m
+	Constituent Tide Record Generation
+		tide_generation.m
+	Extremal Significant Wave Height Analysis
+		ext_Hs_analysis.m
+	Windspeed Adjustment and Wave Growth
+		wind_adj.m
+
+Wave Runup, Transmission, and Overtopping
+	Irregular Wave Runup on Beaches
+		irregular_runup.m
+	Wave Runup and Overtopping on Impermeable Structures
+		runup_overtopping.m
+	Wave Transmission on Impermeable Structures
+		wavetrans_imperm.m
+	Wave Transmission Trough Permeable Structures
+		wavetrans_perm.m
+
+Wave Theory
+	Cnoidal Wave Theory
+		cnoidal_wave_theory.m
+	Fourier Series Wave Theory
+		fourier.m
+	Linear Wave Theory
+		linear_wave_theory.m
+
+Wave Transformation
+	Combined Diffraction and Refraction by a Vertical Wedge
+		refdiff_vert_wedge.m
+	Irregular Wave Transformation (Goda's method)
+		irr_wave_trans.m
+	Linear Wave Theory with Snell's Law
+		snells_law.m
