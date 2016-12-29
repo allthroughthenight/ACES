@@ -29,8 +29,8 @@ response.google_analytics_id = None
 # ----------------------------------------------------------------------------------------------------------------------
 
 response.menu = [
-    (T('Home'), False, URL('aces', 'index'), []),
-    (T('Inlet Process'), False, '#', []),
+    (T('Home'), False, URL('aces', 'default', 'index'), []),
+    (T('Inlet Process'), False, URL('aces', 'test', 'inlet_process'), []),
     (T('Littoral Proceess'),False, '#', [
         (T('Beach Nourishment'), False, '#'),
         (T('Composite Grain-Size Distrobution'), False, '#'),
