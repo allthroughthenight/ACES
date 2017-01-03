@@ -4,12 +4,12 @@ Functional Area
 		view, action/function, controller, TBD, etc...
 --------------------------------------------
 Inlet Processes
-	A Spatially Integrated Numerical Model for Inlet Hydraulics
+X	A Spatially Integrated Numerical Model for Inlet Hydraulics
 
 Littoral Processes
-	Beach Nourishment Overfill Ration and Volume
+X	Beach Nourishment Overfill Ration and Volume
 		beach_nourishment.m
-	Calculation of Composite Grain-Size Distribution
+X	Calculation of Composite Grain-Size Distribution
 		compositeGrain.m
 	Longshore Sediment Transport
 		longshore_trans.m
