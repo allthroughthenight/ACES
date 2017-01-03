@@ -1,46 +1,35 @@
+<<<<<<< HEAD
 docs http://www.web2py.com/books/default/chapter/29/00/preface
 vid1 https://www.youtube.com/playlist?list=PLG0pjuN991OmU891IjbxOss3kYEz_JMR7
 vid2 https://www.youtube.com/playlist?list=PL5E2E223FE3777851
 do tut https://www.digitalocean.com/community/tutorials/how-to-use-the-web2py-framework-to-quickly-build-your-python-app
 web2py 40:00
+=======
+docs
+	http://www.web2py.com/books/default/chapter/29/00/preface
+Massimo Di Pierro series
+	https://www.youtube.com/playlist?list=PLG0pjuN991OmU891IjbxOss3kYEz_JMR7
+	vid 1
+		buttons and fields - 40 min
+do tut
+	https://www.digitalocean.com/community/tutorials/how-to-use-the-web2py-framework-to-quickly-build-your-python-app
+
+>>>>>>> web2py
 use 'octave beta_rayleigh.m' as test function
+
 able to call function, but not correct formatting
 
+<<<<<<< HEAD
+=======
+about '[design] [request] [responwse] [session] [db tables] [db stats]' menu
+	located in 'app'/views/generic.html
+	looking at code, looks like only shown when ip is set to local host, so don't adjust unless visibile in actual production
+
+>>>>>>> web2py
 make 'global' menu
 	main options are function areas
 	function ares drop downs are there respective application name
 	taken from 'aces/aces/docs/aces.html'
-		Functional Area 	    Application Name
-		--------------------------------------------
-		Inlet Processes             A Spatially Integrated Numerical Model for Inlet Hydraulics
-
-		Littoral Processes          Beach Nourishment Overfill Ration and Volume
-		                            Calculation of Composite Grain-Size Distribution
-		                            Longshore Sediment Transport
-					    Numerical Simulation of Time-Dependent Beach and Dune Erosion
-
-		Structural Design           Breakwater Design Using Hudson and Related Equations
-					    Nonbreaking Wave Forces on Vertical Walls
-					    Rubble-Mound Revetment Design
-					    Toe Protection Design
-
-		Wave Prediction 	    Beta-Rayleigh distributions
-					    Constituent Tide Record Generation
-					    Extremal Significant Wave Height Analysis
-		                            Windspeed Adjustment and Wave Growth
-
-		Wave Runup, Transmission,   Irregular Wave Runup on Beaches
-		 and Overtopping            Wave Runup and Overtopping on Impermeable Structures
-					    Wave Transmission on Impermeable Structures
-					    Wave Transmission Trough Permeable Structures
-
-		Wave Theory 		    Cnoidal Wave Theory
-					    Fourier Series Wave Theory
-		                            Linear Wave Theory
-
-		Wave Transformation 	    Combined Diffraction and Refraction by a Vertical Wedge
-					    Irregular Wave Transformation (Goda's method)
-		                            Linear Wave Theory with Snell's Law
 
 application 'template'
 	title of application
