@@ -16,7 +16,7 @@ X	Calculation of Composite Grain-Size Distribution
 	Numerical Simulation of Time-Dependent Beach and Dune Erosion
 
 Structural Design
-	Breakwater Design Using Hudson and Related Equations
+*	Breakwater Design Using Hudson and Related Equations
 		breakwater_Hudson.m
 	Nonbreaking Wave Forces on Vertical Walls
 		wave_forces.m -
