@@ -33,10 +33,20 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
-H=3.75;
-alpha=12.00;
-K=0.39; 
-g=32.17;
+%H=3.75;
+%alpha=12.00;
+%K=0.39; 
+%g=32.17;
+
+arg_list = argv();
+
+% cli args explained "octave longshore_trans.m option H alpha K g"
+
+option=str2num(arg_list{1});
+H=str2num(arg_list{2});
+alpha=str2num(arg_list{3});
+K=str2num(arg_list{4});
+g=str2num(arg_list{5});
 
 rho=1.989; %(64 lb/ft^3)/g = 1.989 slugs/ft^3
 rhos=165.508/g; %bulk density of quartz is 165.508 lb/ft^3 - 165.508/g=5.14
@@ -45,7 +55,7 @@ fprintf('%s \n\n','Calculation options: ');
 fprintf('%s \n','[1] Transport using deepwater wave conditions')
 fprintf('%s \n\n','[2] Transport using breaking wave conditions')
 
-option=input('Select option: ');
+%option=input('Select option: ');
 fprintf('\n')
 
 if option==1
