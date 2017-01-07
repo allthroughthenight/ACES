@@ -3,7 +3,9 @@ docs
 Massimo Di Pierro series
 	https://www.youtube.com/playlist?list=PLG0pjuN991OmU891IjbxOss3kYEz_JMR7
 	vid 1
-		buttons and fields - 40 min
+		buttons and fields - 25-40 min
+'Hello World'
+	https://www.youtube.com/watch?v=BXzqmHx6edY
 do tut
 	https://www.digitalocean.com/community/tutorials/how-to-use-the-web2py-framework-to-quickly-build-your-python-app
 
