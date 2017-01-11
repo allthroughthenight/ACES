@@ -53,6 +53,7 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
+#{
 H=2.0;
 T=10.0;
 ds=9.6;
@@ -65,6 +66,22 @@ b=8.5;
 numlay=1;
 th=[9.60];
 hlen=[25.60];
+#}
+
+arg_list = argv();
+
+H=str2num(arg_list{1});
+T=str2num(arg_list{2});
+ds=str2num(arg_list{3});
+nummat=str2num(arg_list{4});
+d50=str2num(arg_list{5});
+por=str2num(arg_list{6});
+hs=str2num(arg_list{7});
+cotssl=str2num(arg_list{8});
+b=str2num(arg_list{9});
+numlay=str2num(arg_list{10});
+th=str2num(arg_list{11});
+hlen=str2num(arg_list{12});
 
 g=32.17;
 nu=0.0000141; %ft^2/s

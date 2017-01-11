@@ -60,12 +60,23 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
+#{
 H1=10;
 T=7.50;
 d1=25;
 alpha1=10.0;
 cotphi=100;
 d2=20;
+#}
+
+arg_list = argv();
+
+H1=str2num(arg_list{1});
+T=str2num(arg_list{2});
+d1=str2num(arg_list{3});
+alpha1=str2num(arg_list{4});
+cotphi=str2num(arg_list{5});
+d2=str2num(arg_list{6});
 
 rho=1.989;
 g=32.17;

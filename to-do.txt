@@ -9,10 +9,6 @@ Massimo Di Pierro series
 do tut
 	https://www.digitalocean.com/community/tutorials/how-to-use-the-web2py-framework-to-quickly-build-your-python-app
 
-use 'octave beta_rayleigh.m' as test function
-
-able to call function, but not correct formatting
-
 about '[design] [request] [responwse] [session] [db tables] [db stats]' menu
 	located in 'app'/views/generic.html
 	looking at code, looks like only shown when ip is set to local host, so don't adjust unless visibile in actual production

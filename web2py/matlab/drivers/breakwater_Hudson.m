@@ -38,6 +38,7 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
+#{
 unitwt=165;
 H=11.50;
 Kd=10.0;
@@ -45,6 +46,17 @@ kdelt=1.02;
 P=54.0;
 cotssl=2.00;
 n=2;
+#}
+
+arg_list = argv();
+
+unitwt=str2num(arg_list{1});
+H=str2num(arg_list{2});
+Kd=str2num(arg_list{3});
+kdelt=str2num(arg_list{4});
+P=str2num(arg_list{5});
+cotssl=str2num(arg_list{6});
+n=str2num(arg_list{7});
 
 g=32.17;
 rho=1.989;

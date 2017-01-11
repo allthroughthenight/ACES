@@ -2,21 +2,24 @@ Functional Area
 	Application Name
 		MATLAB file
 		view, action/function, controller, TBD, etc...
+	Key
+		X not available
+		* need engieering guidance
 --------------------------------------------
 Inlet Processes
 X	A Spatially Integrated Numerical Model for Inlet Hydraulics
 
 Littoral Processes
-X	Beach Nourishment Overfill Ration and Volume
+*	Beach Nourishment Overfill Ration and Volume
 		beach_nourishment.m
-X	Calculation of Composite Grain-Size Distribution
+*	Calculation of Composite Grain-Size Distribution
 		compositeGrain.m
 	Longshore Sediment Transport
 		longshore_trans.m
-	Numerical Simulation of Time-Dependent Beach and Dune Erosion
+X	Numerical Simulation of Time-Dependent Beach and Dune Erosion
 
 Structural Design
-*	Breakwater Design Using Hudson and Related Equations
+	Breakwater Design Using Hudson and Related Equations
 		breakwater_Hudson.m
 	Nonbreaking Wave Forces on Vertical Walls
 		wave_forces.m -
@@ -28,19 +31,19 @@ Structural Design
 Wave Prediction
 	Beta-Rayleigh distributions
 		beta_rayleigh.m
-	Constituent Tide Record Generation
+*	Constituent Tide Record Generation
 		tide_generation.m
-	Extremal Significant Wave Height Analysis
-		ext_Hs_analysis.m
-	Windspeed Adjustment and Wave Growth
+*	E*tremal Significant Wave Height Analysis
+		e*t_Hs_analysis.m
+*	Windspeed Adjustment and Wave Growth
 		wind_adj.m
 
 Wave Runup, Transmission, and Overtopping
 	Irregular Wave Runup on Beaches
 		irregular_runup.m
-	Wave Runup and Overtopping on Impermeable Structures
+*	Wave Runup and Overtopping on Impermeable Structures
 		runup_overtopping.m
-	Wave Transmission on Impermeable Structures
+*	Wave Transmission on Impermeable Structures
 		wavetrans_imperm.m
 	Wave Transmission Trough Permeable Structures
 		wavetrans_perm.m
@@ -48,7 +51,7 @@ Wave Runup, Transmission, and Overtopping
 Wave Theory
 	Cnoidal Wave Theory
 		cnoidal_wave_theory.m
-	Fourier Series Wave Theory
+*	Fourier Series Wave Theory
 		fourier.m
 	Linear Wave Theory
 		linear_wave_theory.m

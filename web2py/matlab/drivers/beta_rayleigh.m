@@ -33,9 +33,17 @@ clc
 %------------------------------------------------------------
 addpath('../functions'); % Path to functions folder
 
+#{
 Hmo=10.0;
 Tp=11.5;
 d=25.00;
+#}
+
+arg_list = argv();
+
+Hmo=str2num(arg_list{1});
+Tp=str2num(arg_list{2});
+d=str2num(arg_list{3});
 
 ft2m=0.3048;
 g=32.17;
@@ -159,10 +167,12 @@ Hmed=H(index(1));
 
 table=cat(2,H',p');
 
+#{
 plot(Hout(2),0,'ks',Hout(3),0,'ro',Hout(4),0,'bd',Hrms,0,'g*',Hmed,0,'m^',table(:,1),table(:,2));
 legend('H_{1/3}','H_{1/10}','H_{1/100}','H_{rms}','H_{med}')
 xlabel('H [m]')
 ylabel('Probability density p(H)')
+#}
 
 fprintf('\n %s \n','Wave heights')
 fprintf('\t %s \t\t %-6.2f \n','Hrms',Hrms)
