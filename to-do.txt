@@ -23,3 +23,7 @@ application 'template'
 	input fields
 	take input, pass to octave, print output
 	history of past computations (session states
+modules to check out
+	matplotlib.org
+	plot.ly/python
+	pypi.python.org/pypi/oct2py
