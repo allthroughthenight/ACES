@@ -22,8 +22,17 @@ application 'template'
 	title of application
 	input fields
 	take input, pass to octave, print output
-	history of past computations (session states
+	history of past computations (session states?)
+
 modules to check out
 	matplotlib.org
 	plot.ly/python
 	pypi.python.org/pypi/oct2py
+
+ramblings
+* check 'OTHER' variable, 'ft2m' constant, and if all input should just be metric
+	find which .m files graphing isn't working, or doesn't work at all
+	put all functions on home page page
+	double check fortran app for input style
+	have input along side output
+	how to format octave out for web2py
