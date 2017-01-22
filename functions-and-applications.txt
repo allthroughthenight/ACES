@@ -4,47 +4,82 @@ Functional Area
 		view, action/function, controller, TBD, etc...
 	Key
 		X not available
-		* need engieering guidance
+		* engieering issue
+		# dev issue
+		$ 'OTHER' variables as arguments?
 --------------------------------------------
 Inlet Processes
 X	A Spatially Integrated Numerical Model for Inlet Hydraulics
 
 Littoral Processes
-*	Beach Nourishment Overfill Ration and Volume
+*$	Beach Nourishment Overfill Ration and Volume
 		beach_nourishment.m
+		**
+			'R_A' undefined
+			error: 'R_A' undefined near line 82 column 9
+			error: called from
+	    beach_nourishment.m at line 82 column 7
+		$
+			should they be arguments?
+
 *	Calculation of Composite Grain-Size Distribution
 		compositeGrain.m
-	Longshore Sediment Transport
+		**
+			incomplete driver
+$	Longshore Sediment Transport
 		longshore_trans.m
+
 X	Numerical Simulation of Time-Dependent Beach and Dune Erosion
 
 Structural Design
 	Breakwater Design Using Hudson and Related Equations
 		breakwater_Hudson.m
+
 	Nonbreaking Wave Forces on Vertical Walls
-		wave_forces.m -
+		wave_forces.m
+
 	Rubble-Mound Revetment Design
-		rubble_mound.m -
+		rubble_mound.m
+
 	Toe Protection Design
 		toe_design.m
 
 Wave Prediction
-	Beta-Rayleigh distributions
+*$	Beta-Rayleigh distributions
 		beta_rayleigh.m
+		**
+			have 'ft2m' constant but no option to input either, relevant?
+		$
+			not 'OTHER' variables. Design choice, removed, or incomplete
+
 *	Constituent Tide Record Generation
 		tide_generation.m
-*	E*tremal Significant Wave Height Analysis
-		e*t_Hs_analysis.m
-*	Windspeed Adjustment and Wave Growth
+		**
+			expect to read'tides.txt' file
+			error: textscan: first argument must be a file id or character string
+			error: called from
+    	textscan at line 108 column 5
+    	tide_generation at line 67 column 3
+#	Extremal Significant Wave Height Analysis
+		ext_Hs_analysis.m
+		##
+			how to represent 'Confidence intervals' input
+#	Windspeed Adjustment and Wave Growth
 		wind_adj.m
+		##
+			how to represent 'Wind observation types' and 'Wind fetch and wave growth options'
 
 Wave Runup, Transmission, and Overtopping
 	Irregular Wave Runup on Beaches
 		irregular_runup.m
-*	Wave Runup and Overtopping on Impermeable Structures
+#	Wave Runup and Overtopping on Impermeable Structures
 		runup_overtopping.m
-*	Wave Transmission on Impermeable Structures
+		##
+			how to represent 'Calculation and slope type options'
+#	Wave Transmission on Impermeable Structures
 		wavetrans_imperm.m
+		##
+			how to represent 'Calculation and slope type options'
 	Wave Transmission Trough Permeable Structures
 		wavetrans_perm.m
 
@@ -53,6 +88,11 @@ Wave Theory
 		cnoidal_wave_theory.m
 *	Fourier Series Wave Theory
 		fourier.m
+		**
+			problem with 'ERRWAVBRK' function
+			error: element number 2 undefined in return list
+			error: called from
+	fourier at line 64 column 11
 	Linear Wave Theory
 		linear_wave_theory.m
 
