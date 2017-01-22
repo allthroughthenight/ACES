@@ -8,7 +8,6 @@ Massimo Di Pierro series
 	https://www.youtube.com/watch?v=BXzqmHx6edY
 do tut
 	https://www.digitalocean.com/community/tutorials/how-to-use-the-web2py-framework-to-quickly-build-your-python-app
-
 about '[design] [request] [responwse] [session] [db tables] [db stats]' menu
 	located in 'app'/views/generic.html
 	looking at code, looks like only shown when ip is set to local host, so don't adjust unless visibile in actual production
@@ -27,3 +26,6 @@ modules to check out
 	matplotlib.org
 	plot.ly/python
 	pypi.python.org/pypi/oct2py
+
+redux
+"web-based ipython notebook. There, detailed tutorial information, such as inputs, outputs, code execution, and code comments can be included"
