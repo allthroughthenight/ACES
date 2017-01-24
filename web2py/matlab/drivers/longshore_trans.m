@@ -33,14 +33,16 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
-%H=3.75;
-%alpha=12.00;
-%K=0.39; 
-%g=32.17;
+#{
+H=3.75;
+alpha=12.00;
+K=0.39; 
+g=32.17;
+#}
 
 arg_list = argv();
 
-% cli args explained "octave longshore_trans.m option H alpha K g"
+% cli args "octave longshore_trans.m option H alpha K g"
 
 option=str2num(arg_list{1});
 H=str2num(arg_list{2});

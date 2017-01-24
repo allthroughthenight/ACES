@@ -48,6 +48,7 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
+#{
 H=10;
 T=15.0;
 d=25;
@@ -55,6 +56,20 @@ z=-12.5;
 xL=0.5;
 time=0;
 O=2;
+#}
+
+
+arg_list = argv();
+
+H=str2num(arg_list{1});
+T=str2num(arg_list{2});
+d=str2num(arg_list{3});
+z=str2num(arg_list{4});
+xL=str2num(arg_list{5});
+time=str2num(arg_list{6});
+O=str2num(arg_list{7});
+
+
 unitSystem = 'I'; % Use M for metric system and I for imperial 
 water = 'S'; % Use S for seawater and F for freshwater
 
@@ -279,7 +294,7 @@ elseif O==2 %determining m using bisection method
     fprintf('%s \t %-6.2f \t \n','Horz. acceleration',dudt);
     fprintf('%s \t %-6.2f \t \n','Vert. acceleration',dwdt);
     fprintf('%s \t\t\t %-8.2f \t \n','Pressure',pres);
-    
+    #{
     %Plotting waveform
     plotxL=(-1:0.001:1);
     plottheta=2*K*(plotxL-(time/T));
@@ -308,6 +323,7 @@ elseif O==2 %determining m using bisection method
     set(hline,'Color','r','LineStyle','--')
     ylabel('Velocity, w [m/s]')
     xlabel('x/L')
+    #}
 end
 % %
 % %

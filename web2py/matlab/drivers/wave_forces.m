@@ -59,11 +59,21 @@ g=32.17; %ft/sec^2
 rho=1.989; %slugs/ft^3 (sea water)
 H20weight=rho*g;
 
+#{
 d=15;
 Hi=8.0;
 T=10.0;
 chi=1.0;
 cotphi=100.0;
+#}
+
+arg_list = argv();
+
+d=str2num(arg_list{1});
+Hi=str2num(arg_list{2});
+T=str2num(arg_list{3});
+chi=str2num(arg_list{4});
+cotphi=str2num(arg_list{5});
 
 m=1/cotphi;
 
@@ -87,6 +97,7 @@ fprintf('%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \n','Hgt above bottom',MR(
 fprintf('%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \n','Integrated force',MR(2),MR(5),S(2),S(5))
 fprintf('%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \n','Integrated moment',MR(3),MR(6),S(3),S(6))
 
+#{
 figure(1)
 subplot(2,1,1); plot(MRintc(:,2),MRintc(:,1),'k-',MRintc(:,3),MRintc(:,1),'k--',MRintc(:,4),MRintc(:,1),'k:')
 legend('Wave Pressure','Hyrdostatic Pressure','Wave and Hydrostatic Pressue')
@@ -132,4 +143,5 @@ set(hline,'LineStyle','--')
 rectangle('Position',[-50,floor(min(Sintt(:,1))),50,abs(floor(min(Sintt(:,1))))+5],'LineWidth',2)
 hold off
 ylim([floor(min(Sintt(:,1))) abs(floor(min(Sintt(:,1))))-5])
+#}
 

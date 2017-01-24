@@ -44,12 +44,23 @@ addpath('../functions'); % Path to functions folder
 
 %  Chose the units of the inputs in SI (Metric) or Imperial (English) Units
 
+#{
 H=6.30;
 T=8; 
 d=20.0;
 z=-12.0; 
-xL=0.75; 
-unitSystem = 'M'; % Use M for metric system and I for imperial 
+xL=0.75;
+#}
+
+arg_list = argv();
+
+H=str2num(arg_list{1});
+T=str2num(arg_list{2});
+d=str2num(arg_list{3});
+z=str2num(arg_list{4});
+xL=str2num(arg_list{5});
+
+unitSystem = 'M'; % Use M for metric system and I for imperial
 
 %% *********** Don't change anything here ******************
 % Unit system conversion Constants 
@@ -108,6 +119,7 @@ fprintf('%s \t %-6.2f \t %s \n','Horz. acceleration',dudt,'m/s^2');
 fprintf('%s \t %-6.2f \t %s \n','Vert. acceleration',dwdt,'m/s^2');
 fprintf('%s \t\t\t %-8.2f \t %s \n','Pressure',pres,'N/m^2');
 
+#{
 %Plotting waveform
 plotxL=(-1:0.001:1);
 plottheta=plotxL*twopi;
@@ -132,6 +144,7 @@ hline = REFLINE([0 0]);
 set(hline,'Color','r','LineStyle','--')
 ylabel('Velocity, w [m/s]')
 xlabel('x/L')
+#}
 
 
 

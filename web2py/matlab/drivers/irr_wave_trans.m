@@ -48,11 +48,21 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
+#{
 Ho=6.096;
 d=15.24;
 Ts=8.0;
 cotnsl=100.0;
 direc=10.0;
+#}
+
+arg_list = argv();
+
+Ho=str2num(arg_list{1});
+d=str2num(arg_list{2});
+Ts=str2num(arg_list{3});
+cotnsl=str2num(arg_list{4});
+direc=str2num(arg_list{5})
 
 m2cm=100;
 
@@ -65,6 +75,7 @@ assert(Ho<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
 
 [Ks,Kr,Hmax,Hrms,Hbar,Hs,H10,H02,SBrms,HoLo,dLo,dHo,deepd,theta,Sw,Hxo,cdfo,Hx,cdfx]=GODA(Ho,d,Ts,cotnsl,direc,g);
 
+#{
 figure(1)
 plot(Hxo/m2cm,cdfo)
 title('Deep Water')
@@ -76,6 +87,7 @@ plot(Hx/m2cm,cdfx)
 title('Subject Depth')
 xlabel('H [m]')
 ylabel('CDF2')
+#}
 
 fprintf('\t\t %s \t\t %s \n','Subject','Deep')
 fprintf('%s \t\t %-6.2f \t %-6.2f \n','Hs',Hs(2)/m2cm,Hs(1)/m2cm)

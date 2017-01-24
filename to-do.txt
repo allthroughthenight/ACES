@@ -10,9 +10,12 @@ docs
 Massimo Di Pierro series
 	https://www.youtube.com/playlist?list=PLG0pjuN991OmU891IjbxOss3kYEz_JMR7
 	vid 1
-		buttons and fields - 40 min
+		buttons and fields - 25-40 min
+'Hello World'
+	https://www.youtube.com/watch?v=BXzqmHx6edY
 do tut
 	https://www.digitalocean.com/community/tutorials/how-to-use-the-web2py-framework-to-quickly-build-your-python-app
+<<<<<<< HEAD
 
 >>>>>>> web2py
 use 'octave beta_rayleigh.m' as test function
@@ -21,6 +24,8 @@ able to call function, but not correct formatting
 
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> web2py
 about '[design] [request] [responwse] [session] [db tables] [db stats]' menu
 	located in 'app'/views/generic.html
 	looking at code, looks like only shown when ip is set to local host, so don't adjust unless visibile in actual production
@@ -35,4 +40,22 @@ application 'template'
 	title of application
 	input fields
 	take input, pass to octave, print output
-	history of past computations (session states
+	history of past computations (session states?)
+
+modules to check out
+	matplotlib.org
+	plot.ly/python
+	pypi.python.org/pypi/oct2py
+
+<<<<<<< HEAD
+redux
+"web-based ipython notebook. There, detailed tutorial information, such as inputs, outputs, code execution, and code comments can be included"
+=======
+ramblings
+* check 'OTHER' variable, 'ft2m' constant, and if all input should just be metric
+	find which .m files graphing isn't working, or doesn't work at all
+	put all functions on home page page
+	double check fortran app for input style
+	have input along side output
+	how to format octave out for web2py
+>>>>>>> 459b03698362f6b5376eed7e06a0ca505cb39abf

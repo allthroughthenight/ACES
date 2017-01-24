@@ -46,11 +46,22 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
+#{
 Hi=2;
 T=8;
 d=20;
 alpha=135;
 wedgang=15;
+#}
+
+arg_list = argv();
+
+Hi=str2num(arg_list{1});
+T=str2num(arg_list{2});
+d=str2num(arg_list{3});
+alpha=str2num(arg_list{4});
+wedgang=str2num(arg_list{5})
+
 mode=0;
 g=32.17;
 

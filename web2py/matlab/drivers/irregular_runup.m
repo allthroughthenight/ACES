@@ -33,9 +33,18 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
+#{
 Hs0=4.6;
 Tp=9.50;
 cottheta=13.0;
+#}
+
+arg_list = argv();
+
+Hs0=str2num(arg_list{1});
+Tp=str2num(arg_list{2});
+cottheta=str2num(arg_list{3});
+
 g=32.17;
 
 %Coefficients provided by Mase (1989)
