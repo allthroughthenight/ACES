@@ -46,10 +46,6 @@ def snellsLaw(H1, T, d1, alpha1, cotphi, d2):
 
     return output
 
-def testMod(testObj):
-    testObj.H0 = 45
-    return testObj
-
 class SnellOutput:
     # input
     H1 = 0

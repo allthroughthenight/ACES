@@ -1,4 +1,3 @@
-from snells_law import *
 import math
 
 def wavelen(d, T, n, g):
@@ -57,7 +56,22 @@ def lwttwm(cg, h, H, L, reldep, rho, g, k):
 
     if reldep < 0.5:
         setdown = (k * H^2) / (8 * math.sinh(2 * k * h))
-    else
+    else:
         setdown = 0
 
-    return
+    return E, P, Ur, setdown
+
+def errwavbrk1(d, kappa):
+    Hb = kappa * d
+
+    return Hb
+
+def errwavbrk3(Ho, m, Lo):
+    a = 1.36 * (1 - math.exp(-19 * m))
+    b = 1 / (0.64 * (1 + math.exp(-19.5 * m)))
+
+    Hb = Ho * 0.575 * (m**0.031) * ((Ho / Lo)**(-0.254))
+    gamma = b - a * Hb / (T**2)
+    db = Hb / gamma
+
+    return Hb, db
