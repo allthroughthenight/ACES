@@ -23,7 +23,7 @@ clc
 %   z: vertical coordinate (m or ft)
 %   xL: horizontal coordinate as fraction of wavelength (x/L)
 
-%   OUTPUT    
+%   OUTPUT
 %   L: wavelength (m or ft)
 %   C: wave celerity (m/sec or ft/sec)
 %   Cg: group celerity (m/sec or ft/sec)
@@ -45,15 +45,15 @@ addpath('../functions'); % Path to functions folder
 %  Chose the units of the inputs in SI (Metric) or Imperial (English) Units
 
 H=6.30;
-T=8; 
+T=8;
 d=20.0;
-z=-12.0; 
-xL=0.75; 
-unitSystem = 'M'; % Use M for metric system and I for imperial 
+z=-12.0;
+xL=0.75;
+unitSystem = 'M'; % Use M for metric system and I for imperial
 
 %% *********** Don't change anything here ******************
-% Unit system conversion Constants 
-twopi=2*pi; 
+% Unit system conversion Constants
+twopi=2*pi;
 nIteration = 50;
 if unitSystem == 'I'; % imperial
     g=32.17; % gravitational acceleration (ft/sec^2)
@@ -61,7 +61,7 @@ if unitSystem == 'I'; % imperial
 else  unitSystem == 'M'; % metric
     rho = 1025.09; % kg/sec^2
     g = 9.81; % kg/sec^2
-end 
+end
 
 [L,k]=WAVELEN(d,T,nIteration,g);
 
@@ -84,12 +84,12 @@ Cg=0.5*(1+arg)*C;
 E=(1/8)*rho*g*(H^2);
 Ef=E*Cg;
 Ur=L^2*H/(d^3);
-px=(-H/2)*(cosh(k*tot)/sinh(k*d))*sin(theta); 
+px=(-H/2)*(cosh(k*tot)/sinh(k*d))*sin(theta);
 py=(H/2)*(sinh(k*tot)/sinh(k*d))*cos(theta);
-u=(H*pi/T)*(cosh(k*tot)/sinh(k*d))*cos(theta); 
+u=(H*pi/T)*(cosh(k*tot)/sinh(k*d))*cos(theta);
 w=(H*pi/T)*(sinh(k*tot)/sinh(k*d))*sin(theta);
 dudt=(H*2*pi^2/(T^2))*(cosh(k*tot)/sinh(k*d))*sin(theta);
-dwdt=(-H*2*pi^2/(T^2))*(sinh(k*tot)/sinh(k*d))*cos(theta); 
+dwdt=(-H*2*pi^2/(T^2))*(sinh(k*tot)/sinh(k*d))*cos(theta);
 pres=-rho*g*z+rho*g*(H/2)*(cosh(k*tot)/cosh(k*d))*cos(theta);
 
 fprintf('\t\t\t\t\t\t\t\t %s \n','Units');
@@ -121,21 +121,14 @@ subplot(3,1,1); plot(plotxL,ploteta); ylim([min(ploteta)-1 max(ploteta)+1])
 hline = REFLINE([0 0]);
 set(hline,'Color','r','LineStyle','--')
 ylabel('Elevation [m]')
-    
+
 subplot(3,1,2); plot(plotxL,plotu); ylim([min(plotu)-1 max(plotu)+1])
 hline = REFLINE([0 0]);
 set(hline,'Color','r','LineStyle','--')
 ylabel('Velocity, u [m/s]')
-  
+
 subplot(3,1,3); plot(plotxL,plotw); ylim([min(plotw)-1 max(plotw)+1])
 hline = REFLINE([0 0]);
 set(hline,'Color','r','LineStyle','--')
 ylabel('Velocity, w [m/s]')
 xlabel('x/L')
-
-
-
-
-
-
-    
