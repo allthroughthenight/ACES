@@ -1,0 +1,56 @@
+web2py
+	ux
+		double check fortran app for input style
+		have input along side output
+		put all functions on home page page
+		about '[design] [request] [responwse] [session] [db tables] [db stats]' menu
+			located in 'app'/views/generic.html
+			looking at code, only shown when ip is local host, don't adjust unless visibile in actual production
+		'global' menu
+			main options are function areas
+			function ares drop downs are there respective application name
+			taken from 'aces/aces/docs/aces.html'
+		application 'template'
+			title of application
+			input fields
+			take input, pass to octave, print output
+			history of past computations (session states?)
+	modules
+		graphing
+			d3js.org
+				stackoverflow.com/questions/27502909/how-to-generate-graphs-and-charts-on-the-fly-using-web2py
+			github.com/timrichardson/google_charts_plugin/releases
+				web2pyslices.com/slice/show/1721/google-charts-plugin
+			matplotlib.org
+				groups.google.com/forum/#!topic/web2py/sA1h6aDHyjk
+				packtpub.com/mapt/book/web-development/9781849515467/6/ch06lvl1sec83/plotting-with-matplotlib
+				pythonanywhere.com/forums/topic/2233/
+				web2pyslices.com/slice/show/1357/matplotlib-howto
+			plot.ly/python
+			rgraph.net
+				web2pyslices.com/slice/show/1954/web2py-graph-with-rgraph
+			web2pyslices.com/slice/show/1634/beauty-graphics-and-charts-with-pygal-updated
+		octave
+			pypi.python.org/pypi/oct2py
+		convertion
+			github.com/awesomebytes/libermate
+			github.com/victorlei/smop
+			ompc.juricap.com/
+		interfacing
+			stackoverflow.com/questions/9845292/a-tool-to-convert-matlab-code-to-python
+	misc
+		'octave beta_rayleigh.m' as test function
+		input convertion or just metric/imperial?
+			should have convertin option incase doing large input
+	tutorials
+		docs
+			web2py.com/books/default/chapter/29/00/preface
+		Massimo Di Pierro series
+			youtube.com/playlist?list=PLG0pjuN991OmU891IjbxOss3kYEz_JMR7
+			vid 1
+				buttons and fields - 25-40 min
+		'Hello World'
+			youtube.com/watch?v=BXzqmHx6edY
+		digital ocean
+			digitalocean.com/community/tutorials/how-to-use-the-web2py-framework-to-quickly-build-your-python-app
+
