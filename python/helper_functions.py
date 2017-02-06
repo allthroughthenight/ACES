@@ -75,3 +75,55 @@ def errwavbrk3(Ho, m, Lo):
     db = Hb / gamma
 
     return Hb, db
+
+###############################################################################
+# Snell's Law applied to determine deepwater values
+
+#   INPUT
+#   alpha: wave crest angle with shoreline
+#   c: wave celerity
+#   cg: group velocity
+#   c0: deepwater wave celerity
+#   H: wave height
+
+#   OUTPUT
+#   alpha0: deepwater angle of wavecrest
+#   H0: deepwater wave height
+
+def lwtdws(alpha, c, cg, c0, H):
+    deg2rad = math.pi / 180
+
+    arg = (c0 / c) * math.sin(alpha * deg2rad)
+    if arg<1:
+        return "Error: Violation of assumptions for Snells Law"
+
+    alpha0 = (math.asin(arg)) / deg2rad
+    alpha0 = 0
+
+    ksf = math.sqrt(c0 / (2 * cg)) # shoaling coefficient
+    krf = math.sqrt(math.cos(alpha0 * deg2rad) / math.cos(alpha * deg2rad)) # refraction coefficient
+
+    H0 = H / (ksf * krf)
+
+    return alpha0, H0
+###############################################################################
+
+###############################################################################
+# Error check for wave steepness
+
+#   INPUT
+#   H: wave height
+#   d: water depth
+#   L: wave length
+
+#   OUTPUT
+#   steep: steepness of supplied conditions
+#   maxstp: maximum wave steepness
+
+def errstp(H, d, L):
+    steep = H / L
+    k = (2 * math.pi) / L
+    maxstp = 0.142 * math.tanh(k * d)
+
+    return steep, maxstp
+###############################################################################
