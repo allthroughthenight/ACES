@@ -1,23 +1,24 @@
 from helper_functions import *
 import math
 
-def linearWaveTheory(H, T, d, z, xL):
+def linearWaveTheory(H, T, d, z, xL, unitSystem):
     output = LinearWaveTheoryOutput()
     output.H = H
     output.T = T
     output.d = d
     output.z = z
     output.xL = xL
+    output.unitSystem = 'I'
 
     # Converstion section
     twopi = 2 * math.pi
     nIteration = 50
-    # if unitSystem == 'I' % imperial
-    #     g=32.17 % gravitational acceleration (ft/sec^2)
-    #     rho=1.989 % rho/g = 63.99/32.17 lb sec^2/ft^4 (sea water)
-    # else  unitSystem == 'M' % metric
-    rho = 1025.09
-    g = 9.81
+    if unitSystem == 'I': # imperial
+        g=32.17 # gravitational acceleration (ft/sec^2)
+        rho=1.989 # rho/g = 63.99/32.17 lb sec^2/ft^4 (sea water)
+    elif unitSystem == 'M': # metric
+        rho = 1025.09
+        g = 9.81
     # end conversion
 
     output.L, k = wavelen(output.d, output.T, nIteration, g)
@@ -26,13 +27,15 @@ def linearWaveTheory(H, T, d, z, xL):
 
     # Check for monochromatic wave breaking (depth limited - no slope)
     Hb = errwavbrk1(d, 0.78)
-    # if (output.H < Hb):
-    #     return
+    if (output.H >= Hb):
+        print("Error: Input wave broken (Hb = %6.2f m)\n" % (Hb))
+        return
 
     # Check to make sure vertical coordinate is within waveform
     eta = (output.H / 2) * math.cos(theta)
-    # if z < eta and (z + d) > 0:
-    #    return
+    if z >= eta or (z + d) <= 0:
+       print("Error: Point outside waveform.\n")
+       return
 
     # Main computations
     arg = (2 * k * output.d / (math.sinh(2 * k * output.d)))

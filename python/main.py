@@ -6,13 +6,14 @@ def main():
     # temp = snellsLaw(6, 10, 18, 6, 100, 13)
     # temp.toString()
     temp = LinearWaveTheoryOutput()
-    temp = linearWaveTheory(6.30, 8, 20.0, -12.0, 0.75)
-    temp.toString()
+    temp = linearWaveTheory(6.3, 8, 20.0, -12.0, 0.75, 'I')
+    if temp is not None:
+        temp.toString()
 
 main()
 
 # temporarily placing here
-class SnellOutput:
+class LinearWaveTheoryOutput:
     # input
     H1 = 0
     T = 0
