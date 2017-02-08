@@ -1,12 +1,12 @@
 import math
 
 def wavelen(d, T, n, g):
-    Leck = (g * (T^2) * 0.5 / math.pi) * math.sqrt(math.tanh(4 * math.pi * math.pi * d / (T * T * g)))
+    Leck = (g * (T**2) * 0.5 / math.pi) * math.sqrt(math.tanh(4 * math.pi * math.pi * d / (T * T * g)))
 
     L1 = Leck
 
     for i in range(0, n):
-        L2 = (g * (T^2) * 0.5 / math.pi) * math.tanh(2 * math.pi * d / L1)
+        L2 = (g * (T**2) * 0.5 / math.pi) * math.tanh(2 * math.pi * d / L1)
         L1 = L2
 
     L = L2
