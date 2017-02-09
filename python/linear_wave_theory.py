@@ -40,10 +40,7 @@ import math
 #   dwdt: vertical particle accleration (m/sec^2 or ft/sec^2)
 #   pres: pressure (N/m^2 or lb ft^2 )
 ###############################################################################
-def linearWaveTheory(H, T, d, z, xL):
-    # Choose the units of the inputs in SI (Metric) or Imperial (English) Units
-    unitSystem = 'M' # Use M for metric system and I for imperial
-
+def linearWaveTheory(H, T, d, z, xL, unitSystem):
     ## *********** Don't change anything here ******************
     twopi = 2 * math.pi
     nIteration = 50
@@ -60,13 +57,13 @@ def linearWaveTheory(H, T, d, z, xL):
 
     # Check for monochromatic wave breaking (depth limited - no slope)
     Hb = errwavbrk1(d, 0.78)
-    if (H < Hb):
+    if (H >= Hb):
         print("Error: Input wave broken (Hb = %6.2f m)" % Hb)
         return
 
     # Check to make sure vertical coordinate is within waveform
     eta = (H / 2) * math.cos(theta)
-    if z < eta and (z + d) > 0:
+    if not (z < eta and (z + d) > 0):
         print("Error: Point outside waveform.")
         return
 

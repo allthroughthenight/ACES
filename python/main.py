@@ -8,13 +8,10 @@ def main():
     # temp = snellsLaw(6, 10, 18, 6, 100, 13)
     # temp.toString()
     temp = LinearWaveTheoryOutput()
-    temp = linearWaveTheory(6.3, 8, 20.0, -12.0, 0.75, 'I')
-    if temp is not None:
-        temp.toString()
-#    temp.H, temp.T, temp.d, temp.z, temp.xL, temp.L, temp.C, temp.Cg, temp.E, temp.Ef, temp.Ur, temp.eta, temp.px, temp.py, temp.pz, temp.u, temp.w, temp.dudt, temp.dwdt, temp.pres = linearWaveTheory(6.30, 8, 20.0, -12.0, 0.75)
+    temp.H, temp.T, temp.d, temp.z, temp.xL, temp.L, temp.C, temp.Cg, temp.E, temp.Ef, temp.Ur, temp.eta, temp.px, temp.py, temp.pz, temp.u, temp.w, temp.dudt, temp.dwdt, temp.pres = linearWaveTheory(6.30, 8, 20.0, -12.0, 0.75, 'I')
     temp.toString()
 
-# main()
+main()
 
 def f(t):
     return np.exp(-t) * np.cos(2*np.pi*t)
