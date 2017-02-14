@@ -73,7 +73,8 @@ def linearWaveTheory(H, T, d, z, xL, unitSystem):
 
     C = L / T
     Cg = 0.5 * (1 + arg) * C
-    E = (1 / 8) * rho * g * (H**2)
+    # come back to this - check math when multiplying (1 / 8) * ...
+    E = rho * g * (H**2) / 8
     Ef = E * Cg
     Ur = L**2 * H / (d**3)
     px = (-H / 2) * (math.cosh(k * tot) / math.sinh( k * d)) * math.sin(theta)

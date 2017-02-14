@@ -4,12 +4,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def main():
-    # temp = SnellOutput()
-    # temp = snellsLaw(6, 10, 18, 6, 100, 13)
+    temp =
+    temp.H1, temp.T, temp.d1, temp.alpha1, temp.cotphi, temp.d2, temp.H0,
+        temp.H2, temp.alpha0, temp.alpha2, temp.L0, temp.L1, temp.L2, temp.c1,
+        temp.c0, temp.cg1, temp.cg0, temp.cg2, temp.E1, temp.E0, temp.E2,
+        temp.P1, temp.P0, temp.P2, temp.HL, temp.Ur1, temp.Ur2, temp.Hb, temp.db
+        = snellsLaw(6, 10, 18, 6, 100, 13)
     # temp.toString()
-    temp = LinearWaveTheoryOutput()
-    temp.H, temp.T, temp.d, temp.z, temp.xL, temp.L, temp.C, temp.Cg, temp.E, temp.Ef, temp.Ur, temp.eta, temp.px, temp.py, temp.pz, temp.u, temp.w, temp.dudt, temp.dwdt, temp.pres = linearWaveTheory(6.30, 8, 20.0, -12.0, 0.75, 'I')
-    temp.toString()
+    #temp = LinearWaveTheoryOutput()
+    #temp.H, temp.T, temp.d, temp.z, temp.xL, temp.L, temp.C, temp.Cg, temp.E, temp.Ef, temp.Ur, temp.eta, temp.px, temp.py, temp.pz, temp.u, temp.w, temp.dudt, temp.dwdt, temp.pres = linearWaveTheory(6.30, 8, 20.0, -12.0, 0.75, 'I')
+    #temp.toString()
 
 main()
 
@@ -19,12 +23,12 @@ def f(t):
 def testPlot():
     ax = plt.subplot(111)
 
-    t = np.arange(0.0, 5.0, 0.01)
+    t = np.arange(0.0, 7.0, 0.01)
     s = np.cos(2*np.pi*t)
     line, = plt.plot(t, s, lw=2)
 
-    plt.annotate('local max', xy=(2, 1), xytext=(3, 1.5),
-        arrowprops=dict(facecolor='black', shrink=0.05),)
+    # plt.annotate('local max', xy=(2, 1), xytext=(3, 1.5),
+    #     arrowprops=dict(facecolor='black', shrink=0.05),)
 
     plt.ylim(-2,2)
     plt.show()
