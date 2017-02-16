@@ -132,3 +132,29 @@ class LinearWaveTheoryOutput:
         print("%s \t %-6.2f \t %s \n" % ("Horz. acceleration", self.dudt, "m/s^2"))
         print("%s \t %-6.2f \t %s \n" % ("Vert. acceleration", self.dwdt, "m/s^2"))
         print("%s \t\t %-8.2f \t %s \n" % ("Pressure", self.pres, "N/m^2"))
+'''
+# Plotting waveform
+def plot():
+    plotxL=(-1:0.001:1);
+    plottheta=plotxL*twopi;
+
+    ploteta=(H/2)*cos(plottheta);
+    plotu=(H*pi/T)*(cosh(k*tot)/sinh(k*d))*cos(plottheta);
+    plotw=(H*pi/T)*(sinh(k*tot)/sinh(k*d))*sin(plottheta);
+
+    figure(1)
+    subplot(3,1,1); plot(plotxL,ploteta); ylim([min(ploteta)-1 max(ploteta)+1])
+    hline = REFLINE([0 0]);
+    set(hline,'Color','r','LineStyle','--')
+    ylabel('Elevation [m]')
+
+    subplot(3,1,2); plot(plotxL,plotu); ylim([min(plotu)-1 max(plotu)+1])
+    hline = REFLINE([0 0]);
+    set(hline,'Color','r','LineStyle','--')
+    ylabel('Velocity, u [m/s]')
+    subplot(3,1,3); plot(plotxL,plotw); ylim([min(plotw)-1 max(plotw)+1])
+    hline = REFLINE([0 0]);
+    set(hline,'Color','r','LineStyle','--')
+    ylabel('Velocity, w [m/s]')
+   xlabel('x/L')
+'''

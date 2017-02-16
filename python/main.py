@@ -3,9 +3,10 @@ from linear_wave_theory import *
 import numpy as np
 import matplotlib.pyplot as plt
 
+'''
 def main():
     temp =
-    temp.H1, temp.T, temp.d1, temp.alpha1, temp.cotphi, temp.d2, temp.H0,
+        temp.H1, temp.T, temp.d1, temp.alpha1, temp.cotphi, temp.d2, temp.H0,
         temp.H2, temp.alpha0, temp.alpha2, temp.L0, temp.L1, temp.L2, temp.c1,
         temp.c0, temp.cg1, temp.cg0, temp.cg2, temp.E1, temp.E0, temp.E2,
         temp.P1, temp.P0, temp.P2, temp.HL, temp.Ur1, temp.Ur2, temp.Hb, temp.db
@@ -16,15 +17,15 @@ def main():
     #temp.toString()
 
 main()
-
+'''
 def f(t):
     return np.exp(-t) * np.cos(2*np.pi*t)
 
 def testPlot():
-    ax = plt.subplot(111)
+    #ax = plt.subplot(111)
 
-    t = np.arange(0.0, 7.0, 0.01)
-    s = np.cos(2*np.pi*t)
+    t = np.arange(-2*np.pi, 2*np.pi, 0.01)
+    s = np.cos(t)
     line, = plt.plot(t, s, lw=2)
 
     # plt.annotate('local max', xy=(2, 1), xytext=(3, 1.5),
