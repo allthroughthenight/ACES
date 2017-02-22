@@ -32,3 +32,9 @@
 [2016-12-27 18:22:35] EDIT aces/controllers/test.py: 0
 [2016-12-28 16:25:49] EDIT aces/views/default/index.html: 1
 [2016-12-28 16:27:06] EDIT aces/views/default/index.html: 0
+[2017-02-22 00:11:44] CREATE linear-wave-test.py: 0
+[2017-02-22 00:24:54] EDIT aces/controllers/default.py: 2
+[2017-02-22 00:25:10] EDIT aces/controllers/default.py: 0
+[2017-02-22 00:25:35] EDIT aces/controllers/default.py: -2
+[2017-02-22 00:37:44] EDIT aces/controllers/linearwavetest2.py: 0
+[2017-02-22 00:38:08] EDIT aces/controllers/linearwavetest2.py: 0
