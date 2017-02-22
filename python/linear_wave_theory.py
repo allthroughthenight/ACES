@@ -1,5 +1,7 @@
 from helper_functions import *
 import math
+import numpy as np
+import matplotlib.pyplot as plt
 
 ###############################################################################
 ## ACES Update to Python
@@ -86,6 +88,39 @@ def linearWaveTheory(H, T, d, z, xL, unitSystem):
     pres = -rho * g * z + rho * g * (H / 2) * (math.cosh(k * tot) / math.cosh(k * d)) * math.cos(theta)
     # come back to this!!! supposed to be py rather than pz??
     pz = 0
+
+    # plotting waveform
+    t = np.arange(-1, 1, 0.001)
+    plottheta = t * np.pi * 2
+
+    ploteta = (H / 2) * np.cos(plottheta)
+    plotu = (H * np.pi / T) * (np.cosh(k * tot) / np.sinh(k * d)) * np.cos(plottheta)
+    plotw = (H * np.pi / T) * (np.sinh(k * tot) / np.sinh(k * d)) * np.sin(plottheta)
+
+    plt.subplot(3, 1, 1)
+    plt.plot(t, ploteta, lw=2)
+    plt.ylabel('Elevation [m]')
+    plt.ylim(-4, 4)
+    plt.axhline(color = 'r', linestyle = '--')
+
+    # subplot
+    plt.subplot(3, 1, 2)
+    plt.plot(t, plotu, lw=2)
+    plt.axhline(color = 'r', linestyle = '--')
+    plt.ylabel('Velocity, u [m/s]')
+    plt.ylim(-2, 2)
+
+    # subplot
+    plt.subplot(3, 1, 3)
+    plt.plot(t, plotw, lw=2)
+    plt.axhline(color = 'r', linestyle = '--')
+    plt.ylabel('Velocity, w [m/s]')
+    plt.ylim(-1, 1)
+
+    plt.tight_layout(pad=0.4)
+
+    plt.show()
+
     return H, T, d, z, xL, L, C, Cg, E, Ef, Ur, eta, px, py, pz, u, w, dudt, dwdt, pres
 
 class LinearWaveTheoryOutput:
@@ -132,29 +167,3 @@ class LinearWaveTheoryOutput:
         print("%s \t %-6.2f \t %s \n" % ("Horz. acceleration", self.dudt, "m/s^2"))
         print("%s \t %-6.2f \t %s \n" % ("Vert. acceleration", self.dwdt, "m/s^2"))
         print("%s \t\t %-8.2f \t %s \n" % ("Pressure", self.pres, "N/m^2"))
-'''
-# Plotting waveform
-def plot():
-    plotxL=(-1:0.001:1);
-    plottheta=plotxL*twopi;
-
-    ploteta=(H/2)*cos(plottheta);
-    plotu=(H*pi/T)*(cosh(k*tot)/sinh(k*d))*cos(plottheta);
-    plotw=(H*pi/T)*(sinh(k*tot)/sinh(k*d))*sin(plottheta);
-
-    figure(1)
-    subplot(3,1,1); plot(plotxL,ploteta); ylim([min(ploteta)-1 max(ploteta)+1])
-    hline = REFLINE([0 0]);
-    set(hline,'Color','r','LineStyle','--')
-    ylabel('Elevation [m]')
-
-    subplot(3,1,2); plot(plotxL,plotu); ylim([min(plotu)-1 max(plotu)+1])
-    hline = REFLINE([0 0]);
-    set(hline,'Color','r','LineStyle','--')
-    ylabel('Velocity, u [m/s]')
-    subplot(3,1,3); plot(plotxL,plotw); ylim([min(plotw)-1 max(plotw)+1])
-    hline = REFLINE([0 0]);
-    set(hline,'Color','r','LineStyle','--')
-    ylabel('Velocity, w [m/s]')
-   xlabel('x/L')
-'''

@@ -1,7 +1,5 @@
 # from snells_law import *
 from linear_wave_theory import *
-import numpy as np
-import matplotlib.pyplot as plt
 import math
 
 def main():
@@ -20,28 +18,32 @@ def main():
         temp.dudt, temp.dwdt, temp.pres = \
         linearWaveTheory(6.30, 8, 20.0, -12.0, 0.75, 'I')
     temp.toString()
-    testPlot(temp.H)
+    '''
+    testPlot(temp)
 
-def testPlot(H):
-    #ax = plt.subplot(111)
-
+def testPlot(obj):
+    tot = obj.d + obj.z
     t = np.arange(-1, 1, 0.001)
     plottheta = t * np.pi * 2
 
-    ploteta = (H / 2) * np.cos(plottheta)
+    ploteta = (obj.H / 2) * np.cos(plottheta)
+    plotu = (obj.H * np.pi / obj.T) * (np.cosh(obj.k * tot) / np.sinh(obj.k * obj.d)) * np.cos(plottheta)
+    # plotw=(H*pi/T)*(sinh(k*tot)/sinh(k*d))*sin(plottheta);
 
-    line, = plt.plot(t, ploteta, lw=2)
-
-    # plt.annotate('local max', xy=(2, 1), xytext=(3, 1.5),
-    #     arrowprops=dict(facecolor='black', shrink=0.05),)
+    plt.subplot(2, 1, 1)
+    plt.plot(t, ploteta, lw=2)
     plt.ylabel('Elevation [m]')
     plt.ylim(-4, 4)
 
     # ref line
     plt.axhline(color = 'r', linestyle = '--')
+    # subplot
+    plt.subplot(2, 1, 2)
+    plt.plot(t, plotu, lw=2)
+    plt.axhline(color = 'r', linestyle = '--')
 
     plt.show()
-
+'''
 main()
 
 # temporarily placing here
