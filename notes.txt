@@ -1,4 +1,6 @@
 web2py
+	cheat sheet
+		web2py.com/examples/static/web2py_cheatsheet.pdf
 	ux
 		double check fortran app for input style
 		have input along side output
