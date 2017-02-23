@@ -1,60 +1,130 @@
 from helper_functions import *
 import math
+import numpy as np
+import matplotlib.pyplot as plt
 
-def linearWaveTheory():
-    output = LinearWaveTheoryOutput()
-    output.H = H
-    output.T = T
-    output.d = d
-    output.z = z
-    output.xL = xL
+###############################################################################
+## ACES Update to Python
+#-------------------------------------------------------------
+# Driver for Linear Wave Theory (page 2-1 in ACES User's Guide)
+# Yields first-order approximations for various wave parameters of wave
+# motion as predicted by linear wave theory
 
-    # Converstion section
+# Updated by: Evan Hataishi
+# Date Created: February 6, 2017
+# Date Verified: --
+
+# Requires the following functions:
+# ERRWAVBRK1
+# WAVELEN
+
+# MAIN VARIABLE LIST:
+#   INPUT
+#   H: wave height (m or ft)
+#   T: wave period (sec)
+#   d: water depth (m or ft)
+#   z: vertical coordinate (m or ft)
+#   xL: horizontal coordinate as fraction of wavelength (x/L)
+
+#   OUTPUT
+#   L: wavelength (m or ft)
+#   C: wave celerity (m/sec or ft/sec)
+#   Cg: group celerity (m/sec or ft/sec)
+#   E: energy density (N-m/m^2 or ft-lb/ft^2)
+#   Ef: energy flux (N-m/sec-m or ft-lb/sec-ft)
+#   Ur: Ursell number
+#   eta: surface elevation (m or ft)
+#   px: horizontal particle displacement (m or ft)
+#   pz: vertical particle displacement (m or ft)
+#   u: horizontal particle velocity (m/sec or ft/sec)
+#   w: vertical particle velocity (m/sec or ft/sec)
+#   dudt: horizontal particle acceleration (m/sec^2 or ft/sec^2)
+#   dwdt: vertical particle accleration (m/sec^2 or ft/sec^2)
+#   pres: pressure (N/m^2 or lb ft^2 )
+###############################################################################
+def linearWaveTheory(H, T, d, z, xL, unitSystem):
+    ## *********** Don't change anything here ******************
     twopi = 2 * math.pi
     nIteration = 50
-    # if unitSystem == 'I' % imperial
-    #     g=32.17 % gravitational acceleration (ft/sec^2)
-    #     rho=1.989 % rho/g = 63.99/32.17 lb sec^2/ft^4 (sea water)
-    # else  unitSystem == 'M' % metric
-    rho = 1025.09
-    g = 9.81
-    # end conversion
+    if unitSystem == 'I': # imperial
+        g = 32.17 # gravitational acceleration (ft/sec^2)
+        rho = 1.989 # rho/g = 63.99/32.17 lb sec^2/ft^4 (sea water)
+    elif unitSystem == 'M': # metric
+        rho = 1025.09
+        g = 9.81
 
-    output.L, k = wavelen(output.d, output.T, nIteration, g)
+    L, k = wavelen(d, T, nIteration, g)
 
-    theta =  output.xL * twopi
+    theta =  xL * twopi # theta=(kx-wt) where arbitrarily t=0 and k=2*pi/L
 
     # Check for monochromatic wave breaking (depth limited - no slope)
     Hb = errwavbrk1(d, 0.78)
-    # if (output.H < Hb):
-    #     return
+    if (H >= Hb):
+        print("Error: Input wave broken (Hb = %6.2f m)" % Hb)
+        return
 
     # Check to make sure vertical coordinate is within waveform
-    eta = (output.H / 2) * math.cos(theta)
-    # if z < eta and (z + d) > 0:
-    #    return
+    eta = (H / 2) * math.cos(theta)
+    if not (z < eta and (z + d) > 0):
+        print("Error: Point outside waveform.")
+        return
 
     # Main computations
-    arg = (2 * k * output.d / (math.sinh(2 * k * output.d)))
-    tot = output.d + output.z
+    arg = (2 * k * d / (math.sinh(2 * k * d)))
+    tot = d + z
 
-    output.C = output.L / output.T
-    output.Cg = 0.5 * (1 + arg) * output.C
-    output.E = (1 / 8) * rho * g * (output.H**2)
-    output.Ef = output.E * output.Cg
-    output.Ur = output.L**2 * output.H / (output.d**3)
-    output.px = (-output.H / 2) * (math.cosh(k * tot) / math.sinh( k * output.d)) * math.sin(theta)
-    output.py = ( output.H / 2) * (math.sinh(k * tot) / math.sinh(k * output.d)) * math.cos(theta)
-    output.u = (output.H * math.pi / output.T) * (math.cosh(k * tot) / math.sinh( k * output.d)) * math.cos(theta)
-    output.w = (output.H * math.pi / output.T) * (math.sinh(k * tot) / math.sinh(k * output.d)) * math.sin(theta)
-    output.dudt = (output.H * 2 * math.pi**2 / (output.T**2)) * (math.cosh(k * tot) / math.sinh(k * output.d)) * math.sin(theta)
-    output.dwdt = (-output.H * 2 * math.pi**2 / (output.T**2)) * (math.sinh(k * tot) / math.sinh(k * output.d)) * math.cos(theta)
-    output.pres = -rho * g * output.z + rho * g * (output.H / 2) * (math.cosh(k * tot) / math.cosh(k * output.d)) * math.cos(theta)
+    C = L / T
+    Cg = 0.5 * (1 + arg) * C
+    # come back to this - check math when multiplying (1 / 8) * ...
+    E = rho * g * (H**2) / 8
+    Ef = E * Cg
+    Ur = L**2 * H / (d**3)
+    px = (-H / 2) * (math.cosh(k * tot) / math.sinh( k * d)) * math.sin(theta)
+    py = ( H / 2) * (math.sinh(k * tot) / math.sinh(k * d)) * math.cos(theta)
+    u = (H * math.pi / T) * (math.cosh(k * tot) / math.sinh( k * d)) * math.cos(theta)
+    w = (H * math.pi / T) * (math.sinh(k * tot) / math.sinh(k * d)) * math.sin(theta)
+    dudt = (H * 2 * math.pi**2 / (T**2)) * (math.cosh(k * tot) / math.sinh(k * d)) * math.sin(theta)
+    dwdt = (-H * 2 * math.pi**2 / (T**2)) * (math.sinh(k * tot) / math.sinh(k * d)) * math.cos(theta)
+    pres = -rho * g * z + rho * g * (H / 2) * (math.cosh(k * tot) / math.cosh(k * d)) * math.cos(theta)
+    # come back to this!!! supposed to be py rather than pz??
+    pz = 0
 
-    return output
+    # plotting waveform
+    t = np.arange(-1, 1, 0.001)
+    plottheta = t * np.pi * 2
+
+    ploteta = (H / 2) * np.cos(plottheta)
+    plotu = (H * np.pi / T) * (np.cosh(k * tot) / np.sinh(k * d)) * np.cos(plottheta)
+    plotw = (H * np.pi / T) * (np.sinh(k * tot) / np.sinh(k * d)) * np.sin(plottheta)
+
+    plt.subplot(3, 1, 1)
+    plt.plot(t, ploteta, lw=2)
+    plt.ylabel('Elevation [m]')
+    plt.ylim(-4, 4)
+    plt.axhline(color = 'r', linestyle = '--')
+
+    # subplot
+    plt.subplot(3, 1, 2)
+    plt.plot(t, plotu, lw=2)
+    plt.axhline(color = 'r', linestyle = '--')
+    plt.ylabel('Velocity, u [m/s]')
+    plt.ylim(-2, 2)
+
+    # subplot
+    plt.subplot(3, 1, 3)
+    plt.plot(t, plotw, lw=2)
+    plt.axhline(color = 'r', linestyle = '--')
+    plt.ylabel('Velocity, w [m/s]')
+    plt.ylim(-1, 1)
+
+    plt.tight_layout(pad=0.4)
+
+    plt.show()
+
+    return H, T, d, z, xL, L, C, Cg, E, Ef, Ur, eta, px, py, pz, u, w, dudt, dwdt, pres
 
 class LinearWaveTheoryOutput:
-    # INPUT
+    # Default INPUT
     H = 6.30
     T = 8
     d = 20.0
@@ -70,7 +140,7 @@ class LinearWaveTheoryOutput:
     Ur = 0
     eta = 0
     px = 0
-    # missing from matlab documentation
+    # missing py from matlab documentation
     py = 0
     pz = 0
     u = 0
@@ -80,7 +150,6 @@ class LinearWaveTheoryOutput:
     pres = 0
 
     def __init__(self): pass
-    # syntax - self.test = test
 
     def toString(self):
         print("\t\t\t\t\t %s \n" % ("Units"))

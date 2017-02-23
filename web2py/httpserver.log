@@ -2298,3 +2298,11 @@
 127.0.0.1, 2017-02-22 00:47:39, GET, /admin/default/todolist.load, HTTP/1.1, 200, 0.075862
 127.0.0.1, 2017-02-22 00:47:39, GET, /aces/appadmin/hooks, HTTP/1.1, 200, 0.228586
 127.0.0.1, 2017-02-22 00:47:57, GET, /admin/default/design/aces, HTTP/1.1, 200, 0.367366
+127.0.0.1, 2017-02-22 16:51:32, GET, /, HTTP/1.1, 303, 0.001105
+127.0.0.1, 2017-02-22 16:51:32, GET, /welcome/default/index, HTTP/1.1, 200, 0.098316
+127.0.0.1, 2017-02-22 16:51:45, GET, /aces, HTTP/1.1, 200, 0.077743
+127.0.0.1, 2017-02-22 16:51:47, GET, /admin, HTTP/1.1, 303, 0.074069
+127.0.0.1, 2017-02-22 16:51:48, GET, /admin/default/site, HTTP/1.1, 200, 0.053872
+127.0.0.1, 2017-02-22 16:52:48, GET, /admin/default/design/aces, HTTP/1.1, 200, 0.131563
+127.0.0.1, 2017-02-22 16:53:10, GET, /aces/linearwavetest2, HTTP/1.1, 404, 0.014826
+127.0.0.1, 2017-02-22 16:53:21, GET, /aces/linearwavetest2/linearWaveTheory, HTTP/1.1, 500, 0.065136
