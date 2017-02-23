@@ -32,6 +32,7 @@ clc
 %   Ur: Ursell number
 %   eta: surface elevation (m or ft)
 %   px: horizontal particle displacement (m or ft)
+%   LOOK AT PZ AND PY
 %   pz: vertical particle displacement (m or ft)
 %   u: horizontal particle velocity (m/sec or ft/sec)
 %   w: vertical particle velocity (m/sec or ft/sec)

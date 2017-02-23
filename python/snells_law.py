@@ -72,7 +72,7 @@ def snellsLaw(H1, T, d1, alpha1, cotphi, d2):
     m = 1 / cotphi
 
     Hb = errwavbrk1(d1, 0.78)
-    if H1 < Hb:
+    if H1 >= Hb:
         print("Error: Known wave broken (Hb = %6.2f m)" % Hb))
         return
 
@@ -81,18 +81,18 @@ def snellsLaw(H1, T, d1, alpha1, cotphi, d2):
     E1, P1, Ur1, setdown1 = lwttwm(cg1, d1, H1, L1, reldep1, rho, g, k1)
 
     steep, maxstp = errstp(H1, d1, L1)
-    if steep < maxstp:
+    if steep >= maxstp:
         print("Error: Known wave unstable (Max: %0.4f, [H/L] = %0.4f)" % maxstp, steep)
         return
 
     # determine deepwater wave properties
     alpha0, H0 = lwtdws(alpha1, c1, cg1, c0, H1)
 
-    E0 = (1 / 8) * rho * g * (H0 * H0)
+    E0 = rho * g * (H0 * H0) / 8
     P0 = E0 * cg0
     HL = H0 / L0
 
-    if HL < (1 / 7):
+    if HL >= (1 / 7):
         print("Error: Deepwater wave unstable, [H0/L0] > (1/7)")
         return
 
@@ -102,13 +102,13 @@ def snellsLaw(H1, T, d1, alpha1, cotphi, d2):
     E2, P2, Ur2, setdown2 = lwttwm(cg2, d2, H2, L2, reldep2, rho, g, k2)
 
     Hb, db = errwavbrk3(H0, L0, T, m)
-    if H2 < Hb:
+    if H2 >= Hb:
         print("Error: Subject wave broken (Hb = %6.2f m, hb = %6.2f m)" % Hb, db)
 
     steep, maxstp = errstp(H2, d2, L2)
-    if steep < maxstp:
+    if steep >= maxstp:
         print("Error: Subject wave unstable (Max: %0.4f, [H/L] = %0.4f)" % maxstp, steep)
         return
 
-    return H0, H2, alpha0, alpha2, L0, L1, L2, c1, c0, cg1, cg0, cg2, E1, E0,
-        E2, P1, P0, P2, HL, Ur1, Ur2, Hb, db
+    return H1, T, d1, alpha1, cotphi, d2, H0, H2, alpha0, alpha2, L0, L1, L2,
+        c1, c0, cg1, cg0, cg2, E1, E0, E2, P1, P0, P2, HL, Ur1, Ur2, Hb, db
