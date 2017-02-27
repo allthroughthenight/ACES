@@ -41,9 +41,9 @@ web2py
 		interfacing
 			stackoverflow.com/questions/9845292/a-tool-to-convert-matlab-code-to-python
 	misc
-		'octave beta_rayleigh.m' as test function
 		input convertion or just metric/imperial?
 			should have convertin option incase doing large input
+		aces/linearwavetheory/lwt to show basic working
 	tutorials
 		docs
 			web2py.com/books/default/chapter/29/00/preface

@@ -7,7 +7,7 @@ def inlet_process():
 def inlet_process2():
     c = 1
     d = 2
-    # new = {'a':10, 'b':'hello world'}
-    # new2 = dict()
-    # new2 = locals()
-    return locals()
+    new = {'a':10, 'b':'hello world'}
+    new2 = globals()
+    new3 = locals()
+    return new2

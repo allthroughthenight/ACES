@@ -1,7 +1,8 @@
 from helper_functions import *
+import json
 import math
-import numpy as np
-import matplotlib.pyplot as plt
+# import numpy as np
+# import matplotlib.pyplot as plt
 
 ###############################################################################
 ## ACES Update to Python
@@ -42,7 +43,19 @@ import matplotlib.pyplot as plt
 #   dwdt: vertical particle accleration (m/sec^2 or ft/sec^2)
 #   pres: pressure (N/m^2 or lb ft^2 )
 ###############################################################################
-def linearWaveTheory(H, T, d, z, xL, unitSystem):
+def index(): return dict(message="hello from linearwavetest.py")
+def test():
+    a = "hello"
+    return a
+#original params
+# H, T, d, z, xL, unitSystem
+def lwt():
+    H = 1
+    T = 2
+    d = 3
+    z = 4
+    xL = 4
+    unitSystem = 'I'
     ## *********** Don't change anything here ******************
     twopi = 2 * math.pi
     nIteration = 50
@@ -57,6 +70,7 @@ def linearWaveTheory(H, T, d, z, xL, unitSystem):
 
     theta =  xL * twopi # theta=(kx-wt) where arbitrarily t=0 and k=2*pi/L
 
+    '''
     # Check for monochromatic wave breaking (depth limited - no slope)
     Hb = errwavbrk1(d, 0.78)
     if (H >= Hb):
@@ -68,6 +82,7 @@ def linearWaveTheory(H, T, d, z, xL, unitSystem):
     if not (z < eta and (z + d) > 0):
         print("Error: Point outside waveform.")
         return
+        '''
 
     # Main computations
     arg = (2 * k * d / (math.sinh(2 * k * d)))
@@ -89,7 +104,12 @@ def linearWaveTheory(H, T, d, z, xL, unitSystem):
     # come back to this!!! supposed to be py rather than pz??
     pz = 0
 
-    # plotting waveform
+
+    #test = json.dumps(locals())
+    localVars = locals()
+    return dict(localVars=localVars)
+
+    ''' plotting waveform
     t = np.arange(-1, 1, 0.001)
     plottheta = t * np.pi * 2
 
@@ -119,9 +139,9 @@ def linearWaveTheory(H, T, d, z, xL, unitSystem):
 
     plt.tight_layout(pad=0.4)
 
-    plt.show()
+    plt.show() '''
 
-    return H, T, d, z, xL, L, C, Cg, E, Ef, Ur, eta, px, py, pz, u, w, dudt, dwdt, pres
+    #return H, T, d, z, xL, L, C, Cg, E, Ef, Ur, eta, px, py, pz, u, w, dudt, dwdt, pres
 
 class LinearWaveTheoryOutput:
     # Default INPUT
