@@ -1,59 +1,32 @@
 from helper_functions import *
 import json
 import math
-# import numpy as np
-# import matplotlib.pyplot as plt
 
-###############################################################################
-## ACES Update to Python
-#-------------------------------------------------------------
-# Driver for Linear Wave Theory (page 2-1 in ACES User's Guide)
-# Yields first-order approximations for various wave parameters of wave
-# motion as predicted by linear wave theory
+#def index():
+#    return dict(message="hello world")
 
-# Updated by: Evan Hataishi
-# Date Created: February 6, 2017
-# Date Verified: --
+def index():
+    form = SQLFORM.factory(
+        Field('H', requires=IS_NOT_EMPTY()),
+        Field('T', requires=IS_NOT_EMPTY()),
+        Field('d', requires=IS_NOT_EMPTY()),
+        Field('z', requires=IS_NOT_EMPTY()),
+    )
+    if form.process().accepted:
+        redirect(URL('second', vars=dict(form.vars)))
+    return dict(form=form)
 
-# Requires the following functions:
-# ERRWAVBRK1
-# WAVELEN
+def second():
+    values = dict(request.vars) or redirect(URL('first'))
+    return dict(lwt(values))
 
-# MAIN VARIABLE LIST:
-#   INPUT
-#   H: wave height (m or ft)
-#   T: wave period (sec)
-#   d: water depth (m or ft)
-#   z: vertical coordinate (m or ft)
-#   xL: horizontal coordinate as fraction of wavelength (x/L)
-
-#   OUTPUT
-#   L: wavelength (m or ft)
-#   C: wave celerity (m/sec or ft/sec)
-#   Cg: group celerity (m/sec or ft/sec)
-#   E: energy density (N-m/m^2 or ft-lb/ft^2)
-#   Ef: energy flux (N-m/sec-m or ft-lb/sec-ft)
-#   Ur: Ursell number
-#   eta: surface elevation (m or ft)
-#   px: horizontal particle displacement (m or ft)
-#   pz: vertical particle displacement (m or ft)
-#   u: horizontal particle velocity (m/sec or ft/sec)
-#   w: vertical particle velocity (m/sec or ft/sec)
-#   dudt: horizontal particle acceleration (m/sec^2 or ft/sec^2)
-#   dwdt: vertical particle accleration (m/sec^2 or ft/sec^2)
-#   pres: pressure (N/m^2 or lb ft^2 )
-###############################################################################
-def index(): return dict(message="hello from linearwavetest.py")
-def test():
-    a = "hello"
-    return a
-#original params
-# H, T, d, z, xL, unitSystem
-def lwt():
-    H = 1
-    T = 2
-    d = 3
-    z = 4
+def lwt(input_dict):
+#def lwt(H, T, d, z, xL, unitSystem):
+    #internal = list(input_dict.values())
+    H = int(input_dict.get('H'))
+    T = int(input_dict.get('T'))
+    d = int(input_dict.get('d'))
+    z = int(input_dict.get('z'))
     xL = 4
     unitSystem = 'I'
     ## *********** Don't change anything here ******************
@@ -104,10 +77,9 @@ def lwt():
     # come back to this!!! supposed to be py rather than pz??
     pz = 0
 
-
-    #test = json.dumps(locals())
     localVars = locals()
     return dict(localVars=localVars)
+    #return H, T, d, z, xL, L, C, Cg, E, Ef, Ur, eta, px, py, pz, u, w, dudt, dwdt, pres
 
     ''' plotting waveform
     t = np.arange(-1, 1, 0.001)
@@ -141,7 +113,6 @@ def lwt():
 
     plt.show() '''
 
-    #return H, T, d, z, xL, L, C, Cg, E, Ef, Ur, eta, px, py, pz, u, w, dudt, dwdt, pres
 
 class LinearWaveTheoryOutput:
     # Default INPUT

@@ -58,7 +58,7 @@ response.menu = [
     (T('Wave Theory'),False, '#', [
         (T('Cnoidal Wave'), False, '#'),
         (T('Fourier Series'), False, '#'),
-        (T('Linear Wave'), False, '#'),
+        (T('Linear Wave'), False, URL('aces', 'linearwavetheory', 'index')),
         ]),
     (T('Wave Transforms'),False, '#', [
         (T('Combined Diffraction'), False, '#'),
