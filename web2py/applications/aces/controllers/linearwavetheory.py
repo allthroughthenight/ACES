@@ -6,12 +6,19 @@ import math
 #    return dict(message="hello world")
 
 def index():
+    attributes = {'_type':'tel', '_autocomplete':'off', '_style':'height:80px; width:80px'}
     form = SQLFORM.factory(
         Field('H', requires=IS_NOT_EMPTY()),
         Field('T', requires=IS_NOT_EMPTY()),
         Field('d', requires=IS_NOT_EMPTY()),
         Field('z', requires=IS_NOT_EMPTY()),
+        Field('Water_Type', requires=IS_IN_SET(['Salt Water', 'Fresh Water'])),
+        Field('Unit_of_Measurment', requires=IS_IN_SET(['Imperial', 'Metric'])),
     )
+    form.custom.submit['_value'] = 'Submit'
+    form['_style'] = 'width:450px;height:50px;'
+    #form.element('select[name=T]')['_style']='width:400px;'
+    #form = form.element('select[name=H')['_style']='width:400px;'
     if form.process().accepted:
         redirect(URL('second', vars=dict(form.vars)))
     return dict(form=form)
