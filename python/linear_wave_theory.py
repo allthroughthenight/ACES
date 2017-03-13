@@ -2,6 +2,7 @@ from helper_functions import *
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 ###############################################################################
 ## ACES Update to Python
@@ -120,6 +121,9 @@ def linearWaveTheory(H, T, d, z, xL, unitSystem):
     plt.tight_layout(pad=0.4)
 
     plt.show()
+    # Save images using either line below
+    # plt.savefig(os.path.join(os.path.expanduser('~'), 'Desktop', 'foo.png'))
+    # plt.savefig('foo.png')
 
     return H, T, d, z, xL, L, C, Cg, E, Ef, Ur, eta, px, py, pz, u, w, dudt, dwdt, pres
 
