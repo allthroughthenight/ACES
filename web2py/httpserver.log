@@ -3515,3 +3515,17 @@
 >>>>>>> web2py
 =======
 >>>>>>> web2py
+127.0.0.1, 2017-03-13 16:16:39, GET, /, HTTP/1.1, 303, 0.001098
+127.0.0.1, 2017-03-13 16:16:39, GET, /welcome/default/index, HTTP/1.1, 200, 0.102685
+127.0.0.1, 2017-03-13 16:16:53, GET, /caes, HTTP/1.1, 404, 0.000672
+127.0.0.1, 2017-03-13 16:16:53, GET, /favicon.ico, HTTP/1.1, 400, 0.000339
+127.0.0.1, 2017-03-13 16:16:57, GET, /aces, HTTP/1.1, 200, 0.065019
+127.0.0.1, 2017-03-13 16:17:02, GET, /aces/linearwavetheory/index, HTTP/1.1, 200, 0.048394
+127.0.0.1, 2017-03-13 16:17:23, POST, /aces/linearwavetheory/index, HTTP/1.1, 303, 0.026951
+127.0.0.1, 2017-03-13 16:17:23, GET, /aces/linearwavetheory/second, HTTP/1.1, 200, 0.068388
+127.0.0.1, 2017-03-13 16:17:48, GET, /aces/linearwavetheory/index, HTTP/1.1, 200, 0.065941
+127.0.0.1, 2017-03-13 16:17:49, GET, /aces/linearwavetheory/second, HTTP/1.1, 200, 0.052750
+127.0.0.1, 2017-03-13 16:17:59, GET, /aces/linearwavetheory/index, HTTP/1.1, 200, 0.048885
+127.0.0.1, 2017-03-13 16:18:18, GET, /aces/linearwavetheory/second, HTTP/1.1, 200, 0.050579
+127.0.0.1, 2017-03-13 16:18:30, GET, /aces/linearwavetheory/index, HTTP/1.1, 200, 0.067297
+127.0.0.1, 2017-03-13 16:18:32, GET, /aces, HTTP/1.1, 200, 0.027802
