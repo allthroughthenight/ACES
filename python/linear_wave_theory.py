@@ -91,29 +91,29 @@ def linearWaveTheory(H, T, d, z, xL, unitSystem):
     pz = 0
 
     # plotting waveform
-    t = np.arange(-1, 1, 0.001)
-    plottheta = t * np.pi * 2
+    plotxL = np.arange(-1, 1, 0.001)
+    plottheta = plotxL * np.pi * 2
 
     ploteta = (H / 2) * np.cos(plottheta)
     plotu = (H * np.pi / T) * (np.cosh(k * tot) / np.sinh(k * d)) * np.cos(plottheta)
     plotw = (H * np.pi / T) * (np.sinh(k * tot) / np.sinh(k * d)) * np.sin(plottheta)
 
     plt.subplot(3, 1, 1)
-    plt.plot(t, ploteta, lw=2)
+    plt.plot(plotxL, ploteta, lw=2)
     plt.ylabel('Elevation [m]')
     plt.ylim(-4, 4)
     plt.axhline(color = 'r', linestyle = '--')
 
     # subplot
     plt.subplot(3, 1, 2)
-    plt.plot(t, plotu, lw=2)
+    plt.plot(plotxL, plotu, lw=2)
     plt.axhline(color = 'r', linestyle = '--')
     plt.ylabel('Velocity, u [m/s]')
     plt.ylim(-2, 2)
 
     # subplot
     plt.subplot(3, 1, 3)
-    plt.plot(t, plotw, lw=2)
+    plt.plot(plotxL, plotw, lw=2)
     plt.axhline(color = 'r', linestyle = '--')
     plt.ylabel('Velocity, w [m/s]')
     plt.ylim(-1, 1)
