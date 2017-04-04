@@ -12,8 +12,8 @@ def wavelen(d, T, n, g):
     L = L2
     k = 2 * math.pi / L
 
-    # ko = find( d <= 0);
-    # L(ko) = 0;
+    # ko = find( d <= 0)
+    # L(ko) = 0
     if  d <= 0:
         L = 0
 
@@ -31,7 +31,7 @@ def lwtgen(h, T, g):
     reldep = h / L
 
     c = L / T
-    n = 0.5 * (1 + ((2 * k * h) / math.sinh(2 * k * h)));
+    n = 0.5 * (1 + ((2 * k * h) / math.sinh(2 * k * h)))
     cg = n * c
 
     return c, c0, cg, cg0, k, L, L0, reldep
@@ -126,4 +126,32 @@ def errstp(H, d, L):
     maxstp = 0.142 * math.tanh(k * d)
 
     return steep, maxstp
+###############################################################################
+
+###############################################################################
+# Error check for monochromatic wave breaking
+
+#   INPUT
+#   T: wave period
+#   d: water depth
+#   kappa: breaking index
+#   struct: =0 for no structure, =1 for structure
+
+#   OUTPUT
+#   Hb: breaking wave height
+
+def ERRWAVBRK(T, d, m, kappa, struct):
+    if m == 0: #where the nearshore slope is flat or unknown
+        Hb = kappa * d
+    elif m != 0 && struct == 1: #maximum wave height in prescence of a structure
+        a = 1.36 * (1 - math.exp(-19 * m))
+        b = 1 / (0.64 * (1 + math.exp(-19.5 * m)))
+        term = (d / T**2)
+        P = a + (1 + 9.25 * m**2 * b -4 * m * b) / term
+
+        term1 = d / (m * a * (18.5 * m - 8))
+        term2 = P**2 - (((4 * m * b * a) / term) * (9.25 * m - 4))
+        Hb = term1 * (P - math.sqrt(term2))
+
+    return Hb
 ###############################################################################
