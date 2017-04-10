@@ -56,10 +56,6 @@ Wave Prediction
 		tide_generation.m
 		**
 			expect to read'tides.txt' file
-			error: textscan: first argument must be a file id or character string
-			error: called from
-    	textscan at line 108 column 5
-    	tide_generation at line 67 column 3
 #	Extremal Significant Wave Height Analysis
 		ext_Hs_analysis.m
 		##
