@@ -44,7 +44,26 @@ def testPlot(obj):
 
     plt.show()
 '''
-main()
+#main()
+
+def testCommandLineInput():
+    print("Function: Linear Wave Theory")
+    unitSystem = raw_input("Enter a unit system (M or I): ")
+    #print("You entered: %s" % unitSystem)
+    H = raw_input("Wave Height (H): ")
+    T = raw_input("Wave Period (T): ")
+    d = raw_input("Water Depth (d): ")
+    z = raw_input("Vertical Coordinate (z): ")
+    xL = raw_input("Horizontal coordinate as fraction of wavelength (x/L): ")
+    temp = LinearWaveTheoryOutput()
+    temp.H, temp.T, temp.d, temp.z, temp.xL, temp.L, temp.C, temp.Cg, temp.E, \
+        temp.Ef, temp.Ur, temp.eta, temp.px, temp.py, temp.pz, temp.u, temp.w, \
+        temp.dudt, temp.dwdt, temp.pres = \
+        linearWaveTheory(float(H), float(T), float(d), float(z), float(xL), unitSystem)
+    temp.toString()
+
+
+testCommandLineInput()
 
 # temporarily placing here
 class LinearWaveTheoryOutput:

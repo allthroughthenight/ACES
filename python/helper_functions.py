@@ -143,7 +143,7 @@ def errstp(H, d, L):
 def ERRWAVBRK(T, d, m, kappa, struct):
     if m == 0: #where the nearshore slope is flat or unknown
         Hb = kappa * d
-    elif m != 0 && struct == 1: #maximum wave height in prescence of a structure
+    elif m != 0 and struct == 1: #maximum wave height in prescence of a structure
         a = 1.36 * (1 - math.exp(-19 * m))
         b = 1 / (0.64 * (1 + math.exp(-19.5 * m)))
         term = (d / T**2)
