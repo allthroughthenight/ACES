@@ -61,10 +61,29 @@ def lwttwm(cg, h, H, L, reldep, rho, g, k):
 
     return E, P, Ur, setdown
 
+def ERRSTP(H, d, L):
+    steep = H / L
+    k = (2 * math.pi) / L
+    maxstp = 0.142 * math.tanh(k * d)
+
+    return steep, maxstp
+
 def errwavbrk1(d, kappa):
     Hb = kappa * d
 
     return Hb
+
+def ERRWAVBRK2(T, m, ds):
+        a = 1.36 * (1 - math.exp( - 19 * m))
+        b = 1 / (0.64 * (1 + math.exp( - 19.5 * m)))
+        term = (ds / T**2)
+        P = a + (1 + 9.25 * m**2 * b - 4 * m * b) / term
+
+        term1 = ds / (m * a * (18.5 * m - 8))
+        term2 = P**2 - (((4 * m * b * a) / term) * (9.25 * m - 4))
+        Hbs = term1 * (P - math.sqrt(term2))
+
+        return Hbs
 
 def errwavbrk3(Ho, m, Lo):
     a = 1.36 * (1 - math.exp(-19 * m))
