@@ -3,17 +3,17 @@ clc
 
 %% ACES Update to MATLAB
 %-------------------------------------------------------------
-% Driver for Fourier Series Wave Theory (page 2-3 of ACES User's 
-% Guide). Yields various parameters for progressive waves of permanent 
+% Driver for Fourier Series Wave Theory (page 2-3 of ACES User's
+% Guide). Yields various parameters for progressive waves of permanent
 % form as predicted by Fourier series approximation. Provies estimates
-% for common engineering parameters such as water surface elevation, 
+% for common engineering parameters such as water surface elevation,
 % integral wave properties, and kinematics as functions of wave height,
 % period, water depth, and position in the wave form which is assumed to
 % exist on a uniform co-flowing current.
 
 % Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
 % Date Created: July 1, 2011
-% Date Modified: 
+% Date Modified:
 
 % Requires the following functions:
 % ERRWAVBRK
@@ -61,11 +61,11 @@ nofour=16;
 nosteps=5;
 
 g=32.2;
-[Hbs,error]=ERRWAVBRK(H,T,0,d,0.78);
-if error==1
-    str = ['Error: Input wave broken (Hb = ',num2str(Hb),' m)'];
-    disp(str)
-    break
-end
+[Hbs]=ERRWAVBRK(H,T,0,d,0.78);
+	if error==1
+	    str = ['Error: Input wave broken (Hb = ',num2str(Hbs),' m)'];
+	    disp(str)
+	    break
+	end
 
 [Hnon,L,Hod,unon]=FWTPRE(g,T,H,d,u);

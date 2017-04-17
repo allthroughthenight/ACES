@@ -51,15 +51,48 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
-year=1990; 
-mon=12; 
-day=20; 
-hr=10.0; 
-tlhrs=24.0; 
-nogauge=1; 
-glong=40.00; 
-delt=15.0; 
-gauge0=0.0; 
+single_case=true; % flag if want to test single case input
+
+if single_case
+	prompt = "Enter year simulation starts (YYYY): ";
+	year=input(prompt);
+
+	prompt = "Enter month simulation starts (MM): ";
+	month=input(prompt);
+
+	prompt = "Enter day simulation starts (DD): ";
+	day=input(prompt);
+
+	prompt = "Enter hour simulation starts (HH.H): ";
+	hr=input(prompt);
+
+	prompt = "Enter length of record (tlhrs) (HH.H): ";
+	tlhrs=input(prompt);
+
+	prompt = "Enter total number of gauges: ";
+	nogauge=input(prompt);
+
+	prompt = "Enter gauge longitude (deg): ";
+	glong=input(prompt);
+
+	prompt = "Enter output time interval (min): ";
+	delt=input(prompt);
+
+	prompt = "Enter mean water level height above datum: ";
+	gauge0=input(prompt);
+	%gauge0: mean water level height above datum
+else
+	year=1990;
+	mon=12;
+	day=20;
+	hr=10.0;
+	tlhrs=24.0;
+	nogauge=1;
+	glong=40.00;
+	delt=15.0;
+	gauge0=0.0;
+end
+
 
 delthr=delt/60;
 
@@ -78,9 +111,9 @@ acst=[28.9841042,30.0,28.4397295,15.0410686,57.9682084,...
      13.4715145,13.3986609,29.9589333,30.0410667,12.8542862,14.9589314,...
      31.0158958,43.4761563,29.5284789,42.9271398,30.0821373,...
      115.9364169,58.9841042];
-    
+
 pcst=[2,2,2,1,4,1,6,3,4,4,2,6,2,2,1,2,1,1,1,0,0,0,0,0,1,1,2,2,1,1,2,3,2,3,2,8,4];
-    
+
 %% Intialize gage-specific info relevant to harmonic constituents
 [alpha,fndcst]=GAGINI(nogauge,year,mon,day,hr,tlhrs,glong,ep,acst,pcst);
 

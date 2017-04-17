@@ -3,8 +3,8 @@ clc
 
 %% ACES Update to MATLAB
 %-------------------------------------------------------------
-% Driver for Extremal Significant Wave Height Analysis (page 1-3 of ACES 
-% User's Guide). Provide significant wave height estimates for various 
+% Driver for Extremal Significant Wave Height Analysis (page 1-3 of ACES
+% User's Guide). Provide significant wave height estimates for various
 % return periods.
 
 % Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
@@ -20,7 +20,7 @@ clc
 %       length of the record
 %   K: length of the record in years
 %   d: water depth
-%   Hs: significant wave heights from long-term data source  
+%   Hs: significant wave heights from long-term data source
 
 %   OUTPUT
 %   Hsr: significant wave height with return period Tr
@@ -37,10 +37,26 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
-Nt=20;
-K=20;
-d=500;
-Hs=[9.32;8.11;7.19;7.06;6.37;6.15;6.03;5.72;4.92;4.90;4.78;4.67;4.64;4.19;3.06];
+single_case=true;
+
+if single_case
+	prompt = "Enter Nt: estimated total number of events: ";
+	Nt=input(prompt);
+
+	prompt = "Enter K: length of the record in years: ";
+	K=input(prompt);
+
+	prompt = "Enter d: water depth: ";
+	d=input(prompt);
+
+	fprintf("Hs: significant wave heights from long-term data source already entered");
+	Hs=[9.32;8.11;7.19;7.06;6.37;6.15;6.03;5.72;4.92;4.90;4.78;4.67;4.64;4.19;3.06];
+else
+	Nt=20;
+	K=20;
+	d=500;
+	Hs=[9.32;8.11;7.19;7.06;6.37;6.15;6.03;5.72;4.92;4.90;4.78;4.67;4.64;4.19;3.06];
+end
 
 N=length(Hs);
 lambda=Nt/K;
@@ -51,7 +67,7 @@ d=d/0.3048;
 
 [Hb]=ERRWAVBRK1(d,0.78);
 for j=1:length(Hs)
-    assert(Hs(j)<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)        
+    assert(Hs(j)<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
 end
 
 ret=[1.0;1.1;1.2;1.3;1.4;1.5;1.6;1.7;1.8;1.9;2.0;5.0;10.0;25.0;50.0;100.0];
@@ -120,7 +136,7 @@ for j=1:N
 end
 
 for m=1:5
-    for j=1:N      
+    for j=1:N
         st(j,m)=(yact(j,m)-yest(j,m))^2;
     end
 end
@@ -237,7 +253,7 @@ for m=1:6
     else
         fprintf('%-i \t\t\t %-6.2f \t\t %-6.2f \t\t %-6.2f \t\t %-6.2f \t\t %-6.2f \n\n',ret(index(m)),Hsr(index(m),1),Hsr(index(m),2),Hsr(index(m),3),...
             Hsr(index(m),4),Hsr(index(m),5))
-    end      
+    end
 end
 
 [val,C]=max(rxy);
