@@ -8,7 +8,7 @@ import math
 def index():
     attributes = {'_type':'tel', '_autocomplete':'off', '_style':'height:80px; width:80px'}
     form = SQLFORM.factory(
-        Field('H', requires=IS_NOT_EMPTY()),
+        Field('H', requires=[IS_NOT_EMPTY(), IS_FLOAT_IN_RANGE(0, 1, dot=".")]),
         Field('T', requires=IS_NOT_EMPTY()),
         Field('d', requires=IS_NOT_EMPTY()),
         Field('z', requires=IS_NOT_EMPTY()),
@@ -30,10 +30,10 @@ def second():
 def lwt(input_dict):
 #def lwt(H, T, d, z, xL, unitSystem):
     #internal = list(input_dict.values())
-    H = int(input_dict.get('H'))
-    T = int(input_dict.get('T'))
-    d = int(input_dict.get('d'))
-    z = int(input_dict.get('z'))
+    H = float(input_dict.get('H'))
+    T = float(input_dict.get('T'))
+    d = float(input_dict.get('d'))
+    z = float(input_dict.get('z'))
     xL = 4
     unitSystem = 'I'
     ## *********** Don't change anything here ******************
