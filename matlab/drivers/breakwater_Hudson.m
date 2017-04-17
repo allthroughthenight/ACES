@@ -10,7 +10,7 @@ clc
 
 % Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
 % Date Created: April 13, 2011
-% Date Modified: 
+% Date Modified:
 
 % Requires the following functions:
 % no functions required
@@ -61,7 +61,7 @@ if g==9.81
     if w>8000
         w=w/8896.4; %1 ton=8896.4 N
         units='tons';
-    else 
+    else
         units='N';
     end
 elseif g==32.17
@@ -70,7 +70,7 @@ elseif g==32.17
         units='tons';
     else
         units='lbs';
-    end     
+    end
 end
 
 fprintf('%s \t\t %-6.2f \t \n','Weight of individual unit',w)

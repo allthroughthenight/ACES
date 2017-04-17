@@ -33,11 +33,25 @@ clc
 %------------------------------------------------------------
 addpath('../functions'); % Path to functions folder
 
-Hmo=10.0;
-Tp=11.5;
-d=25.00;
+single_case=true; % flag if want to test single case input
 
-ft2m=0.3048;
+if single_case
+	prompt = "Enter Hmo: zero-moment wave height [m]: ";
+	Hmo = input(prompt);
+
+	prompt = "Enter Tp: peak wave period [s]: ";
+	Tp = input(prompt);
+
+	prompt = "Enter d: water depth [m]: ";
+	d = input(prompt);
+else
+	Hmo=10.0;
+	Tp=11.5;
+	d=25.00;
+end
+
+ft2m=0.3048; % isn't used
+
 g=32.17;
 
 Htype(1)=0.50; %Hmed;
@@ -62,21 +76,21 @@ if dterm>0.01
     Hinc=Hb/10000;
     sigma=Hmo/4;
     Hrms=2*sqrt(2)*sigma;
-    
+
     for i=2:10001
         %Rayleigh distribution
         H(i)=Hinc*(i-1);
         term1=exp(-(H(i)/Hrms)^2);
         term2=(2*H(i))/Hrms^2;
         p(i)=term1*term2;
-        
+
         sum1=sum1+(p(i)*Hinc);
         if k<5 && sum1>Htype(k)
             index(k)=i;
             k=k+1;
         end
     end
-    
+
     for k=2:4
         sum2=0;
         Hstart=H(index(k));
@@ -103,39 +117,39 @@ else
     b1=0.834;
     a2=0.000098;
     b2=1.208;
-    
+
     d1=a1*dterm^(-b1);
     assert(d1<35.0,'Error: d/gT^2 approaching infinity')
     Hrms=(1/sqrt(2))*exp(d1)*Hmo; %root-mean-square wave height
-    
+
     d2=a2*dterm^(-b2);
     assert(d2<35.0,'Error: d/gT^2 approaching infinity')
-    
+
     Hrmsq=(1/sqrt(2))*exp(d2)*Hmo^2; %root-mean-quad wave heigth
-    
+
     %Computing alpha and beta
     K1=(Hrms/Hb)^2;
     K2=(Hrmsq^2)/(Hb^4);
-    
+
     alpha=(K1*(K2-K1))/(K1^2-K2);
     beta=((1-K1)*(K2-K1))/(K1^2-K2);
-    
+
     term1=(2*gamma(alpha+beta))/(gamma(alpha)*gamma(beta));
-    
+
     for i=1:101
         %Beta-Rayleigh distribution
         H(i)=Hinc*(i-1);
         term2=(H(i)^(2*alpha-1))/(Hb^(2*alpha));
         term3=(1-(H(i)/Hb)^2)^(beta-1);
         p(i)=term1*term2*term3;
-        
+
         sum1=sum1+(p(i)*Hinc);
         if k<5 && sum1>Htype(k)
             index(k)=i;
             k=k+1;
         end
     end
-    
+
     for k=2:4
         sum2=0;
         Hstart=H(index(k));

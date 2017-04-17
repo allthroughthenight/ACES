@@ -3,13 +3,13 @@ clc
 
 %% ACES Update to MATLAB
 %-------------------------------------------------------------
-% Driver for Windspeed Adjustment and Wave Growth (page 1-1 of ACES User's 
+% Driver for Windspeed Adjustment and Wave Growth (page 1-1 of ACES User's
 % Guide). Provide estimates for wave growth over open-water and restricted
-% fetches in deep and shallow water. 
+% fetches in deep and shallow water.
 
 % Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
 % Date Created: April 28, 2011
-% Date Modified: 
+% Date Modified:
 
 % Requires the following functions:
 % ERRWAVBRK1
@@ -60,6 +60,7 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
+single_case=true;
 zobs=12;
 uobs=17;
 dtemp=2;
