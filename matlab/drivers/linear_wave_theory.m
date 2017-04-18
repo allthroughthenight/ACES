@@ -41,7 +41,7 @@ clc
 %   pres: pressure (N/m^2 or lb ft^2 )
 %% -------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+addpath('~/aces/matlab/functions'); % Path to functions folder
 
 %  Chose the units of the inputs in SI (Metric) or Imperial (English) Units
 
@@ -51,6 +51,8 @@ d=20.0;
 z=-12.0;
 xL=0.75;
 unitSystem = 'M'; % Use M for metric system and I for imperial
+
+
 
 %% *********** Don't change anything here ******************
 % Unit system conversion Constants

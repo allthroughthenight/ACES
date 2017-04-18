@@ -49,9 +49,9 @@ clc
 %   pcst: number of tide cycles per day per constiuent
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+addpath('~/aces/matlab/functions'); % Path to functions folder
 
-single_case=true; % flag if want to test single case input
+single_case=false; % flag to test single case input
 
 if single_case
 	prompt = "Enter year simulation starts (YYYY): ";
