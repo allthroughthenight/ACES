@@ -33,16 +33,16 @@ clc
 %------------------------------------------------------------
 addpath('../functions'); % Path to functions folder
 
-single_case=true; % flag if want to test single case input
+single_case=false; % flag if want to test single case input
 
 if single_case
-	prompt = "Enter Hmo: zero-moment wave height [m]: ";
+	prompt = 'Enter Hmo: zero-moment wave height [m]: ';
 	Hmo = input(prompt);
 
-	prompt = "Enter Tp: peak wave period [s]: ";
+	prompt = 'Enter Tp: peak wave period [s]: ';
 	Tp = input(prompt);
 
-	prompt = "Enter d: water depth [m]: ";
+	prompt = 'Enter d: water depth [m]: ';
 	d = input(prompt);
 else
 	Hmo=10.0;

@@ -37,19 +37,19 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
-single_case=true;
+single_case=false;
 
 if single_case
-	prompt = "Enter Nt: estimated total number of events: ";
+	prompt = 'Enter Nt: estimated total number of events: ';
 	Nt=input(prompt);
 
-	prompt = "Enter K: length of the record in years: ";
+	prompt = 'Enter K: length of the record in years: ';
 	K=input(prompt);
 
-	prompt = "Enter d: water depth: ";
+	prompt = 'Enter d: water depth: ';
 	d=input(prompt);
 
-	fprintf("Hs: significant wave heights from long-term data source already entered");
+	fprintf('Hs: significant wave heights from long-term data source already entered');
 	Hs=[9.32;8.11;7.19;7.06;6.37;6.15;6.03;5.72;4.92;4.90;4.78;4.67;4.64;4.19;3.06];
 else
 	Nt=20;

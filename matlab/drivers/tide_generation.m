@@ -51,34 +51,34 @@ clc
 
 addpath('../functions'); % Path to functions folder
 
-single_case=true; % flag if want to test single case input
+single_case=false; % flag if want to test single case input
 
 if single_case
-	prompt = "Enter year simulation starts (YYYY): ";
+	prompt = 'Enter year simulation starts (YYYY): ';
 	year=input(prompt);
 
-	prompt = "Enter month simulation starts (MM): ";
+	prompt = 'Enter month simulation starts (MM): ';
 	month=input(prompt);
 
-	prompt = "Enter day simulation starts (DD): ";
+	prompt = 'Enter day simulation starts (DD): ';
 	day=input(prompt);
 
-	prompt = "Enter hour simulation starts (HH.H): ";
+	prompt = 'Enter hour simulation starts (HH.H): ';
 	hr=input(prompt);
 
-	prompt = "Enter length of record (tlhrs) (HH.H): ";
+	prompt = 'Enter length of record (tlhrs) (HH.H): ';
 	tlhrs=input(prompt);
 
-	prompt = "Enter total number of gauges: ";
+	prompt = 'Enter total number of gauges: ';
 	nogauge=input(prompt);
 
-	prompt = "Enter gauge longitude (deg): ";
+	prompt = 'Enter gauge longitude (deg): ';
 	glong=input(prompt);
 
-	prompt = "Enter output time interval (min): ";
+	prompt = 'Enter output time interval (min): ';
 	delt=input(prompt);
 
-	prompt = "Enter mean water level height above datum: ";
+	prompt = 'Enter mean water level height above datum: ';
 	gauge0=input(prompt);
 	%gauge0: mean water level height above datum
 else
