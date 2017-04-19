@@ -42,11 +42,11 @@ clc
 %   E: complete elliptical intergral of the second kind
 %   m: optimized parameter
 %   lambda: simplification term ((1-m)/m)
-%   mu: simplification term (E/(K*m))
+%   mu: simplification term (E/(K*m))git
 %   epsi: perturbation parameter (H/d)
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+addpath('~/aces/matlab/functions'); % Path to functions folder
 
 H=10;
 T=15.0;

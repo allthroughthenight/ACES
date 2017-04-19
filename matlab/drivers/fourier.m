@@ -49,7 +49,7 @@ clc
 %   OTHERS
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+addpath('~/aces/matlab/functions'); % Path to functions folder
 
 %must be entered in English units
 H=4;
@@ -61,11 +61,12 @@ nofour=16;
 nosteps=5;
 
 g=32.2;
-[Hbs]=ERRWAVBRK(H,T,0,d,0.78);
+[Hbs]=ERRWAVBRK(H,T,0,d,0.78);l
+if false
 	if error==1
 	    str = ['Error: Input wave broken (Hb = ',num2str(Hbs),' m)'];
 	    disp(str)
 	    break
 	end
-
+end
 [Hnon,L,Hod,unon]=FWTPRE(g,T,H,d,u);
