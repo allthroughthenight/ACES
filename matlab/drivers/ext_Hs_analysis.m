@@ -35,9 +35,18 @@ clc
 %       return period Tr
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+% flags to set functions directory when using windows or linux
+linux=false;
 
-single_case=true;
+if linux
+  addpath('~/aces/matlab/functions'); % Path to functions folder
+else
+  functionsPath = strcat (getenv("USERPROFILE"), "\\Documents\\aces\\matlab\\functions");
+end
+ 
+addpath(functionsPath);
+
+single_case=false;
 
 if single_case
 	prompt = "Enter Nt: estimated total number of events: ";

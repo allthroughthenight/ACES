@@ -41,7 +41,16 @@ clc
 %   pres: pressure (N/m^2 or lb ft^2 )
 %% -------------------------------------------------------------
 
-addpath('~/aces/matlab/functions'); % Path to functions folder
+% flags to set functions directory when using windows or linux
+linux=false;
+
+if linux
+  addpath('~/aces/matlab/functions'); % Path to functions folder
+else
+  functionsPath = strcat (getenv("USERPROFILE"), "\\Documents\\aces\\matlab\\functions");
+end
+ 
+addpath(functionsPath);
 
 %  Chose the units of the inputs in SI (Metric) or Imperial (English) Units
 
@@ -121,17 +130,17 @@ plotw=(H*pi/T)*(sinh(k*tot)/sinh(k*d))*sin(plottheta);
 
 figure(1)
 subplot(3,1,1); plot(plotxL,ploteta); ylim([min(ploteta)-1 max(ploteta)+1])
-hline = REFLINE([0 0]);
+hline = refline_v2([0 0]);
 set(hline,'Color','r','LineStyle','--')
 ylabel('Elevation [m]')
 
 subplot(3,1,2); plot(plotxL,plotu); ylim([min(plotu)-1 max(plotu)+1])
-hline = REFLINE([0 0]);
+hline = refline_v2([0 0]);
 set(hline,'Color','r','LineStyle','--')
 ylabel('Velocity, u [m/s]')
 
 subplot(3,1,3); plot(plotxL,plotw); ylim([min(plotw)-1 max(plotw)+1])
-hline = REFLINE([0 0]);
+hline = refline_v2([0 0]);
 set(hline,'Color','r','LineStyle','--')
 ylabel('Velocity, w [m/s]')
 xlabel('x/L')

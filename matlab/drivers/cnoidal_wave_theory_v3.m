@@ -46,7 +46,16 @@ clc
 %   epsi: perturbation parameter (H/d)
 %-------------------------------------------------------------
 
-addpath('~/aces/matlab/functions'); % Path to functions folder
+% flags to set functions directory when using windows or linux
+linux=false;
+
+if linux
+  addpath('~/aces/matlab/functions'); % Path to functions folder
+else
+  functionsPath = strcat (getenv("USERPROFILE"), "\\Documents\\aces\\matlab\\functions");
+end
+ 
+addpath(functionsPath);
 
 H=10;
 T=15.0;

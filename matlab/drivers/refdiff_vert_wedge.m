@@ -44,14 +44,23 @@ clc
 %   OTHERS
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+% flags to set functions directory when using windows or linux
+linux=false;
+
+if linux
+  addpath('~/aces/matlab/functions'); % Path to functions folder
+else
+  functionsPath = strcat (getenv("USERPROFILE"), "\\Documents\\aces\\matlab\\functions");
+end
+ 
+addpath(functionsPath);
 
 Hi=2;
 T=8;
 d=20;
 alpha=135;
 wedgang=15;
-mode=0;
+mode=1;
 g=32.17;
 
 assert(wedgang>=0 && wedgang<=180,'Error: Range is 0.0 to 180.0')
