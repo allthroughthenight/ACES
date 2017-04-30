@@ -32,18 +32,21 @@ clc
 %   OTHER:
 %------------------------------------------------------------
 
+linux=yes_or_no("Linux?");
 % flags to set functions directory when using windows or linux
-linux=false;
 
 if linux
-  addpath('~/aces/matlab/functions'); % Path to functions folder
+  % Path to functions folder for linux
+  functionsPath = '~/aces/matlab/functions';
 else
+  % Path to fucntions folder for windows
   functionsPath = strcat (getenv("USERPROFILE"), "\\Documents\\aces\\matlab\\functions");
 end
  
 addpath(functionsPath);
 
-single_case=false; % flag if want to test single case input
+% flag if want to test single case input
+single_case=yes_or_no("Single Case Mode?");
 
 if single_case
 	prompt = "Enter Hmo: zero-moment wave height [m]: ";
