@@ -62,6 +62,7 @@ addpath(functionsPath);
 
 % Ask user for single or multi-input (from a file)
 accepted = false;
+single_case = '';
 while accepted == false
     single_case=input('Single or Multi-case? (s or m): ', 's');
     
@@ -79,7 +80,7 @@ end
 accepted = false;
 metric = '';
 while accepted == false
-    metric=input('Input ft or meters? (f or m): ', 's');
+    metric=input('Input in feet or meters? (f or m): ', 's');
     
     if strcmp('f', metric);
         accepted = true;
@@ -92,7 +93,7 @@ while accepted == false
     end
 end
 
-% flag if want to test single case input
+% Single case input for metric measurments
 if single_case && strcmp('m', metric)
 	prompt = 'Enter Hmo: zero-moment wave height [m]: ';
 	Hmo = input(prompt);
@@ -102,14 +103,15 @@ if single_case && strcmp('m', metric)
 
 	prompt = 'Enter d: water depth [m]: ';
 	d = input(prompt);
+% Single case input for imperial (feet) measurments
 elseif single_case && strcmp('f', metric)
-    prompt = 'Enter Hmo: zero-moment wave height [f]: ';
+    prompt = 'Enter Hmo: zero-moment wave height [ft]: ';
 	Hmo = input(prompt);
 
 	prompt = 'Enter Tp: peak wave period [s]: ';
 	Tp = input(prompt);
 
-	prompt = 'Enter d: water depth [f]: ';
+	prompt = 'Enter d: water depth [ft]: ';
 	d = input(prompt);
 else
     % TODO 

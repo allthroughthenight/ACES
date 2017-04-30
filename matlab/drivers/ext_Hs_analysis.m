@@ -35,32 +35,69 @@ clc
 %       return period Tr
 %-------------------------------------------------------------
 
-% flags to set functions directory when using windows or linux
-linux=false;
-
-if linux
-  addpath('~/aces/matlab/functions'); % Path to functions folder
-else
-  functionsPath = strcat (getenv("USERPROFILE"), "\\Documents\\aces\\matlab\\functions");
+% Ask user if running windows or linux to set functions path
+accepted = false;
+while accepted == false
+    linux=input('Linux or Windows? (l or w): ', 's');
+    
+    if strcmp('l', linux);
+        accepted = true;
+        linux=true;
+    elseif strcmp('w', linux);
+        accepted = true;
+        linux=false;
+    else
+        fprintf('l or w only\n');
+    end
 end
- 
+
+% Set path to functions for windows or linux base on previous answer
+if linux
+  % Path to functions folder for linux
+  functionsPath = '~/aces/matlab/functions';
+else
+  % Path to fucntions folder for windows
+  functionsPath = strcat (getenv('USERPROFILE'), '\\Documents\\aces\\matlab\\functions');
+end
+
+% Add correct function path
 addpath(functionsPath);
 
-single_case=false;
+% Ask user for single or multi-input (from a file)
+accepted = false;
+single_case = '';
+while accepted == false
+    single_case=input('Single or Multi-case? (s or m): ', 's');
+    
+    if strcmp('s',single_case);
+        accepted = true;
+        single_case=true;
+    elseif strcmp('m', single_case);
+        accepted = true;
+        single_case=false;
+    else
+        fprintf('s or m only\n');
+    end
+end
 
 if single_case
-	prompt = "Enter Nt: estimated total number of events: ";
+	prompt = 'Enter Nt: estimated total number of events: ';
 	Nt=input(prompt);
 
-	prompt = "Enter K: length of the record in years: ";
+	prompt = 'Enter K: length of the record in years: ';
 	K=input(prompt);
 
-	prompt = "Enter d: water depth: ";
+	prompt = 'Enter d: water depth: ';
 	d=input(prompt);
 
-	fprintf("Hs: significant wave heights from long-term data source already entered");
+	fprintf('Hs: significant wave heights from long-term data source already entered');
 	Hs=[9.32;8.11;7.19;7.06;6.37;6.15;6.03;5.72;4.92;4.90;4.78;4.67;4.64;4.19;3.06];
+    % TODO
+    % Set single case for each 'Hs' entry?
 else
+    % TODO 
+    % Default multi-case block. Eventually to be repalced with csv/tsv file
+    % reader
 	Nt=20;
 	K=20;
 	d=500;
