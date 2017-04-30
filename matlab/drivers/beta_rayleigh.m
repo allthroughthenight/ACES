@@ -36,7 +36,8 @@ clc
 accepted = false;
 while accepted == false
     linux=input('Linux or Windows? (l or w): ', 's');
-    if strcmp('l',linux);
+    
+    if strcmp('l', linux);
         accepted = true;
         linux=true;
     elseif strcmp('w', linux);
@@ -60,10 +61,10 @@ end
 addpath(functionsPath);
 
 % Ask user for single or multi-input (from a file)
-
 accepted = false;
 while accepted == false
     single_case=input('Single or Multi-case? (s or m): ', 's');
+    
     if strcmp('s',single_case);
         accepted = true;
         single_case=true;
@@ -75,10 +76,24 @@ while accepted == false
     end
 end
 
-% flag if want to test single case input
-%single_case=yes_or_no('Single Case Mode?');
+accepted = false;
+metric = '';
+while accepted == false
+    metric=input('Input ft or meters? (f or m): ', 's');
+    
+    if strcmp('f', metric);
+        accepted = true;
+        metric=false;
+    elseif strcmp('m', metric);
+        accepted = true;
+        metric=true;
+    else
+        fprintf('f or m only\n');
+    end
+end
 
-if single_case
+% flag if want to test single case input
+if single_case && strcmp('m', metric)
 	prompt = 'Enter Hmo: zero-moment wave height [m]: ';
 	Hmo = input(prompt);
 
@@ -87,14 +102,34 @@ if single_case
 
 	prompt = 'Enter d: water depth [m]: ';
 	d = input(prompt);
+elseif single_case && strcmp('f', metric)
+    prompt = 'Enter Hmo: zero-moment wave height [f]: ';
+	Hmo = input(prompt);
+
+	prompt = 'Enter Tp: peak wave period [s]: ';
+	Tp = input(prompt);
+
+	prompt = 'Enter d: water depth [f]: ';
+	d = input(prompt);
 else
+    % TODO 
+    % Default multi-case block. Eventually to be repalced with csv/tsv file
+    % reader
 	Hmo=10.0;
 	Tp=11.5;
 	d=25.00;
 end
 
-ft2m=0.3048; % isn't used
+% Feet to meters constant for convertion
+ft2m=0.3048;
 
+% Convert feet input to meters based if input is in feet
+if strcmp('m', metric);
+    Hmo = Hmo*ft2m;
+    d = d*ft2m;
+end
+
+% Gravicational acceleration constant in feet per second
 g=32.17;
 
 Htype(1)=0.50; %Hmed;
