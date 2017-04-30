@@ -58,15 +58,91 @@ clc
 %   OTHERS
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+% Ask user if running windows or linux to set functions path
+accepted = false;
+while accepted == false
+    linux=input('Linux or Windows? (l or w): ', 's');
+    
+    if strcmp('l', linux);
+        accepted = true;
+        linux=true;
+    elseif strcmp('w', linux);
+        accepted = true;
+        linux=false;
+    else
+        fprintf('l or w only\n');
+    end
+end
 
-single_case=true;
-zobs=12;
-uobs=17;
-dtemp=2;
-duro=1;
-durf=4;
-lat=28;
+% Set path to functions for windows or linux base on previous answer
+if linux
+  % Path to functions folder for linux
+  functionsPath = '~/aces/matlab/functions';
+else
+  % Path to fucntions folder for windows
+  functionsPath = strcat (getenv('USERPROFILE'), '\\Documents\\aces\\matlab\\functions');
+end
+
+% Add correct function path
+addpath(functionsPath);
+
+% Ask user for single or multi-input (from a file)
+accepted = false;
+single_case = '';
+while accepted == false
+    single_case=input('Single or Multi-case? (s or m): ', 's');
+    
+    if strcmp('s',single_case);
+        accepted = true;
+        single_case=true;
+    elseif strcmp('m', single_case);
+        accepted = true;
+        single_case=false;
+    else
+        fprintf('s or m only\n');
+    end
+end
+
+% Single case input
+if single_case
+	prompt = 'Enter zobs: elevation of observed winds [m]: ';
+	zobs = input(prompt);
+
+	prompt = 'Enter uobs: observed wind speed [m/s]: ';
+	uobs = input(prompt);
+
+	prompt = 'Enter dtemp: air-sea temperature difference [deg C]: ';
+	dtemp = input(prompt);
+    
+    prompt = 'Enter duro: duration of observed wind [hr]: ';
+	duro = input(prompt);
+    
+    prompt = 'Enter durf: duration of final wind [hr]: ';
+	durf = input(prompt);
+    
+    prompt = 'Enter lat: latitude of wind observation [deg]: ';
+	lat = input(prompt);
+else
+    % TODO 
+    % Default multi-case block. Eventually to be repalced with csv/tsv file
+    % reader
+	zobs=12;
+    uobs=17;
+    dtemp=2;
+    duro=1;
+    durf=4;
+    lat=28;
+end
+
+% Constant for convertions
+ft2m=0.3048;
+mph2mps=0.44704;
+hr2s=3600;
+min2s=60;
+deg2rad=pi/180;
+mi2m=1609.344;
+F2C=5/9;
+knots2mps=0.5144;
 
 assert(lat~=0, 'Error: Latitude must be a non-zero value.')
 
@@ -114,16 +190,6 @@ else %Restricted - Shallow
     %angs=[3.7;12.3;13.4;12.2;13.2;36.0;35.6;28.7;10.4;5.7];
     [F,phi,theta]=WGFET(ang1,dang,wdir,angs);
 end
-
-%Conversion to metric units
-ft2m=0.3048;
-mph2mps=0.44704;
-hr2s=3600;
-min2s=60;
-deg2rad=pi/180;
-mi2m=1609.344;
-F2C=5/9;
-knots2mps=0.5144;
 
 [ue]=WADJ(uobs*mph2mps,zobs*ft2m,dtemp,F*mi2m,duro*hr2s,durf*hr2s,lat*deg2rad,windobs);
 

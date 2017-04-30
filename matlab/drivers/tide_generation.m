@@ -49,15 +49,68 @@ clc
 %   pcst: number of tide cycles per day per constiuent
 %-------------------------------------------------------------
 
-addpath('~/aces/matlab/functions'); % Path to functions folder
+% Ask user if running windows or linux to set functions path
+accepted = false;
+while accepted == false
+    linux=input('Linux or Windows? (l or w): ', 's');
+    
+    if strcmp('l', linux);
+        accepted = true;
+        linux=true;
+    elseif strcmp('w', linux);
+        accepted = true;
+        linux=false;
+    else
+        fprintf('l or w only\n');
+    end
+end
 
-<<<<<<< HEAD
-single_case=false; % flag if want to test single case input
-=======
-single_case=false; % flag to test single case input
->>>>>>> python
+% Set path to functions for windows or linux base on previous answer
+if linux
+  % Path to functions folder for linux
+  functionsPath = '~/aces/matlab/functions';
+else
+  % Path to fucntions folder for windows
+  functionsPath = strcat (getenv('USERPROFILE'), '\\Documents\\aces\\matlab\\functions');
+end
 
-if single_case
+% Add correct function path
+addpath(functionsPath);
+
+% Ask user for single or multi-input (from a file)
+accepted = false;
+single_case = '';
+while accepted == false
+    single_case=input('Single or Multi-case? (s or m): ', 's');
+    
+    if strcmp('s',single_case);
+        accepted = true;
+        single_case=true;
+    elseif strcmp('m', single_case);
+        accepted = true;
+        single_case=false;
+    else
+        fprintf('s or m only\n');
+    end
+end
+
+accepted = false;
+metric = '';
+while accepted == false
+    metric=input('Input in feet or meters? (f or m): ', 's');
+    
+    if strcmp('f', metric);
+        accepted = true;
+        metric=false;
+    elseif strcmp('m', metric);
+        accepted = true;
+        metric=true;
+    else
+        fprintf('f or m only\n');
+    end
+end
+
+if single_case && strcmp('m', metric)
 	prompt = 'Enter year simulation starts (YYYY): ';
 	year=input(prompt);
 
@@ -82,10 +135,39 @@ if single_case
 	prompt = 'Enter output time interval (min): ';
 	delt=input(prompt);
 
-	prompt = 'Enter mean water level height above datum: ';
+	prompt = 'Enter mean water level height above datum [m]: ';
 	gauge0=input(prompt);
-	%gauge0: mean water level height above datum
+elseif single_case && strcmp('f', metric)
+	prompt = 'Enter year simulation starts (YYYY): ';
+	year=input(prompt);
+
+	prompt = 'Enter month simulation starts (MM): ';
+	month=input(prompt);
+
+	prompt = 'Enter day simulation starts (DD): ';
+	day=input(prompt);
+
+	prompt = 'Enter hour simulation starts (HH.H): ';
+	hr=input(prompt);
+
+	prompt = 'Enter length of record (tlhrs) (HH.H): ';
+	tlhrs=input(prompt);
+
+	prompt = 'Enter total number of gauges: ';
+	nogauge=input(prompt);
+
+	prompt = 'Enter gauge longitude (deg): ';
+	glong=input(prompt);
+
+	prompt = 'Enter output time interval (min): ';
+	delt=input(prompt);
+
+	prompt = 'Enter mean water level height above datum [ft]: ';
+	gauge0=input(prompt);
 else
+    % TODO 
+    % Default multi-case block. Eventually to be repalced with csv/tsv file
+    % reader
 	year=1990;
 	mon=12;
 	day=20;
@@ -97,6 +179,13 @@ else
 	gauge0=0.0;
 end
 
+% Meters to feet constant for convertion
+m2ft=3.28084;
+
+% Convert feet input to meters based if input is in feet
+if strcmp('m', metric);
+    gauge0 = gauge0*m2ft;
+end
 
 delthr=delt/60;
 

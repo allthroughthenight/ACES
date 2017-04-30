@@ -44,23 +44,110 @@ clc
 %   OTHERS
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+% Ask user if running windows or linux to set functions path
+accepted = false;
+while accepted == false
+    linux=input('Linux or Windows? (l or w): ', 's');
+    
+    if strcmp('l', linux);
+        accepted = true;
+        linux=true;
+    elseif strcmp('w', linux);
+        accepted = true;
+        linux=false;
+    else
+        fprintf('l or w only\n');
+    end
+end
 
-Hi=2;
-T=8;
-d=20;
-alpha=135;
-wedgang=15;
-mode=0;
-g=32.17;
+% Set path to functions for windows or linux base on previous answer
+if linux
+  % Path to functions folder for linux
+  functionsPath = '~/aces/matlab/functions';
+else
+  % Path to fucntions folder for windows
+  functionsPath = strcat (getenv('USERPROFILE'), '\\Documents\\aces\\matlab\\functions');
+end
+
+% Add correct function path
+addpath(functionsPath);
+
+% Ask user for single or multi-input (from a file)
+accepted = false;
+single_case = '';
+while accepted == false
+    single_case=input('Single or Multi-case? (s or m): ', 's');
+    
+    if strcmp('s',single_case);
+        accepted = true;
+        single_case=true;
+    elseif strcmp('m', single_case);
+        accepted = true;
+        single_case=false;
+    else
+        fprintf('s or m only\n');
+    end
+end
+
+% Single case input for metric measurments
+if single_case
+	prompt = 'Enter Hi: incident wave height (m): ';
+	Hi = input(prompt);
+
+	prompt = 'Enter T: water period (sec): ';
+	T = input(prompt);
+
+	prompt = 'Enter d: water depth (m): ';
+	d = input(prompt);
+    
+    prompt = 'Enter alpha: wave angle (deg): ';
+	alpha = input(prompt);
+    
+    prompt = 'Enter wedgang: wedge angle (deg): ';
+	wedgang = input(prompt); 
+else
+    % TODO 
+    % Default multi-case block. Eventually to be repalced with csv/tsv file
+    % reader
+    Hi=2;
+    T=8;
+    d=20;
+    alpha=135;
+    wedgang=15;
+    g=32.17;
+end
 
 assert(wedgang>=0 && wedgang<=180,'Error: Range is 0.0 to 180.0')
+mode=0;
+% Ask user if mode 0 single, or 1 grid
+accepted = false;
+while accepted == false
+    mode=input('Mode 1 Single Case or Mode 2 Grid Case (1 or 2): ', 's');
+    
+    if strcmp('1', mode);
+        accepted = true;
+        mode=0;
+    elseif strcmp('2', mode);
+        accepted = true;
+        mode=1;
+    else
+        fprintf('1 or 2 only\n');
+    end
+end
 
 if mode==0
     % Single Point Case
-    xcor=-33;
-    ycor=10;
-    
+    if single_case
+        prompt = 'Enter xcor: x-coordinate (m): ';
+        xcor = input(prompt);
+
+        prompt = 'Enter ycor: y-coordinate (m): ';
+        ycor = input(prompt);
+    else
+        xcor=-33;
+        ycor=10;
+    end
+
     [L,k]=WAVELEN(d,T,50,g);
     
     [steep,maxstp]=ERRSTP(Hi,d,L);
@@ -79,13 +166,34 @@ if mode==0
     
 elseif mode==1
     %Uniform Grid Case
-    x0=-800;
-    xend=100;
-    dx=100;
-    y0=-450;
-    yend=150;
-    dy=50;
     
+    if single_case
+        prompt = 'Enter x0: x start coordinate (m): ';
+        x0 = input(prompt);
+
+        prompt = 'Enter xend: x end coordinate (m): ';
+        xend = input(prompt);
+        
+        prompt = 'Enter dx: x spatial increment (m): ';
+        dx = input(prompt);
+        
+        prompt = 'Enter y0: y start coordinate (m): ';
+        y0 = input(prompt);
+        
+        prompt = 'Enter yend: y end coordinate (m): ';
+        yend = input(prompt);
+        
+        prompt = 'Enter dy: y spatial increment (m): ';
+        dy = input(prompt);
+    else
+        x0=-800;
+        xend=100;
+        dx=100;
+        y0=-450;
+        yend=150;
+        dy=50;
+    end
+        
     nxpt=floor((xend-x0+dx)/dx);
     
     for i=1:nxpt
