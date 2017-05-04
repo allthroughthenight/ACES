@@ -46,70 +46,14 @@ clc
 %   epsi: perturbation parameter (H/d)
 %-------------------------------------------------------------
 
-% Ask user if running windows or linux to set functions path
-accepted = false;
-while accepted == false
-    linux=input('Linux or Windows? (l or w): ', 's');
-    
-    if strcmp('l', linux);
-        accepted = true;
-        linux=true;
-    elseif strcmp('w', linux);
-        accepted = true;
-        linux=false;
-    else
-        fprintf('l or w only\n');
-    end
-end
+SET_PATHS();
 
-% Set path to functions for windows or linux base on previous answer
-if linux
-  % Path to functions folder for linux
-  functionsPath = '~/aces/matlab/functions';
-else
-  % Path to fucntions folder for windows
-  functionsPath = strcat (getenv('USERPROFILE'), '\\Documents\\aces\\matlab\\functions');
-end
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-% Add correct function path
-addpath(functionsPath);
-
-% Ask user for single or multi-input (from a file)
-accepted = false;
-single_case = '';
-while accepted == false
-    single_case=input('Single or Multi-case? (s or m): ', 's');
-    
-    if strcmp('s',single_case);
-        accepted = true;
-        single_case=true;
-    elseif strcmp('m', single_case);
-        accepted = true;
-        single_case=false;
-    else
-        fprintf('s or m only\n');
-    end
-end
-
-% Ask user if input imperial or metric
-accepted = false;
-unitSystem = '';
-while accepted == false
-    unitSystem=input('Input Imperial or Metric? (I or M): ', 's');
-    
-    if strcmp('I', unitSystem);
-        accepted = true;
-        unitSystem='I';
-    elseif strcmp('M', unitSystem);
-        accepted = true;
-        unitSystem='M';
-    else
-        fprintf('f or m only\n');
-    end
-end
+[metric, g] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input for metric measurments
-if single_case && strcmp('M', unitSystem)
+if single_case && metric
 	prompt = 'Enter H: wave height (m): ';
 	H = input(prompt);
 
@@ -131,7 +75,7 @@ if single_case && strcmp('M', unitSystem)
     prompt = 'Enter O: order approximation (1 or 2): ';
 	O = input(prompt);
 % Single case input for imperial (feet) measurments
-elseif single_case && strcmp('I', unitSystem)
+elseif single_case && ~metric
 	prompt = 'Enter H: wave height (ft): ';
 	H = input(prompt);
 
@@ -185,15 +129,15 @@ end
 %% *********** Don't change anything here ******************
 % Unit system conversion Constants
 twopi=2*pi;
-if unitSystem == 'I'; % imperial
-    g=32.17; % gravitational acceleration (ft/sec^2)
+if ~metric % imperial
+%    g=32.17; % gravitational acceleration (ft/sec^2)
     if water == 'S';
     rho=1.989; % rho/g = 63.99/32.17 lb sec^2/ft^4 (sea water)
     else rho = 1.940; % rho/g = 62.415475/32.17 lb sec^2/ft^4 (fresh water)
     end
    % rho=1.989; %seawater set at 1025.09 kg/m^3, fresh set at 999.8 kg/m^3
-else  unitSystem == 'M'; % metric
-    g = 9.81; % kg/sec^2
+else metric % metric
+%    g = 9.81; % kg/sec^2
     if water == 'S';
     rho = 1025.09; % kg/m^3, (sea water)
     else rho = 999.8; % kg/m^3 ( fresh water)

@@ -20,4 +20,3 @@ while accepted == false
 end
 
 end
-

@@ -71,7 +71,7 @@ end
 ft2m=0.3048;
 
 % Convert feet input to meters based if input is in feet
-if strcmp('S', metric);
+if metric
     Hmo = Hmo*ft2m;
     d = d*ft2m;
 end

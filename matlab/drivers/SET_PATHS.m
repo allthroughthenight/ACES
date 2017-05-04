@@ -18,4 +18,3 @@ end
 addpath(functionsPath);
 
 end
-
