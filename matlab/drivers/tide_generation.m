@@ -56,59 +56,43 @@ SET_PATHS();
 [metric, g] = USER_INPUT_METRIC_IMPERIAL();
 
 if single_case && metric
-	prompt = 'Enter year simulation starts (YYYY): ';
-	year=input(prompt);
+    [year] = USER_INPUT_DATA_VALUE('Enter year simulation starts (YYYY): ', 1900, 2050);
 
-	prompt = 'Enter month simulation starts (MM): ';
-	mon=input(prompt);
+    [mon] = USER_INPUT_DATA_VALUE('Enter month simulation starts (MM): ', 1, 12);
 
-	prompt = 'Enter day simulation starts (DD): ';
-	day=input(prompt);
+    [day] = USER_INPUT_DATA_VALUE('Enter day simulation starts (DD): ', 1, 31);
 
-	prompt = 'Enter hour simulation starts (HH.H): ';
-	hr=input(prompt);
+    [hr] = USER_INPUT_DATA_VALUE('Enter hour simulation starts (HH.H): ', 0, 24);
 
-	prompt = 'Enter length of record (tlhrs) (HH.H): ';
-	tlhrs=input(prompt);
+    [tlhrs] = USER_INPUT_DATA_VALUE('Enter length of record (tlhrs) (HH.H): ', 0, 744);
 
 	prompt = 'Enter total number of gauges: ';
 	nogauge=input(prompt);
 
-	prompt = 'Enter gauge longitude (deg): ';
-	glong=input(prompt);
+    [glong] = USER_INPUT_DATA_VALUE('Enter gauge longitude (deg): ', -180, 180);
 
-	prompt = 'Enter output time interval (min): ';
-	delt=input(prompt);
+    [delt] = USER_INPUT_DATA_VALUE('Enter output time interval (min): ', 1, 60);
 
-	prompt = 'Enter mean water level height above datum [m]: ';
-	gauge0=input(prompt);
+    [gauge0] = USER_INPUT_DATA_VALUE('Enter mean water level height above datum [m]: ', -100, 100);
 elseif single_case && ~metric
-	prompt = 'Enter year simulation starts (YYYY): ';
-	year=input(prompt);
+    [year] = USER_INPUT_DATA_VALUE('Enter year simulation starts (YYYY): ', 1900, 2050);
 
-	prompt = 'Enter month simulation starts (MM): ';
-	mon=input(prompt);
+    [mon] = USER_INPUT_DATA_VALUE('Enter month simulation starts (MM): ', 1, 12);
 
-	prompt = 'Enter day simulation starts (DD): ';
-	day=input(prompt);
+    [day] = USER_INPUT_DATA_VALUE('Enter day simulation starts (DD): ', 1, 31);
 
-	prompt = 'Enter hour simulation starts (HH.H): ';
-	hr=input(prompt);
+    [hr] = USER_INPUT_DATA_VALUE('Enter hour simulation starts (HH.H): ', 0, 24);
 
-	prompt = 'Enter length of record (tlhrs) (HH.H): ';
-	tlhrs=input(prompt);
+    [tlhrs] = USER_INPUT_DATA_VALUE('Enter length of record (tlhrs) (HH.H): ', 0, 744);
 
 	prompt = 'Enter total number of gauges: ';
 	nogauge=input(prompt);
 
-	prompt = 'Enter gauge longitude (deg): ';
-	glong=input(prompt);
+    [glong] = USER_INPUT_DATA_VALUE('Enter gauge longitude (deg): ', -180, 180);
 
-	prompt = 'Enter output time interval (min): ';
-	delt=input(prompt);
+    [delt] = USER_INPUT_DATA_VALUE('Enter output time interval (min): ', 1, 60);
 
-	prompt = 'Enter mean water level height above datum [ft]: ';
-	gauge0=input(prompt);
+    [gauge0] = USER_INPUT_DATA_VALUE('Enter mean water level height above datum [ft]: ', -100, 100);
 else
     % TODO 
     % Default multi-case block. Eventually to be repalced with csv/tsv file

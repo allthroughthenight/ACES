@@ -40,24 +40,30 @@ SET_PATHS();
 
 % Single case input for metric measurments
 if single_case && metric
-	prompt = 'Enter Hmo: zero-moment wave height [m]: ';
-	Hmo = input(prompt);
+% 	prompt = 'Enter Hmo: zero-moment wave height [m]: ';
+% 	Hmo = input(prompt);
+    [Hmo] = USER_INPUT_DATA_VALUE('Enter Hmo: zero-moment wave height [m]: ', 0.1, 60.0);
 
-	prompt = 'Enter Tp: peak wave period [s]: ';
-	Tp = input(prompt);
+% 	prompt = 'Enter Tp: peak wave period [s]: ';
+% 	Tp = input(prompt);
+    [Tp] = USER_INPUT_DATA_VALUE('Enter Tp: peak wave period [s]: ', 2.0, 30.0);
 
-	prompt = 'Enter d: water depth [m]: ';
-	d = input(prompt);
+% 	prompt = 'Enter d: water depth [m]: ';
+% 	d = input(prompt);
+    [d] = USER_INPUT_DATA_VALUE('Enter d: water depth [m]: ', 0.1, 3000.0);
 % Single case input for imperial (feet) measurments
 elseif single_case && ~metric
-    prompt = 'Enter Hmo: zero-moment wave height [ft]: ';
-	Hmo = input(prompt);
+%     prompt = 'Enter Hmo: zero-moment wave height [ft]: ';
+% 	Hmo = input(prompt);
+    [Hmo] = USER_INPUT_DATA_VALUE('Enter Hmo: zero-moment wave height [ft]: ', 0.1, 60.0);
 
-	prompt = 'Enter Tp: peak wave period [s]: ';
-	Tp = input(prompt);
+% 	prompt = 'Enter Tp: peak wave period [s]: ';
+% 	Tp = input(prompt);
+    [Tp] = USER_INPUT_DATA_VALUE('Enter Tp: peak wave period [s]: ', 2.0, 30.0);
 
-	prompt = 'Enter d: water depth [ft]: ';
-	d = input(prompt);
+% 	prompt = 'Enter d: water depth [ft]: ';
+% 	d = input(prompt);
+    [d] = USER_INPUT_DATA_VALUE('Enter d: water depth [ft]: ', 0.1, 3000.0);
 else
     % TODO 
     % Default multi-case block. Eventually to be replaced with csv/tsv file

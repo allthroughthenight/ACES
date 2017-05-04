@@ -40,14 +40,17 @@ SET_PATHS();
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
 if single_case
-	prompt = 'Enter Nt: estimated total number of events: ';
-	Nt=input(prompt);
+% 	prompt = 'Enter Nt: estimated total number of events: ';
+% 	Nt=input(prompt);
+    [Nt] = USER_INPUT_DATA_VALUE('Enter Nt: estimated total number of events: ', 0.0, 10000.0);
 
-	prompt = 'Enter K: length of the record in years: ';
-	K=input(prompt);
+% 	prompt = 'Enter K: length of the record in years: ';
+% 	K=input(prompt);
+    [K] = USER_INPUT_DATA_VALUE('Enter K: length of the record in years: ', 0.0, 999.9);
 
-	prompt = 'Enter d: water depth: ';
-	d=input(prompt);
+% 	prompt = 'Enter d: water depth: ';
+% 	d=input(prompt);
+    [d] = USER_INPUT_DATA_VALUE('Enter d: water depth: ', 0.0, 1000.0);
 
 	fprintf('Hs: significant wave heights from long-term data source already entered');
 	Hs=[9.32;8.11;7.19;7.06;6.37;6.15;6.03;5.72;4.92;4.90;4.78;4.67;4.64;4.19;3.06];

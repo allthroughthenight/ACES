@@ -54,48 +54,44 @@ SET_PATHS();
 
 % Single case input for metric measurments
 if single_case && metric
-	prompt = 'Enter H: wave height (m): ';
-	H = input(prompt);
+    [H] = USER_INPUT_DATA_VALUE('Enter H: wave height (m): ', 0.1, 200.0);
 
-	prompt = 'Enter T: wave period (sec): ';
-	T = input(prompt);
+    [T] = USER_INPUT_DATA_VALUE('Enter T: wave period (sec): ', 1.0, 1000.0);
 
-	prompt = 'Enter d: water depth (m): ';
-	d = input(prompt);
+    [d] = USER_INPUT_DATA_VALUE('Enter d: water depth (m): ', 0.1, 5000.0);
     
-    prompt = 'Enter z: vertical coordinate (m): ';
-	z = input(prompt);
+    [z] = USER_INPUT_DATA_VALUE('Enter z: vertical coordinate (m): ', -5100.0, 100.0);
     
-    prompt = 'Enter xL: horizontal coordinate as fraction of wavelength (x/L): ';
-	xL = input(prompt);
+    [xL] = USER_INPUT_DATA_VALUE('Enter xL: horizontal coordinate as fraction of wavelength (x/L): ', 0.0, 1.0);
     
     prompt = 'Enter time: time-coordinate (default=0): ';
 	time = input(prompt);
     
-    prompt = 'Enter O: order approximation (1 or 2): ';
-	O = input(prompt);
+    O = 0;
+    while O ~= 1 && O ~= 2
+        prompt = 'Enter O: order approximation (1 or 2): ';
+        O = input(prompt);
+    end
 % Single case input for imperial (feet) measurments
 elseif single_case && ~metric
-	prompt = 'Enter H: wave height (ft): ';
-	H = input(prompt);
+    [H] = USER_INPUT_DATA_VALUE('Enter H: wave height (ft): ', 0.1, 200.0);
 
-	prompt = 'Enter T: wave period (sec): ';
-	T = input(prompt);
+    [T] = USER_INPUT_DATA_VALUE('Enter T: wave period (sec): ', 1.0, 1000.0);
 
-	prompt = 'Enter d: water depth (ft): ';
-	d = input(prompt);
+    [d] = USER_INPUT_DATA_VALUE('Enter d: water depth (ft): ', 0.1, 5000.0);
     
-    prompt = 'Enter z: vertical coordinate (ft): ';
-	z = input(prompt);
+    [z] = USER_INPUT_DATA_VALUE('Enter z: vertical coordinate (ft): ', -5100.0, 100.0);
     
-    prompt = 'Enter xL: horizontal coordinate as fraction of wavelength (x/L): ';
-	xL = input(prompt);
+    [xL] = USER_INPUT_DATA_VALUE('Enter xL: horizontal coordinate as fraction of wavelength (x/L): ', 0.0, 1.0);
     
     prompt = 'Enter time: time-coordinate (default=0): ';
 	time = input(prompt);
     
-    prompt = 'Enter O: order approximation (1 or 2): ';
-	O = input(prompt);
+    O = 0;
+    while O ~= 1 && O ~= 2
+        prompt = 'Enter O: order approximation (1 or 2): ';
+        O = input(prompt);
+    end
 else
     % TODO 
     % Default multi-case block. Eventually to be repalced with csv/tsv file
