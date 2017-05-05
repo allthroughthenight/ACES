@@ -36,17 +36,40 @@ clc
 %   H20weight: specific weight of water
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+SET_PATHS();
 
-unitwt=165;
-H=11.50;
-Kd=10.0;
-kdelt=1.02;
-P=54.0;
-cotssl=2.00;
-n=2;
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-g=32.17;
+[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+
+if single_case
+    if metric
+        [unitwt] = USER_INPUT_DATA_VALUE('Enter unitwt: armor specific unit weight (N/m^3): ', 1.0, 99999.0);
+        [H] = USER_INPUT_DATA_VALUE('Enter H: wave height (m): ', 0.1, 100.0);
+    else
+        [unitwt] = USER_INPUT_DATA_VALUE('Enter unitwt: armor specific unit weight (lb/ft^3): ', 1.0, 99999.0);
+        [H] = USER_INPUT_DATA_VALUE('Enter H: wave height (ft): ', 0.1, 100.0);
+    end
+    
+    [Kd] = USER_INPUT_DATA_VALUE('Enter Kd: stability coefficient: ', 0, 10);
+    
+    [kdelt] = USER_INPUT_DATA_VALUE('Enter kdelt: layer coefficient: ', 0, 2);
+    
+    [P] = USER_INPUT_DATA_VALUE('Enter P: average porosity of armor layer: ', 0, 54);
+    
+    [cotssl] = USER_INPUT_DATA_VALUE('Enter cotssl: cotangent of structure slope: ', 1.0, 6.0);
+    
+    [n] = USER_INPUT_DATA_VALUE('Enter n: number of armor units comprising the thickness of the armor layer: ', 1.0, 3.0);
+else
+    unitwt=165;
+    H=11.50;
+    Kd=10.0;
+    kdelt=1.02;
+    P=54.0;
+    cotssl=2.00;
+    n=2;
+end
+
 rho=1.989;
 H20weight=rho*g; %64 lb/ft^3 for seawater, 62.4 for fresh
 
@@ -57,14 +80,14 @@ r=n*kdelt*(w/unitwt)^(1/3);
 Nr=1000*n*kdelt*(1-P/100)*(unitwt/w)^(2/3);
 b=3*kdelt*(w/unitwt)^(1/3);
 
-if g==9.81
+if metric
     if w>8000
         w=w/8896.4; %1 ton=8896.4 N
         units='tons';
     else
         units='N';
     end
-elseif g==32.17
+else
     if w>2000
         w=w/2000;
         units='tons';
@@ -73,7 +96,7 @@ elseif g==32.17
     end
 end
 
-fprintf('%s \t\t %-6.2f \t \n','Weight of individual unit',w)
+fprintf('%s \t\t %-6.2f %s \t \n','Weight of individual unit',w,units)
 fprintf('%s \t\t\t\t\t %-6.2f \t \n','Crest width',b)
 fprintf('%s \t %-6.2f \t \n','Average cover layer thickness',r)
 fprintf('%s \t %-6.2f \t \n','Number of single armor unit',Nr)

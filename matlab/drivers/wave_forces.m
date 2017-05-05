@@ -53,17 +53,36 @@ delete(get(0,'Children'))
 %   Sintt: array containing Sainflou incremental values at trough
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+SET_PATHS();
 
-g=32.17; %ft/sec^2
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
+
+[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+
 rho=1.989; %slugs/ft^3 (sea water)
 H20weight=rho*g;
 
-d=15;
-Hi=8.0;
-T=10.0;
-chi=1.0;
-cotphi=100.0;
+if single_case
+    if metric
+        [d] = USER_INPUT_DATA_VALUE('Enter d: depth for sea water level (m): ', 0.1, 200.0);
+        [Hi] = USER_INPUT_DATA_VALUE('Enter Hi: incident wave height (m): ', 0.1, 100.0);
+    else
+        [d] = USER_INPUT_DATA_VALUE('Enter d: depth for sea water level (ft): ', 0.1, 200.0);
+        [Hi] = USER_INPUT_DATA_VALUE('Enter Hi: incident wave height (ft): ', 0.1, 100.0);
+    end
+    
+    [T] = USER_INPUT_DATA_VALUE('Enter T: wave period (s): ', 1.0, 100.0);
+    
+    [chi] = USER_INPUT_DATA_VALUE('Enter chi: wave reflection coefficient: ', 0.9, 1.0);
+    
+    [cotphi] = USER_INPUT_DATA_VALUE('Enter cotphi: cotangent of nearshore slope: ', 5.0, 10000.0);
+else
+    d=15;
+    Hi=8.0;
+    T=10.0;
+    chi=1.0;
+    cotphi=100.0;
+end
 
 m=1/cotphi;
 

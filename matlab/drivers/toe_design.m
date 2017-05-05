@@ -37,19 +37,53 @@ clc
 %   H20weight: specific weight of water
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+SET_PATHS();
 
-H=3;
-T=14.1;
-ds=20;
-cotphi=500.0;
-Kp=0;
-de=0;
-ht=5.50;
-unitwt=105;
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
+
+[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+
+if single_case
+    if metric
+        [H] = USER_INPUT_DATA_VALUE('Enter Hi: wave height (m): ', 0.1, 100.0);
+    else
+        [H] = USER_INPUT_DATA_VALUE('Enter Hi: wave height (ft): ', 0.1, 100.0);
+    end
+    
+    [T] = USER_INPUT_DATA_VALUE('Enter T: wave period (sec): ', 1.0, 1000.0);
+    
+    if metric
+        [ds] = USER_INPUT_DATA_VALUE('Enter ds: water depth at structure (m): ', 0.1, 200.0);
+    else
+        [ds] = USER_INPUT_DATA_VALUE('Enter ds: water depth at structure (ft): ', 0.1, 200.0);
+    end
+    
+    [cotphi] = USER_INPUT_DATA_VALUE('Enter cotphi: cotangent of nearshore slope: ', 5.0, 10000.0);
+    
+    [Kp] = USER_INPUT_DATA_VALUE('Enter Kp: passive earth pressure coefficient: ', 0.0, 50.0);
+    
+    if metric
+        [de] = USER_INPUT_DATA_VALUE('Enter de: sheet-pile penetration depth (m): ', 0.0, 200.0);
+        [ht] = USER_INPUT_DATA_VALUE('Enter ht: height of toe protection layer above mudline (m): ', 0.1, 200.0);
+        [unitwt] = USER_INPUT_DATA_VALUE('Enter unitwt: unit weight of rock (N/m^3): ', 1.0, 99999.0);
+    else
+        [de] = USER_INPUT_DATA_VALUE('Enter de: sheet-pile penetration depth (ft): ', 0.0, 200.0);
+        [ht] = USER_INPUT_DATA_VALUE('Enter ht: height of toe protection layer above mudline (ft): ', 0.1, 200.0);
+        [unitwt] = USER_INPUT_DATA_VALUE('Enter unitwt: unit weight of rock (lb/ft^3): ', 1.0, 99999.0);
+    end
+    
+else
+    H=3;
+    T=14.1;
+    ds=20;
+    cotphi=500.0;
+    Kp=0;
+    de=0;
+    ht=5.50;
+    unitwt=105;
+end
 
 rho=1.989;
-g=32.17;
 H20weight=g*rho;
 
 specgrav=unitwt/H20weight;
