@@ -4,8 +4,8 @@ clc
 %% ACES Update to MATLAB
 %-------------------------------------------------------------
 % Driver for Combined Diffraction and Reflection by a Vertical Wedge
-% (page 3-3 in ACES User's Guide). Estimates wave height modifcation due
-% to combined diffraction and reflection near jettted harbor entrances,
+% (page 3-3 in ACES User's Guide). Estimates wave height modification due
+% to combined diffraction and reflection near jetted harbor entrances,
 % quay walls, and other such structures.
 
 % Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
@@ -44,67 +44,31 @@ clc
 %   OTHERS
 %-------------------------------------------------------------
 
-% Ask user if running windows or linux to set functions path
-accepted = false;
-while accepted == false
-    linux=input('Linux or Windows? (l or w): ', 's');
-    
-    if strcmp('l', linux);
-        accepted = true;
-        linux=true;
-    elseif strcmp('w', linux);
-        accepted = true;
-        linux=false;
-    else
-        fprintf('l or w only\n');
-    end
-end
+SET_PATHS();
 
-% Set path to functions for windows or linux base on previous answer
-if linux
-  % Path to functions folder for linux
-  functionsPath = '~/aces/matlab/functions';
-else
-  % Path to fucntions folder for windows
-  functionsPath = strcat (getenv('USERPROFILE'), '\\Documents\\aces\\matlab\\functions');
-end
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-% Add correct function path
-addpath(functionsPath);
-
-% Ask user for single or multi-input (from a file)
-accepted = false;
-single_case = '';
-while accepted == false
-    single_case=input('Single or Multi-case? (s or m): ', 's');
-    
-    if strcmp('s',single_case);
-        accepted = true;
-        single_case=true;
-    elseif strcmp('m', single_case);
-        accepted = true;
-        single_case=false;
-    else
-        fprintf('s or m only\n');
-    end
-end
+[metric, g] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input for metric measurments
 if single_case
-	prompt = 'Enter Hi: incident wave height (m): ';
-	Hi = input(prompt);
+    if metric
+        [Hi] = USER_INPUT_DATA_VALUE('Enter Hi: incident wave height (m): ', 0.1, 200);
+    else
+        [Hi] = USER_INPUT_DATA_VALUE('Enter Hi: incident wave height (ft): ', 0.1, 200);
+    end
 
-	prompt = 'Enter T: water period (sec): ';
-	T = input(prompt);
+    [T] = USER_INPUT_DATA_VALUE('Enter T: water period (sec): ', 1, 1000);
 
-	prompt = 'Enter d: water depth (m): ';
-	d = input(prompt);
+    if metric
+        [d] = USER_INPUT_DATA_VALUE('Enter d: water depth (m): ', 0.01, 5000);
+    else
+        [d] = USER_INPUT_DATA_VALUE('Enter d: water depth (ft): ', 0.01, 5000);
+    end
     
-    prompt = 'Enter alpha: wave angle (deg): ';
-	alpha = input(prompt);
+    [alpha] = USER_INPUT_DATA_VALUE('Enter alpha: wave angle (deg): ', 0, 180);
     
-    prompt = 'Enter wedgang: wedge angle (deg): ';
-	wedgang = input(prompt); 
+    [wedgang] = USER_INPUT_DATA_VALUE('Enter wedgang: wedge angle (deg): ', 0, 180);
 else
     % TODO 
     % Default multi-case block. Eventually to be repalced with csv/tsv file
@@ -138,11 +102,17 @@ end
 if mode==0
     % Single Point Case
     if single_case
-        prompt = 'Enter xcor: x-coordinate (m): ';
-        xcor = input(prompt);
+        if metric
+            [xcor] = USER_INPUT_DATA_VALUE('Enter xcor: x-coordinate (m): ', -5280, 5280);
+        else
+            [xcor] = USER_INPUT_DATA_VALUE('Enter xcor: x-coordinate (ft): ', -5280, 5280);
+        end
 
-        prompt = 'Enter ycor: y-coordinate (m): ';
-        ycor = input(prompt);
+        if metric
+            [ycor] = USER_INPUT_DATA_VALUE('Enter ycor: y-coordinate (m): ', -5280, 5280);
+        else
+            [ycor] = USER_INPUT_DATA_VALUE('Enter ycor: y-coordinate (ft): ', -5280, 5280);
+        end
     else
         xcor=-33;
         ycor=10;
@@ -168,23 +138,41 @@ elseif mode==1
     %Uniform Grid Case
     
     if single_case
-        prompt = 'Enter x0: x start coordinate (m): ';
-        x0 = input(prompt);
+        if metric
+            [x0] = USER_INPUT_DATA_VALUE('Enter x0: x start coordinate (m): ', -5280, 5280);
+        else
+            [x0] = USER_INPUT_DATA_VALUE('Enter x0: x start coordinate (ft): ', -5280, 5280);
+        end
 
-        prompt = 'Enter xend: x end coordinate (m): ';
-        xend = input(prompt);
+        if metric
+            [xend] = USER_INPUT_DATA_VALUE('Enter xend: x end coordinate (m): ', -5280, 5280);
+        else
+            [xend] = USER_INPUT_DATA_VALUE('Enter xend: x end coordinate (ft): ', -5280, 5280);
+        end
         
-        prompt = 'Enter dx: x spatial increment (m): ';
-        dx = input(prompt);
+        if metric
+            [dx] = USER_INPUT_DATA_VALUE('Enter dx: x spatial increment (m): ', 0.1, 5280);
+        else
+            [dx] = USER_INPUT_DATA_VALUE('Enter dx: x spatial increment (ft): ', 0.1, 5280);
+        end
         
-        prompt = 'Enter y0: y start coordinate (m): ';
-        y0 = input(prompt);
+        if metric
+            [y0] = USER_INPUT_DATA_VALUE('Enter y0: y start coordinate (m): ', -5280, 5280);
+        else
+            [y0] = USER_INPUT_DATA_VALUE('Enter y0: y start coordinate (ft): ', -5280, 5280);
+        end
         
-        prompt = 'Enter yend: y end coordinate (m): ';
-        yend = input(prompt);
+        if metric
+            [yend] = USER_INPUT_DATA_VALUE('Enter yend: y end coordinate (m): ', -5280, 5280);
+        else
+            [yend] = USER_INPUT_DATA_VALUE('Enter yend: y end coordinate (ft): ', -5280, 5280);
+        end
         
-        prompt = 'Enter dy: y spatial increment (m): ';
-        dy = input(prompt);
+        if metric
+            [dy] = USER_INPUT_DATA_VALUE('Enter dy: y spatial increment (m): ', 0.1, 5280);
+        else
+            [dy] = USER_INPUT_DATA_VALUE('Enter dy: y spatial increment (ft): ', 0.1, 5280);
+        end
     else
         x0=-800;
         xend=100;
