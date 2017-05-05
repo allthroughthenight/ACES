@@ -58,58 +58,37 @@ clc
 %   db: breaking wave depth (m)
 %-------------------------------------------------------------
 
-% Ask user if running windows or linux to set functions path
-accepted = false;
-while accepted == false
-    linux=input('Linux or Windows? (l or w): ', 's');
-    
-    if strcmp('l', linux);
-        accepted = true;
-        linux=true;
-    elseif strcmp('w', linux);
-        accepted = true;
-        linux=false;
-    else
-        fprintf('l or w only\n');
-    end
-end
+SET_PATHS();
 
-% Ask user for single or multi-input (from a file)
-accepted = false;
-single_case = '';
-while accepted == false
-    single_case=input('Single or Multi-case? (s or m): ', 's');
-    
-    if strcmp('s',single_case);
-        accepted = true;
-        single_case=true;
-    elseif strcmp('m', single_case);
-        accepted = true;
-        single_case=false;
-    else
-        fprintf('s or m only\n');
-    end
-end
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
+
+[metric, g] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input
 if single_case
-	prompt = 'Enter H1: wave height at known location (m): ';
-	H1 = input(prompt);
+    if metric
+        [H1] = USER_INPUT_DATA_VALUE('Enter H1: wave height at known location (m): ', 0.1, 200.0);
+    else
+        [H1] = USER_INPUT_DATA_VALUE('Enter H1: wave height at known location (ft): ', 0.1, 200.0);
+    end
 
-	prompt = 'Enter T: wave period at known location (sec): ';
-	T = input(prompt);
+    [T] = USER_INPUT_DATA_VALUE('Enter T: wave period at known location (sec): ', 1.0, 1000.0);
 
-	prompt = 'Enter d1: water depth at known location (m): ';
-	d1 = input(prompt);
+    if metric
+        [d1] = USER_INPUT_DATA_VALUE('Enter d1: water depth at known location (m): ', 0.1, 5000.0);
+    else
+        [d1] = USER_INPUT_DATA_VALUE('Enter d1: water depth at known location (ft): ', 0.1, 5000.0);
+    end
     
-    prompt = 'Enter alpha1: wave crest angle (deg): ';
-	alpha1 = input(prompt);
+    [alpha1] = USER_INPUT_DATA_VALUE('Enter alpha1: wave crest angle (deg): ', 0.0, 90.0);
     
-    prompt = 'Enter cotphi: cotan of nearshore slope: ';
-	cotphi = input(prompt);
+    [cotphi] = USER_INPUT_DATA_VALUE('Enter cotphi: cotan of nearshore slope: ', 5.0, 1000.0);
     
-    prompt = 'Enter d2: water depth at desired location (m): ';
-	d2 = input(prompt);
+    if metric
+        [d2] = USER_INPUT_DATA_VALUE('Enter d2: water depth at desired location (m): ', 0.1, 5000.0);
+    else
+        [d2] = USER_INPUT_DATA_VALUE('Enter d2: water depth at desired location (ft): ', 0.1, 5000.0);
+    end
     
 else
     % TODO 
@@ -124,7 +103,6 @@ else
 end
 
 rho=1.989;
-g=32.17;
 m=1/cotphi;
 
 [Hb]=ERRWAVBRK1(d1,0.78);

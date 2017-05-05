@@ -46,67 +46,27 @@ clc
 %   OTHERS
 %-------------------------------------------------------------
 
-% Ask user if running windows or linux to set functions path
-accepted = false;
-while accepted == false
-    linux=input('Linux or Windows? (l or w): ', 's');
-    
-    if strcmp('l', linux);
-        accepted = true;
-        linux=true;
-    elseif strcmp('w', linux);
-        accepted = true;
-        linux=false;
-    else
-        fprintf('l or w only\n');
-    end
-end
+SET_PATHS();
 
-% Set path to functions for windows or linux base on previous answer
-if linux
-  % Path to functions folder for linux
-  functionsPath = '~/aces/matlab/functions';
-else
-  % Path to fucntions folder for windows
-  functionsPath = strcat (getenv('USERPROFILE'), '\\Documents\\aces\\matlab\\functions');
-end
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-% Add correct function path
-addpath(functionsPath);
-
-% Ask user for single or multi-input (from a file)
-accepted = false;
-single_case = '';
-while accepted == false
-    single_case=input('Single or Multi-case? (s or m): ', 's');
-    
-    if strcmp('s',single_case);
-        accepted = true;
-        single_case=true;
-    elseif strcmp('m', single_case);
-        accepted = true;
-        single_case=false;
-    else
-        fprintf('s or m only\n');
-    end
-end
+[metric, g] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input
 if single_case
-	prompt = 'Enter Ho: significant deepwater wave height]: ';
-	Ho = input(prompt);
+    if metric
+        [Ho] = USER_INPUT_DATA_VALUE('Enter Ho: significant deepwater wave height (m): ', 0.61, 6.09);
+    else
+        [Ho] = USER_INPUT_DATA_VALUE('Enter Ho: significant deepwater wave height (ft): ', 2.0, 20.0);
+    end
 
-	prompt = 'Enter d: water depth: ';
-	d = input(prompt);
+    [d] = USER_INPUT_DATA_VALUE('Enter d: water depth: ', 10.0, 5000.0);
 
-	prompt = 'Enter Ts: significant wave period: ';
-	Ts = input(prompt);
+    [Ts] = USER_INPUT_DATA_VALUE('Enter Ts: significant wave period: ', 4.0, 16.0);
     
-    prompt = 'Enter cotnsl: cotangent of nearshore slope: ';
-	cotnsl = input(prompt);
+    [cotnsl] = USER_INPUT_DATA_VALUE('Enter cotnsl: cotangent of nearshore slope: ', 30.0, 100.0);
     
-    prompt = 'Enter direc: principle direction of incident wave spectrum: ';
-	direc = input(prompt);
+    [direc] = USER_INPUT_DATA_VALUE('Enter direc: principle direction of incident wave spectrum: ', -75.0, 75.0);
 
 else
     % TODO 
@@ -123,7 +83,7 @@ end
 m2cm=100;
 
 % Convert meter input to centimeters
-g=9.81*m2cm;
+g=g*m2cm;
 Ho=Ho*m2cm;
 d=d*m2cm;
 
