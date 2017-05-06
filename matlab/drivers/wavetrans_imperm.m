@@ -49,21 +49,42 @@ clc
 %   freeb: freeboard
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+SET_PATHS();
 
-H=7.50;
-T=10.00;
-cotphi=100.0;
-ds=10.0;
-cottheta=3.0;
-hs=15.0;
-wth=7.50;
-g=32.17;
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
+
+[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+
+if single_case
+    [H] = USER_INPUT_DATA_VALUE('Enter H: incident wave height (Hs for irregular waves) (m): ', 0.1, 100.0);
+    
+    [T] = USER_INPUT_DATA_VALUE('Enter T: wave period (Tp for irregular waves) (s): ', 1.0, 1000.0);
+    
+    [cotphi] = USER_INPUT_DATA_VALUE('Enter cotphi: cotan of nearshore slope: ', 5.0, 10000.0);
+    
+    [ds] = USER_INPUT_DATA_VALUE('Enter ds: water depth at structure toe (m): ', 0.1, 200.0);
+    
+    [hs] = USER_INPUT_DATA_VALUE('Enter hs: structure height above toe (m): ', 0.0, 200.0);
+    
+    [wth] = USER_INPUT_DATA_VALUE('Enter wth: structure crest width (m): ', 0.0, 200.0);
+    
+    [cottheta] = USER_INPUT_DATA_VALUE('Enter cottheta: cotan of structure slope (0.0 for vertical wall): ', 0.0, 30.0);
+    
+    [R] = USER_INPUT_DATA_VALUE('Enter R: wave runup (if known) (m): ', 0.0, 100.0);
+else
+    H=7.50;
+    T=10.00;
+    cotphi=100.0;
+    ds=10.0;
+    cottheta=3.0;
+    hs=15.0;
+    wth=7.50;
+    R=15.0;
+end
 
 a=0.956;
 b=0.398;
 hb=6.00;
-R=15.0;
 
 m=1/cotphi;
 

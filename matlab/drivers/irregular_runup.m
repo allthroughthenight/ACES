@@ -31,12 +31,27 @@ clc
 %   I: Irribarren number
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+SET_PATHS();
 
-Hs0=4.6;
-Tp=9.50;
-cottheta=13.0;
-g=32.17;
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
+
+[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+
+if single_case
+    if metric
+        [Hs0] = USER_INPUT_DATA_VALUE('Enter Hs0: deepwater significant wave height (m): ', 0.1, 100.0);
+    else
+        [Hs0] = USER_INPUT_DATA_VALUE('Enter Hs0: deepwater significant wave height (ft): ', 0.1, 100.0);
+    end
+    
+    [Tp] = USER_INPUT_DATA_VALUE('Enter Tp: peak energy wave period (sec): ', 0.1, 100.0);
+    
+    [cottheta] = USER_INPUT_DATA_VALUE('Enter cottheta: cotangent of foreshore slope: ', 0.1, 100.0);
+else
+    Hs0=4.6;
+    Tp=9.50;
+    cottheta=13.0;
+end
 
 %Coefficients provided by Mase (1989)
 amax=2.32;

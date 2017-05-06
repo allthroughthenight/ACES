@@ -51,22 +51,48 @@ clc
 %   freeb: freeboard
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+SET_PATH();
 
-H=2.0;
-T=10.0;
-ds=9.6;
-nummat=1; 
-d50=[1.46];
-por=[0.37];
-hs=10.5;
-cotssl=1.0;
-b=8.5;
-numlay=1;
-th=[9.60];
-hlen=[25.60];
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-g=32.17;
+[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+
+if single_case
+    [H] = USER_INPUT_DATA_VALUE('Enter H: incident wave height (m): ', 0.1, 100.0);
+    
+    [T] = USER_INPUT_DATA_VALUE('Enter T: wave period (s): ', 1.0, 1000.0);
+    
+    [ds] = USER_INPUT_DATA_VALUE('Enter ds: water depth at structure toe (m): ', 0.1, 200.0);
+    
+    [nummat] = USER_INPUT_DATA_VALUE('Enter nummat: number of materials comprising the breakwater: ', 1, 4);
+    
+    d50 = [];
+    por = [];
+    for matIndex = 1:nummat
+        [d50Input] = USER_INPUT_DATA_VALUE(['Enter d50: mean diameter of material #' matIndex ' (m): '], 0.05, 99.0);
+
+        [porInput] = USER_INPUT_DATA_VALUE(['Enter p: porosity of material #' matIndex ': ', 0.0, 100.0);
+        
+        d50 = [d50 d50Input];
+        por = [por porInput];
+    end
+    
+    [hs] = USER_INPUT_DATA_VALUE('Enter hs: structure height above toe (m): ', 0.1, 200.0);
+else
+    H=2.0;
+    T=10.0;
+    ds=9.6;
+    nummat=1; 
+    d50=[1.46];
+    por=[0.37];
+    hs=10.5;
+    cotssl=1.0;
+    b=8.5;
+    numlay=1;
+    th=[9.60];
+    hlen=[25.60];
+end
+
 nu=0.0000141; %ft^2/s
 
 [Hb]=ERRWAVBRK1(ds,0.78);
