@@ -58,70 +58,25 @@ clc
 %   OTHERS
 %-------------------------------------------------------------
 
-% Ask user if running windows or linux to set functions path
-accepted = false;
-while accepted == false
-    linux=input('Linux or Windows? (l or w): ', 's');
-    
-    if strcmp('l', linux);
-        accepted = true;
-        linux=true;
-    elseif strcmp('w', linux);
-        accepted = true;
-        linux=false;
-    else
-        fprintf('l or w only\n');
-    end
-end
+SET_PATHS();
 
-% Set path to functions for windows or linux base on previous answer
-if linux
-  % Path to functions folder for linux
-  functionsPath = '~/aces/matlab/functions';
-else
-  % Path to fucntions folder for windows
-  functionsPath = strcat (getenv('USERPROFILE'), '\\Documents\\aces\\matlab\\functions');
-end
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-% Add correct function path
-addpath(functionsPath);
-
-% Ask user for single or multi-input (from a file)
-accepted = false;
-single_case = '';
-while accepted == false
-    single_case=input('Single or Multi-case? (s or m): ', 's');
-    
-    if strcmp('s',single_case);
-        accepted = true;
-        single_case=true;
-    elseif strcmp('m', single_case);
-        accepted = true;
-        single_case=false;
-    else
-        fprintf('s or m only\n');
-    end
-end
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input
 if single_case
-	prompt = 'Enter zobs: elevation of observed winds [m]: ';
-	zobs = input(prompt);
+    [zobs] = USER_INPUT_DATA_VALUE(['Enter zobs: elevation of observed winds [' labelUnitDist ']: '], 1.0, 5000.0);
 
-	prompt = 'Enter uobs: observed wind speed [m/s]: ';
-	uobs = input(prompt);
+    [uobs] = USER_INPUT_DATA_VALUE(['Enter uobs: observed wind speed [' labelUnitDist '/s]: '], 0.1, 200.0);
 
-	prompt = 'Enter dtemp: air-sea temperature difference [deg C]: ';
-	dtemp = input(prompt);
+    [dtemp] = USER_INPUT_DATA_VALUE('Enter dtemp: air-sea temperature difference [deg C]: ', -100.0, 100.0);
     
-    prompt = 'Enter duro: duration of observed wind [hr]: ';
-	duro = input(prompt);
+    [duro] = USER_INPUT_DATA_VALUE('Enter duro: duration of observed wind [hr]: ', 0.1, 86400.0);
     
-    prompt = 'Enter durf: duration of final wind [hr]: ';
-	durf = input(prompt);
+    [durf] = USER_INPUT_DATA_VALUE('Enter durf: duration of final wind [hr]: ', 0.1, 86400.0);
     
-    prompt = 'Enter lat: latitude of wind observation [deg]: ';
-	lat = input(prompt);
+    [lat] = USER_INPUT_DATA_VALUE('Enter lat: latitude of wind observation [deg]: ', 0.0, 180.0);
 else
     % TODO 
     % Default multi-case block. Eventually to be repalced with csv/tsv file
@@ -200,8 +155,9 @@ if wgtyp==3 || wgtyp==4
     fprintf('%s \t %-6.2f \n','Mean wave direction',theta)
     fprintf('%s \t\t\t\t %-6.2f \n','Wind fetch',F)
 end
-fprintf('%s \t\t %-6.2f \n','Equiv. wind speed ',ue/mph2mps)
-fprintf('%s \t\t %-6.2f \n','Adjus. wind speed ',ua/mph2mps)
+% TODO: Add metric speed
+fprintf('%s \t\t %-6.2f \n','Equiv. wind speed mph ',ue/mph2mps)
+fprintf('%s \t\t %-6.2f \n','Adjus. wind speed mph ',ua/mph2mps)
 
-fprintf('%s \t\t\t %-6.2f \n','Wave height ',Hmo/ft2m)
-fprintf('%s \t\t\t %-6.2f \n','Wave period ',Tp)
+fprintf('%s \t\t\t %-6.2f %s \n','Wave height ',Hmo/ft2m,labelUnitDist)
+fprintf('%s \t\t\t %-6.2f s \n','Wave period ',Tp)

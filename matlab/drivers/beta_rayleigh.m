@@ -36,34 +36,15 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input for metric measurments
-if single_case && metric
-% 	prompt = 'Enter Hmo: zero-moment wave height [m]: ';
-% 	Hmo = input(prompt);
-    [Hmo] = USER_INPUT_DATA_VALUE('Enter Hmo: zero-moment wave height [m]: ', 0.1, 60.0);
+if single_case
+    [Hmo] = USER_INPUT_DATA_VALUE(['Enter Hmo: zero-moment wave height [' labelUnitDist ']: '], 0.1, 60.0);
 
-% 	prompt = 'Enter Tp: peak wave period [s]: ';
-% 	Tp = input(prompt);
     [Tp] = USER_INPUT_DATA_VALUE('Enter Tp: peak wave period [s]: ', 2.0, 30.0);
 
-% 	prompt = 'Enter d: water depth [m]: ';
-% 	d = input(prompt);
-    [d] = USER_INPUT_DATA_VALUE('Enter d: water depth [m]: ', 0.1, 3000.0);
-% Single case input for imperial (feet) measurments
-elseif single_case && ~metric
-%     prompt = 'Enter Hmo: zero-moment wave height [ft]: ';
-% 	Hmo = input(prompt);
-    [Hmo] = USER_INPUT_DATA_VALUE('Enter Hmo: zero-moment wave height [ft]: ', 0.1, 60.0);
-
-% 	prompt = 'Enter Tp: peak wave period [s]: ';
-% 	Tp = input(prompt);
-    [Tp] = USER_INPUT_DATA_VALUE('Enter Tp: peak wave period [s]: ', 2.0, 30.0);
-
-% 	prompt = 'Enter d: water depth [ft]: ';
-% 	d = input(prompt);
-    [d] = USER_INPUT_DATA_VALUE('Enter d: water depth [ft]: ', 0.1, 3000.0);
+    [d] = USER_INPUT_DATA_VALUE(['Enter d: water depth [' labelUnitDist ']: '], 0.1, 3000.0);
 else
     % TODO 
     % Default multi-case block. Eventually to be replaced with csv/tsv file
@@ -90,7 +71,7 @@ Htype(3)=0.90; %H1/10 (1-1/10);
 Htype(4)=0.99; %H1/100 (1-1/100);
 
 [Hb]=ERRWAVBRK1(d,0.9);
-assert(Hmo<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
+assert(Hmo<Hb,'Error: Input wave broken (Hb = %6.2f %s)',Hb,labelUnitDist)
 
 [L,k]=WAVELEN(d,Tp,50,g);
 [steep,maxstp]=ERRSTP(Hmo,d,L);
@@ -205,12 +186,12 @@ table=cat(2,H',p');
 
 plot(Hout(2),0,'ks',Hout(3),0,'ro',Hout(4),0,'bd',Hrms,0,'g*',Hmed,0,'m^',table(:,1),table(:,2));
 legend('H_{1/3}','H_{1/10}','H_{1/100}','H_{rms}','H_{med}')
-xlabel('H [m]')
+xlabel(['H [' labelUnitDist ']'])
 ylabel('Probability density p(H)')
 
 fprintf('\n %s \n','Wave heights')
-fprintf('\t %s \t\t %-6.2f \n','Hrms',Hrms)
-fprintf('\t %s \t\t %-6.2f \n','Hmed',Hmed)
-fprintf('\t %s \t %-6.2f \n','H(1/3)',Hout(2))
-fprintf('\t %s \t %-6.2f \n','H(1/10)',Hout(3))
-fprintf('\t %s \t %-6.2f \n','H(1/100)',Hout(4))
+fprintf('\t %s \t\t %-6.2f %s \n','Hrms',Hrms,labelUnitDist)
+fprintf('\t %s \t\t %-6.2f %s \n','Hmed',Hmed,labelUnitDist)
+fprintf('\t %s \t %-6.2f %s \n','H(1/3)',Hout(2),labelUnitDist)
+fprintf('\t %s \t %-6.2f %s \n','H(1/10)',Hout(3),labelUnitDist)
+fprintf('\t %s \t %-6.2f %s \n','H(1/100)',Hout(4),labelUnitDist)

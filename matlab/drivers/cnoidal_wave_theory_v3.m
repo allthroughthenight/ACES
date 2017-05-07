@@ -50,37 +50,17 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input for metric measurments
-if single_case && metric
-    [H] = USER_INPUT_DATA_VALUE('Enter H: wave height (m): ', 0.1, 200.0);
+if single_case
+    [H] = USER_INPUT_DATA_VALUE(['Enter H: wave height (' labelUnitDist '): '], 0.1, 200.0);
 
     [T] = USER_INPUT_DATA_VALUE('Enter T: wave period (sec): ', 1.0, 1000.0);
 
-    [d] = USER_INPUT_DATA_VALUE('Enter d: water depth (m): ', 0.1, 5000.0);
+    [d] = USER_INPUT_DATA_VALUE(['Enter d: water depth (' labelUnitDist '): '], 0.1, 5000.0);
     
-    [z] = USER_INPUT_DATA_VALUE('Enter z: vertical coordinate (m): ', -5100.0, 100.0);
-    
-    [xL] = USER_INPUT_DATA_VALUE('Enter xL: horizontal coordinate as fraction of wavelength (x/L): ', 0.0, 1.0);
-    
-    prompt = 'Enter time: time-coordinate (default=0): ';
-	time = input(prompt);
-    
-    O = 0;
-    while O ~= 1 && O ~= 2
-        prompt = 'Enter O: order approximation (1 or 2): ';
-        O = input(prompt);
-    end
-% Single case input for imperial (feet) measurments
-elseif single_case && ~metric
-    [H] = USER_INPUT_DATA_VALUE('Enter H: wave height (ft): ', 0.1, 200.0);
-
-    [T] = USER_INPUT_DATA_VALUE('Enter T: wave period (sec): ', 1.0, 1000.0);
-
-    [d] = USER_INPUT_DATA_VALUE('Enter d: water depth (ft): ', 0.1, 5000.0);
-    
-    [z] = USER_INPUT_DATA_VALUE('Enter z: vertical coordinate (ft): ', -5100.0, 100.0);
+    [z] = USER_INPUT_DATA_VALUE(['Enter z: vertical coordinate (' labelUnitDist '): '], -5100.0, 100.0);
     
     [xL] = USER_INPUT_DATA_VALUE('Enter xL: horizontal coordinate as fraction of wavelength (x/L): ', 0.0, 1.0);
     
@@ -105,22 +85,7 @@ else
     O=2;
 end
 
-% Ask user if salt water or fresh water
-accepted = false;
-water = '';
-while accepted == false
-    water=input('Fresh or Salt water? (F or S): ', 's');
-    
-    if strcmp('S', water);
-        accepted = true;
-        water='S';
-    elseif strcmp('F', water);
-        accepted = true;
-        water='F';
-    else
-        fprintf('f or m only\n');
-    end
-end
+[water] = USER_INPUT_SALT_FRESH_WATER();
 
 %% *********** Don't change anything here ******************
 % Unit system conversion Constants
@@ -132,7 +97,7 @@ if ~metric % imperial
     else rho = 1.940; % rho/g = 62.415475/32.17 lb sec^2/ft^4 (fresh water)
     end
    % rho=1.989; %seawater set at 1025.09 kg/m^3, fresh set at 999.8 kg/m^3
-else metric % metric
+else % metric
 %    g = 9.81; % kg/sec^2
     if water == 'S';
     rho = 1025.09; % kg/m^3, (sea water)
@@ -143,7 +108,7 @@ end
 epsi=H/d;
 
 [Hb]=ERRWAVBRK1(d,0.78);
-assert(H<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
+assert(H<Hb,'Error: Input wave broken (Hb = %6.2f %s)',Hb,labelUnitDist)
 
 
 %% First Order Approximation
@@ -212,17 +177,17 @@ if O==1 %determining m using bisection method
     pres=Pb-(rho/2)*((u-C)^2+w^2)-g*rho*(z+d); %pressure
 
     disp('First Order Approximations')
-    fprintf('%s \t\t\t %-6.2f \t \n','Wavelength',L);
-    fprintf('%s \t\t\t %-6.2f \t \n','Celerity',C);
-    fprintf('%s \t\t %-8.2f \t \n','Energy density',E);
-    fprintf('%s \t\t %-8.2f \t \n','Energy flux',Ef);
+    fprintf('%s \t\t\t %-6.2f %s \t \n','Wavelength',L,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f %s/sec \t \n','Celerity',C,labelUnitDist);
+    fprintf('%s \t\t %-8.2f %s-%s/%s^2 \t \n','Energy density',E,labelUnitDist,labelUnitWt,labelUnitDist);
+    fprintf('%s \t\t %-8.2f %s-%s/sec-%s \t \n','Energy flux',Ef,labelUnitDist,labelUnitWt,labelUnitDist);
     fprintf('%s \t\t %-6.2f \n','Ursell number',Ur);
-    fprintf('%s \t\t\t %-6.2f \t \n','Elevation',eta);
-    fprintf('%s \t\t %-6.2f \t \n','Horz. velocity',u);
-    fprintf('%s \t\t %-6.2f \t \n','Vert. velocity',w);
-    fprintf('%s \t %-6.2f \t \n','Horz. acceleration',dudt);
-    fprintf('%s \t %-6.2f \t \n','Vert. acceleration',dwdt);
-    fprintf('%s \t\t\t %-8.2f \t \n','Pressure',pres);
+    fprintf('%s \t\t\t %-6.2f %s \t \n','Elevation',eta,labelUnitDist);
+    fprintf('%s \t\t %-6.2f %s/sec \t \n','Horz. velocity',u,labelUnitDist);
+    fprintf('%s \t\t %-6.2f %s/sec \t \n','Vert. velocity',w,labelUnitDist);
+    fprintf('%s \t %-6.2f %s/sec^2 \t \n','Horz. acceleration',dudt,labelUnitDist);
+    fprintf('%s \t %-6.2f %s/sec^2 \t \n','Vert. acceleration',dwdt,labelUnitDist);
+    fprintf('%s \t\t\t %-8.2f %s/%s^2 \t \n','Pressure',pres,labelUnitWt,labelUnitDist);
 
     %Plotting waveform
     plotxL=(-1:0.001:1);
@@ -237,17 +202,17 @@ if O==1 %determining m using bisection method
     subplot(3,1,1); plot(plotxL,ploteta); ylim([min(ploteta)-1 max(ploteta)+1])
     hline = refline_v2([0 0]);
     set(hline,'Color','r','LineStyle','--')
-    ylabel('Elevation [m]')
+    ylabel(['Elevation [' labelUnitDist ']'])
 
     subplot(3,1,2); plot(plotxL,plotu); ylim([min(plotu)-1 max(plotu)+1])
     hline = refline_v2([0 0]);
     set(hline,'Color','r','LineStyle','--')
-    ylabel('Velocity, u [m/s]')
+    ylabel(['Velocity, u [' labelUnitDist '/s]'])
 
     subplot(3,1,3); plot(plotxL,plotw); ylim([min(plotw)-1 max(plotw)+1])
     hline = refline_v2([0 0]);
     set(hline,'Color','r','LineStyle','--')
-    ylabel('Velocity, w [m/s]')
+    ylabel(['Velocity, w [' labelUnitDist '/s]'])
     xlabel('x/L')
 
     % Second Order Approximations
@@ -332,17 +297,17 @@ elseif O==2 %determining m using bisection method
     pres=Pb-(rho/2)*((u-C)^2+w^2)-g*rho*(z+d);
 
     disp('Second Order Approximations')
-    fprintf('%s \t\t\t %-6.2f \t \n','Wavelength',L);
-    fprintf('%s \t\t\t %-6.2f \t \n','Celerity',C');
-    fprintf('%s \t\t %-8.2f \t \n','Energy density',E);
-    fprintf('%s \t\t %-8.2f \t \n','Energy flux',Ef);
+    fprintf('%s \t\t\t %-6.2f %s \t \n','Wavelength',L,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f %s/sec \t \n','Celerity',C,labelUnitDist);
+    fprintf('%s \t\t %-8.2f %s-%s/%s^2 \t \n','Energy density',E,labelUnitDist,labelUnitWt,labelUnitDist);
+    fprintf('%s \t\t %-8.2f %s-%s/sec-%s \t \n','Energy flux',Ef,labelUnitDist,labelUnitWt,labelUnitDist);
     fprintf('%s \t\t %-6.2f \n','Ursell number',Ur);
-    fprintf('%s \t\t\t %-6.2f \t \n','Elevation',eta);
-    fprintf('%s \t\t %-6.2f \t \n','Horz. velocity',u);
-    fprintf('%s \t\t %-6.2f \t \n','Vert. velocity',w);
-    fprintf('%s \t %-6.2f \t \n','Horz. acceleration',dudt);
-    fprintf('%s \t %-6.2f \t \n','Vert. acceleration',dwdt);
-    fprintf('%s \t\t\t %-8.2f \t \n','Pressure',pres);
+    fprintf('%s \t\t\t %-6.2f %s \t \n','Elevation',eta,labelUnitDist);
+    fprintf('%s \t\t %-6.2f %s/sec \t \n','Horz. velocity',u,labelUnitDist);
+    fprintf('%s \t\t %-6.2f %s/sec \t \n','Vert. velocity',w,labelUnitDist);
+    fprintf('%s \t %-6.2f %s/sec^2 \t \n','Horz. acceleration',dudt,labelUnitDist);
+    fprintf('%s \t %-6.2f %s/sec^2 \t \n','Vert. acceleration',dwdt,labelUnitDist);
+    fprintf('%s \t\t\t %-8.2f %s/%s^2 \t \n','Pressure',pres,labelUnitWt,labelUnitDist);
 
     %Plotting waveform
     plotxL=(-1:0.001:1);
@@ -360,17 +325,17 @@ elseif O==2 %determining m using bisection method
     subplot(3,1,1); plot(plotxL,ploteta); ylim([min(ploteta)-1 max(ploteta)+1])
     hline = refline_v2([0 0]);
     set(hline,'Color','r','LineStyle','--')
-    ylabel('Elevation [m]')
+    ylabel(['Elevation [' labelUnitDist ']'])
 
     subplot(3,1,2); plot(plotxL,plotu); ylim([min(plotu)-1 max(plotu)+1])
     hline = refline_v2([0 0]);
     set(hline,'Color','r','LineStyle','--')
-    ylabel('Velocity, u [m/s]')
+    ylabel(['Velocity, u [' labelUnitDist '/s]'])
 
     subplot(3,1,3); plot(plotxL,plotw); ylim([min(plotw)-1 max(plotw)+1])
     hline = refline_v2([0 0]);
     set(hline,'Color','r','LineStyle','--')
-    ylabel('Velocity, w [m/s]')
+    ylabel(['Velocity, w [' labelUnitDist '/s]'])
     xlabel('x/L')
 end
 % %

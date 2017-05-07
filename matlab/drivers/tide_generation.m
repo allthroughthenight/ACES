@@ -53,9 +53,9 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
-if single_case && metric
+if single_case
     [year] = USER_INPUT_DATA_VALUE('Enter year simulation starts (YYYY): ', 1900, 2050);
 
     [mon] = USER_INPUT_DATA_VALUE('Enter month simulation starts (MM): ', 1, 12);
@@ -73,26 +73,7 @@ if single_case && metric
 
     [delt] = USER_INPUT_DATA_VALUE('Enter output time interval (min): ', 1, 60);
 
-    [gauge0] = USER_INPUT_DATA_VALUE('Enter mean water level height above datum [m]: ', -100, 100);
-elseif single_case && ~metric
-    [year] = USER_INPUT_DATA_VALUE('Enter year simulation starts (YYYY): ', 1900, 2050);
-
-    [mon] = USER_INPUT_DATA_VALUE('Enter month simulation starts (MM): ', 1, 12);
-
-    [day] = USER_INPUT_DATA_VALUE('Enter day simulation starts (DD): ', 1, 31);
-
-    [hr] = USER_INPUT_DATA_VALUE('Enter hour simulation starts (HH.H): ', 0, 24);
-
-    [tlhrs] = USER_INPUT_DATA_VALUE('Enter length of record (tlhrs) (HH.H): ', 0, 744);
-
-	prompt = 'Enter total number of gauges: ';
-	nogauge=input(prompt);
-
-    [glong] = USER_INPUT_DATA_VALUE('Enter gauge longitude (deg): ', -180, 180);
-
-    [delt] = USER_INPUT_DATA_VALUE('Enter output time interval (min): ', 1, 60);
-
-    [gauge0] = USER_INPUT_DATA_VALUE('Enter mean water level height above datum [ft]: ', -100, 100);
+    [gauge0] = USER_INPUT_DATA_VALUE(['Enter mean water level height above datum [' labelUnitDist ']: '], -100, 100);
 else
     % TODO 
     % Default multi-case block. Eventually to be repalced with csv/tsv file
@@ -152,6 +133,6 @@ figure(1)
 title('Tide Elevations [from constituents]')
 plot(xtim,ytide)
 xlabel('Time [hr]')
-ylabel('Elevation [ft]') %output same units as amplitude, datum input
+ylabel(['Elevation [' labelUnitDist ']']) %output same units as amplitude, datum input
 
 
