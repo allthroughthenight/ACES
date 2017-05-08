@@ -51,7 +51,7 @@ clc
 %   freeb: freeboard
 %-------------------------------------------------------------
 
-SET_PATH();
+SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
@@ -69,15 +69,45 @@ if single_case
     d50 = [];
     por = [];
     for matIndex = 1:nummat
-        [d50Input] = USER_INPUT_DATA_VALUE(['Enter d50: mean diameter of material #' matIndex ' (m): '], 0.05, 99.0);
+        [d50Input] = USER_INPUT_DATA_VALUE(['Enter d50: mean diameter of material #' num2str(matIndex) ' (m): '], 0.05, 99.0);
 
-        [porInput] = USER_INPUT_DATA_VALUE(['Enter p: porosity of material #' matIndex ': ', 0.0, 100.0);
+        [porInput] = USER_INPUT_DATA_VALUE(['Enter p: porosity of material #' num2str(matIndex) ': '], 0.0, 100.0);
         
         d50 = [d50 d50Input];
         por = [por porInput];
     end
     
     [hs] = USER_INPUT_DATA_VALUE('Enter hs: structure height above toe (m): ', 0.1, 200.0);
+    
+    [cottheta] = USER_INPUT_DATA_VALUE('Enter cottheta: cotangent of structure slope: ', 1.0, 5.0);
+    
+    [b] = USER_INPUT_DATA_VALUE('Enter b: structure crest width (m): ', 0.1, 200.0);
+    
+    [numlay] = USER_INPUT_DATA_VALUE('Enter numlay: number of horizontal layers in the breakwater: ', 1, 4);
+    
+    th = [];
+    for layIndex = 1:numlay
+        [thInput] = USER_INPUT_DATA_VALUE(['Enter th: thickness of horizontal layer #' num2str(layIndex) ' (m): '], 0.1, 200.0);
+        
+        th = [th thInput];
+    end
+    
+    hlen = [];
+    for matIndex = 1:nummat
+        hlenTemp = [];
+        
+        for layIndex = 1:numlay
+            [hlenInput] = USER_INPUT_DATA_VALUE(['Enter hlen: horizontal length of matertial # ' num2str(matIndex) ' in layer #' num2str(layIndex) ' (m): '], 0.0, 200.0);
+            
+            hlenTemp = [hlenTemp hlenInput];
+        end
+        
+        if matIndex == 1
+            hlen = hlenTemp;
+        else
+            hlen = [hlen; hlenTemp];
+        end
+    end
 else
     H=2.0;
     T=10.0;
@@ -107,7 +137,7 @@ assert(ds<hs,'Error: Method does not apply to submerged structures.')
 
 assert(sum(th)==ds,'Error: Water depth must equal sum of all layer thicknesses.')
 
-[KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,ds,hs,b,numlay,th,hlen,nummat,d50,por,cotssl,nu,g);
+[KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,ds,hs,b,numlay,th,hlen,nummat,d50,por,cottheta,nu,g);
 
 fprintf('%s \t\t\t %-6.3f \n','Reflection coefficient', Kr)
 fprintf('%s \n','Wave transmission coefficient')

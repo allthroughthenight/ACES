@@ -50,7 +50,7 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input
 if single_case
@@ -60,13 +60,13 @@ if single_case
         [Ho] = USER_INPUT_DATA_VALUE('Enter Ho: significant deepwater wave height (ft): ', 2.0, 20.0);
     end
 
-    [d] = USER_INPUT_DATA_VALUE('Enter d: water depth: ', 10.0, 5000.0);
+    [d] = USER_INPUT_DATA_VALUE(['Enter d: water depth (' labelUnitDist '): '], 10.0, 5000.0);
 
-    [Ts] = USER_INPUT_DATA_VALUE('Enter Ts: significant wave period: ', 4.0, 16.0);
+    [Ts] = USER_INPUT_DATA_VALUE('Enter Ts: significant wave period (s): ', 4.0, 16.0);
     
     [cotnsl] = USER_INPUT_DATA_VALUE('Enter cotnsl: cotangent of nearshore slope: ', 30.0, 100.0);
     
-    [direc] = USER_INPUT_DATA_VALUE('Enter direc: principle direction of incident wave spectrum: ', -75.0, 75.0);
+    [direc] = USER_INPUT_DATA_VALUE('Enter direc: principle direction of incident wave spectrum (deg): ', -75.0, 75.0);
 
 else
     % TODO 
@@ -104,17 +104,17 @@ title('Subject Depth')
 xlabel('H [m]')
 ylabel('CDF2')
 
-fprintf('\t\t %s \t\t %s \n','Subject','Deep')
-fprintf('%s \t\t %-6.2f \t %-6.2f \n','Hs',Hs(2)/m2cm,Hs(1)/m2cm)
-fprintf('%s \t %-6.2f \t %-6.2f \n','Hmean',Hbar(2)/m2cm,Hbar(1)/m2cm)
-fprintf('%s \t %-6.2f \t %-6.2f \n','Hrms',Hrms(2)/m2cm,Hrms(1)/m2cm)
-fprintf('%s \t %-6.2f \t %-6.2f \n','H10%',H10(2)/m2cm,H10(1)/m2cm)
-fprintf('%s \t %-6.2f \t %-6.2f \n','H02%',H02(2)/m2cm,H02(1)/m2cm)
-fprintf('%s \t %-6.2f \t %-6.2f \n','Hmax%',Hmax(2)/m2cm,Hmax(1)/m2cm)
+fprintf('\t\t %s \t %s \t\t %s \n','Subject','Deep','Units')
+fprintf('%s \t\t %-6.2f \t %-6.2f \t %s \n','Hs',Hs(2)/m2cm,Hs(1)/m2cm,labelUnitDist)
+fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','Hmean',Hbar(2)/m2cm,Hbar(1)/m2cm,labelUnitDist)
+fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','Hrms',Hrms(2)/m2cm,Hrms(1)/m2cm,labelUnitDist)
+fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','H10%',H10(2)/m2cm,H10(1)/m2cm,labelUnitDist)
+fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','H02%',H02(2)/m2cm,H02(1)/m2cm,labelUnitDist)
+fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','Hmax%',Hmax(2)/m2cm,Hmax(1)/m2cm,labelUnitDist)
 disp(' ')
 fprintf('%s \t\t %-6.4f \t %-6.4f \n','Ks',Ks(2),Ks(1))
-fprintf('%s \t %-6.4f \t %-6.4f \n','SBrms',SBrms(2)/m2cm,SBrms(1)/m2cm)
-fprintf('%s \t\t %-6.4f \t %-6.4f \n','Sw',Sw(2)/m2cm,Sw(1)/m2cm)
+fprintf('%s \t %-6.4f \t %-6.4f \t %s \n','SBrms',SBrms(2)/m2cm,SBrms(1)/m2cm,labelUnitDist)
+fprintf('%s \t\t %-6.4f \t %-6.4f \t %s \n','Sw',Sw(2)/m2cm,Sw(1)/m2cm,labelUnitDist)
 fprintf('%s \t %-6.4f \t %-6.4f \n','Ho/Lo',HoLo(1),HoLo(1))
 fprintf('%s \t\t %-6.4f \n','Kr',Kr(1))
 fprintf('%s \t %-6.4f \t %-6.4f \n','d/Ho',dHo(2),dHo(1))

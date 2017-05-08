@@ -48,7 +48,7 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input for metric measurments
 if single_case
@@ -129,10 +129,10 @@ if mode==0
     [phi,beta,H,error]=DRWEDG(xcor,ycor,Hi,alpha,wedgang,L);
     assert(error~=1,'Error: (x,y) location inside structure.')
     
-    fprintf('%s \t\t\t %6.2f \t \n','Wavelength',L);
+    fprintf('%s \t\t\t %6.2f \t %s \n','Wavelength',L,labelUnitDist);
     fprintf('%s \t %6.2f \n','Mod factor (phi)',phi);
     fprintf('%s \t\t\t %6.2f \t %s \n','Wave phase',beta,'rad');
-    fprintf('%s \t %6.2f \t \n','Mod wave height',H);
+    fprintf('%s \t %6.2f \t %s \n','Mod wave height',H,labelUnitDist);
     
 elseif mode==1
     %Uniform Grid Case
@@ -213,7 +213,7 @@ elseif mode==1
         end
     end
     
-    fprintf('%s \t\t\t %6.2f \t \n','Wavelength',L);
+    fprintf('%s \t\t\t %6.2f \t %s \n','Wavelength',L,labelUnitDist);
     fprintf('%s \n','Modification Factors:')
     phi=cat(2,ycors,phi);
     xcors=[999,xcors];

@@ -41,7 +41,7 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 if single_case
     if metric
@@ -119,8 +119,8 @@ end
 w=(unitwt*(H^3))/((Ns^3)*((specgrav-1)^3));
 
 fprintf('\t\t\t\t\t\t\t\t\t\t\t\t\n')
-fprintf('%s \t\t\t\t\t %-6.2f \t\n','Width of toe apron',b)
-fprintf('%s \t %-6.2f \t\n','Weight of individual armor unit',w)
-fprintf('%s \t\t\t %-6.2f \t\n','Water depth at top of tow',dl)
+fprintf('%s \t\t\t\t\t %-6.2f %s \t\n','Width of toe apron',b,labelUnitDist)
+fprintf('%s \t %-6.2f %s \t\n','Weight of individual armor unit',w,labelUnitWt)
+fprintf('%s \t\t\t %-6.2f %s \t\n','Water depth at top of tow',dl,labelUnitDist)
 
 

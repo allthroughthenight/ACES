@@ -64,11 +64,17 @@ SET_PATHS();
 
 [metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
+if metric
+    labelSpeed = 'km/h';
+else
+    labelSpeed = 'mph';
+end
+
 % Single case input
 if single_case
     [zobs] = USER_INPUT_DATA_VALUE(['Enter zobs: elevation of observed winds [' labelUnitDist ']: '], 1.0, 5000.0);
 
-    [uobs] = USER_INPUT_DATA_VALUE(['Enter uobs: observed wind speed [' labelUnitDist '/s]: '], 0.1, 200.0);
+    [uobs] = USER_INPUT_DATA_VALUE(['Enter uobs: observed wind speed [' labelSpeed ']: '], 0.1, 200.0);
 
     [dtemp] = USER_INPUT_DATA_VALUE('Enter dtemp: air-sea temperature difference [deg C]: ', -100.0, 100.0);
     
@@ -156,8 +162,8 @@ if wgtyp==3 || wgtyp==4
     fprintf('%s \t\t\t\t %-6.2f \n','Wind fetch',F)
 end
 % TODO: Add metric speed
-fprintf('%s \t\t %-6.2f \n','Equiv. wind speed mph ',ue/mph2mps)
-fprintf('%s \t\t %-6.2f \n','Adjus. wind speed mph ',ua/mph2mps)
+fprintf('%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/mph2mps, labelSpeed)
+fprintf('%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/mph2mps, labelSpeed)
 
 fprintf('%s \t\t\t %-6.2f %s \n','Wave height ',Hmo/ft2m,labelUnitDist)
 fprintf('%s \t\t\t %-6.2f s \n','Wave period ',Tp)

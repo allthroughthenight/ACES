@@ -62,7 +62,7 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input
 if single_case
@@ -106,7 +106,7 @@ rho=1.989;
 m=1/cotphi;
 
 [Hb]=ERRWAVBRK1(d1,0.78);
-assert(H1<Hb,'Error: Known wave broken (Hb = %6.2f m)',Hb)
+assert(H1<Hb,'Error: Known wave broken (Hb = %6.2f %s)',Hb,labelUnitDist)
 
 %determine known wave properties
 [c1,c0,cg1,cg0,k1,L1,L0,reldep1]=LWTGEN(d1,T,g);
@@ -130,22 +130,22 @@ assert(HL<(1/7),'Error: Deepwater wave unstable, [H0/L0] > (1/7)')
 [E2,P2,Ur2,setdown2]=LWTTWM(cg2,d2,H2,L2,reldep2,rho,g,k2);
 
 [Hb,db]=ERRWAVBRK3(H0,L0,T,m);
-assert(H2<Hb,'Error: Subject wave broken (Hb = %6.2f m, hb = %6.2f m)',Hb,db)
+assert(H2<Hb,'Error: Subject wave broken (Hb = %6.2f m, hb = %6.2f %s)',Hb,db,labelUnitDist)
 
 [steep,maxstp]=ERRSTP(H2,d2,L2);
 assert(steep<maxstp,'Error: Subject wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
 
-fprintf('\t\t\t\t\t %s \t\t %s \t\t %s \t\t\n','Known','Deepwater','Subject');
-fprintf('%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t\n','Wave height',H1,H0,H2)
-fprintf('%s \t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t\n','Wave crest angle',alpha1,alpha0,alpha2)
-fprintf('%s \t\t\t %-5.2f \t %-5.2f \t\t %-5.2f \t\t\n','Wavelength',L1,L0,L2)
-fprintf('%s \t\t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t\n','Celerity',c1,c0,c2)
-fprintf('%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t\n','Group speed',cg1,cg0,cg2)
-fprintf('%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t\n','Energy density',E1,E0,E2)
-fprintf('%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t\n','Energy flux',P1,P0,P2)
+fprintf('\t\t\t\t\t %s \t\t %s \t\t %s \t\t %s\n','Known','Deepwater','Subject','Units');
+fprintf('%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s \n','Wave height',H1,H0,H2,labelUnitDist)
+fprintf('%s \t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t deg \n','Wave crest angle',alpha1,alpha0,alpha2)
+fprintf('%s \t\t\t %-5.2f \t %-5.2f \t\t %-5.2f \t\t %s \n','Wavelength',L1,L0,L2,labelUnitDist)
+fprintf('%s \t\t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s/s \n','Celerity',c1,c0,c2,labelUnitDist)
+fprintf('%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s/s \n','Group speed',cg1,cg0,cg2,labelUnitDist)
+fprintf('%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t %s-%s/%s^2 \n','Energy density',E1,E0,E2,labelUnitDist,labelUnitWt,labelUnitDist)
+fprintf('%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t %s-%s/sec-%s \n','Energy flux',P1,P0,P2,labelUnitDist,labelUnitWt,labelUnitDist)
 fprintf('%s \t\t %-5.2f \t\t\t\t\t\t %-5.2f \n','Ursell number',Ur1,Ur2)
 fprintf('%s \t\t\t\t\t %-5.2f \n','Wave steepness',HL)
 fprintf('\n')
 fprintf('%s \t\t\t\n','Breaking parameters')
-fprintf('%s \t\t %-5.2f \t\n','Breaking height',Hb)
-fprintf('%s \t\t\t %-5.2f \t\n','Breaking depth',db)
+fprintf('%s \t\t %-5.2f %s \t\n','Breaking height',Hb,labelUnitDist)
+fprintf('%s \t\t\t %-5.2f %s \t\n','Breaking depth',db,labelUnitDist)

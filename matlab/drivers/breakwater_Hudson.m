@@ -40,7 +40,7 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 if single_case
     if metric
@@ -97,6 +97,6 @@ else
 end
 
 fprintf('%s \t\t %-6.2f %s \t \n','Weight of individual unit',w,units)
-fprintf('%s \t\t\t\t\t %-6.2f \t \n','Crest width',b)
-fprintf('%s \t %-6.2f \t \n','Average cover layer thickness',r)
+fprintf('%s \t\t\t\t\t %-6.2f %s \t \n','Crest width',b,labelUnitDist)
+fprintf('%s \t %-6.2f %s \t \n','Average cover layer thickness',r,labelUnitDist)
 fprintf('%s \t %-6.2f \t \n','Number of single armor unit',Nr)
