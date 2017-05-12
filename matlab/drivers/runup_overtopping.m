@@ -135,7 +135,9 @@ if option>2
     alpha=0.076463;
     Qstar0=0.025;
     U=35.0*1.15077945; %1 knots = 1.15077945 mph
-    if option==3 || option==4
+    if option==3
+        R=15.0;
+    elseif option==4
         R=20.0;
     end
 end
