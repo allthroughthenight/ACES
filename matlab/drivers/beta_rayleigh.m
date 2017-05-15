@@ -55,24 +55,15 @@ else
 % 	Tp=11.5;
 % 	d=25.00;
     
-    [multi_mode] = USER_INPUT_MULTI_MODE();
     multiCaseData = {...
             ['Hmo: zero-moment wave height [' labelUnitDist ']'], 0.1, 60.0;...
             'Tp: peak wave period [s]', 2.0, 30.0;...
             ['d: water depth [' labelUnitDist ']'], 0.1, 3000.0};
-    
-    if strcmp('F', multi_mode)
-        [varData] = USER_INPUT_MULTI_FILE();
-    elseif strcmp('R', multi_mode)
-        [varData] = USER_INPUT_MULTI_RANDOM(multiCaseData);
-    elseif strcmp('I', multi_mode)
-        [varData] = USER_INPUT_MULTI_INCR(multiCaseData);
-    end
+    [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
     
     HmoList = varData(1, :);
     TpList = varData(2, :);
     dList = varData(3, :);
-    numCases = length(HmoList);
 end
 
 % Feet to meters constant for convertion

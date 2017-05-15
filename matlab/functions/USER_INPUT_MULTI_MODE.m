@@ -1,4 +1,4 @@
-function [ multi_mode ] = USER_INPUT_MULTI_MODE()
+function [ varData, numCases ] = USER_INPUT_MULTI_MODE(multiCaseData)
 %USER_INPUT_MULTI_MODE
 
 accepted = false;
@@ -21,6 +21,16 @@ while ~accepted
         fprintf('Must be F, R or I\n');
     end
 end
+
+if strcmp('F', multi_mode)
+    [varData] = USER_INPUT_MULTI_FILE();
+elseif strcmp('R', multi_mode)
+    [varData] = USER_INPUT_MULTI_RANDOM(multiCaseData);
+elseif strcmp('I', multi_mode)
+    [varData] = USER_INPUT_MULTI_INCR(multiCaseData);
+end
+
+numCases = size(varData, 2);
 
 end
 
