@@ -9,10 +9,16 @@ for varIndex = 1:size(varList, 1)
         ['Enter minimum ' varList{varIndex, 1} ': '],...
         varList{varIndex, 2},...
         varList{varIndex, 3});
-    varMax = USER_INPUT_DATA_VALUE(...
-        ['Enter maximum ' varList{varIndex, 1} ': '],...
-        varMin,...
-        varList{varIndex, 3});
+    
+    if varMin == varList{varIndex, 3}
+        varMax = varMin;
+        fprintf('Maximum %s automatically set to %-6.2f\n', varList{varIndex, 1}, varMin);
+    else
+        varMax = USER_INPUT_DATA_VALUE(...
+            ['Enter maximum ' varList{varIndex, 1} ': '],...
+            varMin,...
+            varList{varIndex, 3});
+    end
     
     varTempList = [varTempList; varMin, varMax];
 end
@@ -24,7 +30,11 @@ for varIndex = 1:size(varTempList, 1)
     max = varTempList(varIndex, 2);
     incr = (max - min) / (varIncr - 1);
     
-    varDataList = [varDataList; min:incr:max];
+    if min == max
+        varDataList(varIndex, 1:varIncr) = max;
+    else
+        varDataList = [varDataList; min:incr:max];
+    end
 end
 
 end

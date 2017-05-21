@@ -48,9 +48,6 @@ if single_case
     
     numCases = 1;
 else
-    % TODO 
-    % Default multi-case block. Eventually to be replaced with csv/tsv file
-    % reader
 % 	Hmo=10.0;
 % 	Tp=11.5;
 % 	d=25.00;
@@ -219,17 +216,14 @@ if single_case
     legend('H_{1/3}','H_{1/10}','H_{1/100}','H_{rms}','H_{med}')
     xlabel(['H [' labelUnitDist ']'])
     ylabel('Probability density p(H)')
-end
 
-fId = fopen('output/beta_rayleigh.txt', 'wt');
+    fId = fopen('output/beta_rayleigh.txt', 'wt');
 
-fprintf(fId, 'Counter\tWave height\tProbability density\n');
-if single_case
-    fprintf(fId, '%-6.2f\t%-6.2f\t\t%-6.2f\n', Hmo, Tp, d);
-else
-    for loopIndex = 1:length(HmoList)
-        fprintf(fId, '%-6.2f\t%-6.2f\t\t%-6.2f\n', HmoList(loopIndex), TpList(loopIndex), dList(loopIndex));
+    fprintf(fId, 'Counter\tWave height\tProbability density\n');
+    
+    for loopIndex = 1:size(table, 1)
+        fprintf(fId, '%d\t%-6.5f\t\t%-6.5f\n', loopIndex, table(loopIndex, 1), table(loopIndex, 2));
     end
-end
 
-fclose(fId);
+    fclose(fId);
+end

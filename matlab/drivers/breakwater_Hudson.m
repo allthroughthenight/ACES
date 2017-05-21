@@ -43,13 +43,9 @@ SET_PATHS();
 [metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 if single_case
-    if metric
-        [unitwt] = USER_INPUT_DATA_VALUE('Enter unitwt: armor specific unit weight (N/m^3): ', 1.0, 99999.0);
-        [H] = USER_INPUT_DATA_VALUE('Enter H: wave height (m): ', 0.1, 100.0);
-    else
-        [unitwt] = USER_INPUT_DATA_VALUE('Enter unitwt: armor specific unit weight (lb/ft^3): ', 1.0, 99999.0);
-        [H] = USER_INPUT_DATA_VALUE('Enter H: wave height (ft): ', 0.1, 100.0);
-    end
+    [unitwt] = USER_INPUT_DATA_VALUE(['Enter unitwt: armor specific unit weight (' labelUnitWt '/' labelUnitDist '^3): '], 1.0, 99999.0);
+    
+    [H] = USER_INPUT_DATA_VALUE(['Enter H: wave height (' labelUnitDist '): '], 0.1, 100.0);
     
     [Kd] = USER_INPUT_DATA_VALUE('Enter Kd: stability coefficient: ', 0, 10);
     
@@ -60,43 +56,67 @@ if single_case
     [cotssl] = USER_INPUT_DATA_VALUE('Enter cotssl: cotangent of structure slope: ', 1.0, 6.0);
     
     [n] = USER_INPUT_DATA_VALUE('Enter n: number of armor units comprising the thickness of the armor layer: ', 1.0, 3.0);
+    
+    numCases = 1;
 else
-    unitwt=165;
-    H=11.50;
-    Kd=10.0;
-    kdelt=1.02;
-    P=54.0;
-    cotssl=2.00;
-    n=2;
+    multiCaseData = {...
+        ['unitwt: armor specific unit weight (' labelUnitWt '/' labelUnitDist '^3)'], 1.0, 99999.0;...
+        ['H: wave height (' labelUnitDist ')'], 0.1, 100.0;...
+        'Kd: stability coefficient', 0, 10;...
+        'kdelt: layer coefficient', 0, 2;...
+        'P: average porosity of armor layer', 0, 54;...
+        'cotssl: cotangent of structure slope', 1.0, 6.0;...
+        'n: number of armor units comprising the thickness of the armor layer', 1.0, 3.0};
+    [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
+    
+    unitwtList = varData(1, :);
+    HList = varData(2, :);
+    KdList = varData(3, :);
+    kdeltList = varData(4, :);
+    PList = varData(5, :);
+    cotsslList = varData(6, :);
+    nList = varData(7, :);
 end
 
-rho=1.989;
+%rho=1.989;
 H20weight=rho*g; %64 lb/ft^3 for seawater, 62.4 for fresh
 
-specgrav=unitwt/H20weight;
-
-w=(unitwt*H^3)/(Kd*(specgrav-1.0)^3*cotssl);
-r=n*kdelt*(w/unitwt)^(1/3);
-Nr=1000*n*kdelt*(1-P/100)*(unitwt/w)^(2/3);
-b=3*kdelt*(w/unitwt)^(1/3);
-
-if metric
-    if w>8000
-        w=w/8896.4; %1 ton=8896.4 N
-        units='tons';
-    else
-        units='N';
+for loopIndex = 1:numCases
+    if ~single_case
+        unitwt = unitwtList(loopIndex);
+        H = HList(loopIndex);
+        Kd = KdList(loopIndex);
+        kdelt = kdeltList(loopIndex);
+        P = PList(loopIndex);
+        cotssl = cotsslList(loopIndex);
+        n = nList(loopIndex);
     end
-else
-    if w>2000
-        w=w/2000;
-        units='tons';
+    
+    specgrav=unitwt/H20weight;
+
+    w=(unitwt*H^3)/(Kd*(specgrav-1.0)^3*cotssl);
+    r=n*kdelt*(w/unitwt)^(1/3);
+    Nr=1000*n*kdelt*(1-P/100)*(unitwt/w)^(2/3);
+    b=3*kdelt*(w/unitwt)^(1/3);
+
+    if metric
+        if w>8000
+            w=w/8896.4; %1 ton=8896.4 N
+            units='tons';
+        else
+            units='N';
+        end
     else
-        units='lbs';
+        if w>2000
+            w=w/2000;
+            units='tons';
+        else
+            units='lbs';
+        end
     end
+
+    fprintf('%s \t\t %-6.2f %s \t \n','Weight of individual unit',w,units)
+    fprintf('%s \t\t\t\t\t %-6.2f %s \t \n','Crest width',b,labelUnitDist)
+    fprintf('%s \t %-6.2f %s \t \n','Average cover layer thickness',r,labelUnitDist)
+    fprintf('%s \t %-6.2f \t \n','Number of single armor unit',Nr)
 end
-
-fprintf('%s \t\t %-6.2f %s \t \n','Weight of individual unit',w,units)
-fprintf('%s \t\t\t\t\t %-6.2f %s \t \n','Crest width',b,labelUnitDist)
-fprintf('%s \t %-6.2f %s \t \n','Average cover layer thickness',r,labelUnitDist)
-fprintf('%s \t %-6.2f \t \n','Number of single armor unit',Nr)

@@ -10,7 +10,7 @@ while ~accepted
     if dataValue >= valueMin && dataValue <= valueMax
         accepted = true;
     else
-        fprintf('Must be between %d and %d.\n', valueMin, valueMax);
+        fprintf('Must be between %-6.2f and %-6.2f.\n', valueMin, valueMax);
     end
 end
 
