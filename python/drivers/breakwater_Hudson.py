@@ -34,7 +34,7 @@
 #   H20weight: specific weight of water
 #-------------------------------------------------------------
 
-def breakwater_Hudson():
+def breakwater_Hudson(unitwt, H, Kd, kdelt, P, cotssl, n):
     unitwt = 165
     H = 11.50
     Kd = 10.0
@@ -72,4 +72,4 @@ def breakwater_Hudson():
     print('%s \t\t %-6.2f \t \n' % ('Average cover layer thickness', r))
     print('%s \t\t %-6.2f \t \n' % ('Number of single armor unit', Nr))
 
-breakwater_Hudson();
+breakwater_Hudson(165, 11.50, 10.0, 1.02, 54.0, 2.00, 2)
