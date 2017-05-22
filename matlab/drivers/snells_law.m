@@ -58,14 +58,70 @@ clc
 %   db: breaking wave depth (m)
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+% Ask user if running windows or linux to set functions path
+accepted = false;
+while accepted == false
+    linux=input('Linux or Windows? (l or w): ', 's');
+    
+    if strcmp('l', linux);
+        accepted = true;
+        linux=true;
+    elseif strcmp('w', linux);
+        accepted = true;
+        linux=false;
+    else
+        fprintf('l or w only\n');
+    end
+end
 
-H1=10;
-T=7.50;
-d1=25;
-alpha1=10.0;
-cotphi=100;
-d2=20;
+% Ask user for single or multi-input (from a file)
+accepted = false;
+single_case = '';
+while accepted == false
+    single_case=input('Single or Multi-case? (s or m): ', 's');
+    
+    if strcmp('s',single_case);
+        accepted = true;
+        single_case=true;
+    elseif strcmp('m', single_case);
+        accepted = true;
+        single_case=false;
+    else
+        fprintf('s or m only\n');
+    end
+end
+
+% Single case input
+if single_case
+	prompt = 'Enter H1: wave height at known location (m): ';
+	H1 = input(prompt);
+
+	prompt = 'Enter T: wave period at known location (sec): ';
+	T = input(prompt);
+
+	prompt = 'Enter d1: water depth at known location (m): ';
+	d1 = input(prompt);
+    
+    prompt = 'Enter alpha1: wave crest angle (deg): ';
+	alpha1 = input(prompt);
+    
+    prompt = 'Enter cotphi: cotan of nearshore slope: ';
+	cotphi = input(prompt);
+    
+    prompt = 'Enter d2: water depth at desired location (m): ';
+	d2 = input(prompt);
+    
+else
+    % TODO 
+    % Default multi-case block. Eventually to be repalced with csv/tsv file
+    % reader
+    H1=10;
+    T=7.50;
+    d1=25;
+    alpha1=10.0;
+    cotphi=100;
+    d2=20;
+end
 
 rho=1.989;
 g=32.17;

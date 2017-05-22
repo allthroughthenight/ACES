@@ -46,16 +46,83 @@ clc
 %   OTHERS
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+% Ask user if running windows or linux to set functions path
+accepted = false;
+while accepted == false
+    linux=input('Linux or Windows? (l or w): ', 's');
+    
+    if strcmp('l', linux);
+        accepted = true;
+        linux=true;
+    elseif strcmp('w', linux);
+        accepted = true;
+        linux=false;
+    else
+        fprintf('l or w only\n');
+    end
+end
 
-Ho=6.096;
-d=15.24;
-Ts=8.0;
-cotnsl=100.0;
-direc=10.0;
+% Set path to functions for windows or linux base on previous answer
+if linux
+  % Path to functions folder for linux
+  functionsPath = '~/aces/matlab/functions';
+else
+  % Path to fucntions folder for windows
+  functionsPath = strcat (getenv('USERPROFILE'), '\\Documents\\aces\\matlab\\functions');
+end
 
+% Add correct function path
+addpath(functionsPath);
+
+% Ask user for single or multi-input (from a file)
+accepted = false;
+single_case = '';
+while accepted == false
+    single_case=input('Single or Multi-case? (s or m): ', 's');
+    
+    if strcmp('s',single_case);
+        accepted = true;
+        single_case=true;
+    elseif strcmp('m', single_case);
+        accepted = true;
+        single_case=false;
+    else
+        fprintf('s or m only\n');
+    end
+end
+
+% Single case input
+if single_case
+	prompt = 'Enter Ho: significant deepwater wave height]: ';
+	Ho = input(prompt);
+
+	prompt = 'Enter d: water depth: ';
+	d = input(prompt);
+
+	prompt = 'Enter Ts: significant wave period: ';
+	Ts = input(prompt);
+    
+    prompt = 'Enter cotnsl: cotangent of nearshore slope: ';
+	cotnsl = input(prompt);
+    
+    prompt = 'Enter direc: principle direction of incident wave spectrum: ';
+	direc = input(prompt);
+
+else
+    % TODO 
+    % Default multi-case block. Eventually to be repalced with csv/tsv file
+    % reader
+	Ho=6.096;
+    d=15.24;
+    Ts=8.0;
+    cotnsl=100.0;
+    direc=10.0;
+end
+
+% Meter to centimeter constant
 m2cm=100;
 
+% Convert meter input to centimeters
 g=9.81*m2cm;
 Ho=Ho*m2cm;
 d=d*m2cm;

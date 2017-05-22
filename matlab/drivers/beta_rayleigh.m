@@ -31,27 +31,107 @@ clc
 
 %   OTHER:
 %------------------------------------------------------------
-addpath('../functions'); % Path to functions folder
 
-single_case=true; % flag if want to test single case input
+% Ask user if running windows or linux to set functions path
+accepted = false;
+while accepted == false
+    linux=input('Linux or Windows? (l or w): ', 's');
+    
+    if strcmp('l', linux);
+        accepted = true;
+        linux=true;
+    elseif strcmp('w', linux);
+        accepted = true;
+        linux=false;
+    else
+        fprintf('l or w only\n');
+    end
+end
 
-if single_case
-	prompt = "Enter Hmo: zero-moment wave height [m]: ";
+% Set path to functions for windows or linux base on previous answer
+if linux
+  % Path to functions folder for linux
+  functionsPath = '~/aces/matlab/functions';
+else
+  % Path to fucntions folder for windows
+  functionsPath = strcat (getenv('USERPROFILE'), '\\Documents\\aces\\matlab\\functions');
+end
+
+% Add correct function path
+addpath(functionsPath);
+
+% Ask user for single or multi-input (from a file)
+accepted = false;
+single_case = '';
+while accepted == false
+    single_case=input('Single or Multi-case? (s or m): ', 's');
+    
+    if strcmp('s',single_case);
+        accepted = true;
+        single_case=true;
+    elseif strcmp('m', single_case);
+        accepted = true;
+        single_case=false;
+    else
+        fprintf('s or m only\n');
+    end
+end
+
+accepted = false;
+metric = '';
+while accepted == false
+    metric=input('Input in feet or meters? (f or m): ', 's');
+    
+    if strcmp('f', metric);
+        accepted = true;
+        metric=false;
+    elseif strcmp('m', metric);
+        accepted = true;
+        metric=true;
+    else
+        fprintf('f or m only\n');
+    end
+end
+
+% Single case input for metric measurments
+if single_case && strcmp('m', metric)
+	prompt = 'Enter Hmo: zero-moment wave height [m]: ';
 	Hmo = input(prompt);
 
-	prompt = "Enter Tp: peak wave period [s]: ";
+	prompt = 'Enter Tp: peak wave period [s]: ';
 	Tp = input(prompt);
 
-	prompt = "Enter d: water depth [m]: ";
+	prompt = 'Enter d: water depth [m]: ';
+	d = input(prompt);
+% Single case input for imperial (feet) measurments
+elseif single_case && strcmp('f', metric)
+    prompt = 'Enter Hmo: zero-moment wave height [ft]: ';
+	Hmo = input(prompt);
+
+	prompt = 'Enter Tp: peak wave period [s]: ';
+	Tp = input(prompt);
+
+	prompt = 'Enter d: water depth [ft]: ';
 	d = input(prompt);
 else
+    % TODO 
+    % Default multi-case block. Eventually to be repalced with csv/tsv file
+    % reader
 	Hmo=10.0;
 	Tp=11.5;
 	d=25.00;
 end
 
-ft2m=0.3048; % isn't used
+% Feet to meters constant for convertion
+ft2m=0.3048;
 
+% Convert feet input to meters based if input is in feet
+if strcmp('m', metric);
+    Hmo = Hmo*ft2m;
+    d = d*ft2m;
+end
+
+% Gravicational acceleration constant in feet per second
 g=32.17;
 
 Htype(1)=0.50; %Hmed;
@@ -184,4 +264,3 @@ fprintf('\t %s \t\t %-6.2f \n','Hmed',Hmed)
 fprintf('\t %s \t %-6.2f \n','H(1/3)',Hout(2))
 fprintf('\t %s \t %-6.2f \n','H(1/10)',Hout(3))
 fprintf('\t %s \t %-6.2f \n','H(1/100)',Hout(4))
-
