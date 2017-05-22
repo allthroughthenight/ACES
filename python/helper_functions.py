@@ -12,9 +12,9 @@ def wavelen(d, T, n, g):
     L = L2
     k = 2 * math.pi / L
 
-    # ko = find( d <= 0)
+    # ko = find( d < =  0)
     # L(ko) = 0
-    if  d <= 0:
+    if  d <=  0:
         L = 0
 
     return L, k
@@ -154,7 +154,7 @@ def errstp(H, d, L):
 #   T: wave period
 #   d: water depth
 #   kappa: breaking index
-#   struct: =0 for no structure, =1 for structure
+#   struct:  = 0 for no structure,  = 1 for structure
 
 #   OUTPUT
 #   Hb: breaking wave height
@@ -162,7 +162,7 @@ def errstp(H, d, L):
 def ERRWAVBRK(T, d, m, kappa, struct):
     if m == 0: #where the nearshore slope is flat or unknown
         Hb = kappa * d
-    elif m != 0 and struct == 1: #maximum wave height in prescence of a structure
+    elif m !=  0 and struct ==  1: #maximum wave height in prescence of a structure
         a = 1.36 * (1 - math.exp(-19 * m))
         b = 1 / (0.64 * (1 + math.exp(-19.5 * m)))
         term = (d / T**2)
@@ -174,3 +174,173 @@ def ERRWAVBRK(T, d, m, kappa, struct):
 
     return Hb
 ###############################################################################
+
+# Determine runup on a rough slope
+
+#   INPUT
+#   H: incident wave height at toe of structure
+#   xi: surf parameter
+#   a: dimensionless coefficient
+#   b: dimensionless coefficient
+
+#   OUTPUT
+#   runupr: runup on a rough slope
+
+def RUNUPR(H, xi, a, b):
+    runupr = (H * a * xi) / (1 + b * xi)
+    return runupr
+
+# Determine runup on a smooth simple slope
+
+#   INPUT
+#   H: incident wave height at toe of structure
+#   L: wave length
+#   ds: water depth at structure
+#   theta: structure slope
+#   xi: surf parameter
+
+#   OUTPUT
+#   runups: runup on a smooth slope
+
+def RUNUPS(H, L, d, theta, xi):
+    Cp = 1.002 * xi
+    nonlin = (H / L) / (math.tanh(2 * math.pi * d / L)**3)
+    Cnb = 1.087 * math.sqrt(math.pi / (2 * theta)) + 0.775 * nonlin
+
+    if xi <= 2:
+        C = Cp
+    elif xi >= 3.5:
+        C = Cnb
+    else:
+        C = ((3.5 - xi) / 1.5) * Cp + ((xi - 2) / 1.5) * Cnb
+
+    runups = C * H
+    return runups
+
+# Transmitted wave height by overtopping of an impermebale structure
+
+#   INPUT
+#   bb: structure crest width
+#   H: total structure height above sea floor
+#   R: wave runup
+#   H: incident wave height
+#   free: freeboard (difference between height of structure and still water
+#   depth at structure)
+
+#   OUTPUT
+#   Ht: transmitted wave height
+
+def HTP(bb, hs, R, H, free):
+
+    c = 0.51 - 0.11 * (bb / hs)
+
+    Kt = c * (1 - (free / R))
+
+    if Kt < 0:
+        Kt = 0.0
+
+    Ht = Kt * H
+
+    return Ht
+
+# Transmission coefficient for a vertical breakwater
+
+#   INPUT
+#   H: incident wave height
+#   free: freeboard
+#   bb: crest width of vertical breakwater
+#   ds: still water level depth (from base of structure)
+#   dl: depth of water between still water level and top of berm
+
+#   OUTPUT
+#   Ht: transmitted wave height
+
+def VERTKT(H, free, bb, ds, dl):
+
+    aspect = bb / ds
+    ratio = dl / ds
+    frerat = free / H
+
+    if aspect < 1:
+        alpha = 1.8 + 0.4 * aspect
+        beta1 = 0.1 + 0.3 * aspect
+    else:
+        alpha = 2.2
+        beta1 = 0.4
+
+    if (dl / ds) <= 0.3:
+        alpha = 2.2
+        beta2 = 0.1
+    else:
+        beta2 = 0.527 - 0.130 / ratio
+
+    c1 = max(0, 1 - aspect)
+    c2 = min(1, aspect)
+    beta = c1 * beta1 + c2 * beta2
+
+    if frerat <= -(alpha + beta):
+        Kt = 1.0
+    elif frerat >= (alpha - beta):
+        Kt = 0.0
+    else:
+       Kt = 0.5 * (1 - math.sin((math.pi / (2 * alpha)) * (frerat + beta)))
+
+    Ht = Kt * H
+
+    return Ht
+
+# Computes sediment transport rates using deepwater wave conditions
+# English units only
+
+#   INPUT
+#   Hb: deepwater wave height [ft]
+#   alpha: deepwater angle of wave crest [deg]
+#   K: dimensionless coefficient
+#   rho: density of water [slugs/ft^3]
+#   rhos: density of the sediment [slugs/ft^3 - 5.14 in FORTRAN code]
+
+#   OUTPUT
+#   Q: sediment transport rate [ft^3/s]
+
+#   OTHER:
+#   deg2rad: factor to convert deg to rads
+#   Pls: longshore energy flux factor
+
+def DEEP_TRANS(Ho, alpha, K, rho, g, rhos):
+
+    deg2rad = math.pi / 180
+    alphar = alpha * deg2rad
+
+    Pls = 0.04031 * rho * (g**(3 / 2)) * (Ho**(5 / 2)) * (math.cos(alphar)**(1 / 4)) * math.sin(2 * alphar)
+
+    Q = (Pls * K) / ((rhos - rho) * g * 0.6)
+
+    return Q
+
+# Computes sediment transport rates using breaking wave conditions
+# English units only
+
+#   INPUT
+#   Hb: breaking wave height [ft]
+#   alpha: wave crest angle with the shoreline [deg]
+#   K: dimensionless coefficient
+#   rho: density of water [slugs/ft^3]
+#   rhos: density of the sediment [slugs/ft^3 - 5.14 in FORTRAN code]
+
+#   OUTPUT
+#   Q: sediment transport rate [ft^3/s]
+
+#   OTHER:
+#   deg2rad: factor to convert deg to rads
+#   Pls: longshore energy flux factor
+
+def BREAK_TRANS(Hb, alpha, K, rho, g, rhos):
+
+    deg2rad = math.pi / 180
+    alphar = alpha * deg2rad
+
+    Pls = 0.07071 * rho * (g**(3 / 2)) * (Hb**(5 / 2)) * math.sin(2 * alphar)
+
+    Q = (Pls * K) / ((rhos-rho) * g * 0.6)
+
+    return Q
