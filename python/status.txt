@@ -1,0 +1,3 @@
+snells_law
+  Not working properly on assert
+  Check LWTGEN / WAVELEN
