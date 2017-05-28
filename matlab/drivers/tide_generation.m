@@ -51,43 +51,27 @@ clc
 
 SET_PATHS();
 
-[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
-
 [metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
-if single_case
-    [year] = USER_INPUT_DATA_VALUE('Enter year simulation starts (YYYY): ', 1900, 2050);
+[year] = USER_INPUT_DATA_VALUE('Enter year simulation starts (YYYY): ', 1900, 2050);
 
-    [mon] = USER_INPUT_DATA_VALUE('Enter month simulation starts (MM): ', 1, 12);
+[mon] = USER_INPUT_DATA_VALUE('Enter month simulation starts (MM): ', 1, 12);
 
-    [day] = USER_INPUT_DATA_VALUE('Enter day simulation starts (DD): ', 1, 31);
+[day] = USER_INPUT_DATA_VALUE('Enter day simulation starts (DD): ', 1, 31);
 
-    [hr] = USER_INPUT_DATA_VALUE('Enter hour simulation starts (HH.H): ', 0, 24);
+[hr] = USER_INPUT_DATA_VALUE('Enter hour simulation starts (HH.H): ', 0, 24);
 
-    [tlhrs] = USER_INPUT_DATA_VALUE('Enter length of record (tlhrs) (HH.H): ', 0, 744);
+[tlhrs] = USER_INPUT_DATA_VALUE('Enter length of record (tlhrs) (HH.H): ', 0, 744);
 
-	prompt = 'Enter total number of gauges: ';
-	nogauge=input(prompt);
+prompt = 'Enter total number of gauges: ';
+nogauge=input(prompt);
 
-    [glong] = USER_INPUT_DATA_VALUE('Enter gauge longitude (deg): ', -180, 180);
+[glong] = USER_INPUT_DATA_VALUE('Enter gauge longitude (deg): ', -180, 180);
 
-    [delt] = USER_INPUT_DATA_VALUE('Enter output time interval (min): ', 1, 60);
+[delt] = USER_INPUT_DATA_VALUE('Enter output time interval (min): ', 1, 60);
 
-    [gauge0] = USER_INPUT_DATA_VALUE(['Enter mean water level height above datum [' labelUnitDist ']: '], -100, 100);
-else
-    % TODO 
-    % Default multi-case block. Eventually to be repalced with csv/tsv file
-    % reader
-	year=1990;
-	mon=12;
-	day=20;
-	hr=10.0;
-	tlhrs=24.0;
-	nogauge=1;
-	glong=40.00;
-	delt=15.0;
-	gauge0=0.0;
-end
+[gauge0] = USER_INPUT_DATA_VALUE(['Enter mean water level height above datum [' labelUnitDist ']: '], -100, 100);
+
 
 % Meters to feet constant for conversion
 m2ft=3.28084;
@@ -135,4 +119,22 @@ plot(xtim,ytide)
 xlabel('Time [hr]')
 ylabel(['Elevation [' labelUnitDist ']']) %output same units as amplitude, datum input
 
+% File Output
+fileOutputArgs = {'Enter the description for this file: '};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
 
+if fileOutputData{1}
+    fId = fopen('output/tide_generation.txt', 'wt');
+
+    fprintf(fId, 'CONSTITUENT TIDE ELEVATION RECORD\n');
+    fprintf(fId, '%s\n', fileOutputData{2});
+    fprintf(fId, 'TIME\tELEVATION\n');
+
+    for loopIndex = 1:length(xtim)
+        fprintf(fId, '%-6.2f\t%-6.2f\n',...
+            xtim(loopIndex),...
+            ytide(loopIndex));
+    end
+
+    fclose(fId);
+end

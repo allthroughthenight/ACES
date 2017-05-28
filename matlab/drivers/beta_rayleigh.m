@@ -217,13 +217,19 @@ if single_case
     xlabel(['H [' labelUnitDist ']'])
     ylabel('Probability density p(H)')
 
-    fId = fopen('output/beta_rayleigh.txt', 'wt');
-
-    fprintf(fId, 'Counter\tWave height\tProbability density\n');
+    % File Output
+    fileOutputArgs = {};
+    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
     
-    for loopIndex = 1:size(table, 1)
-        fprintf(fId, '%d\t%-6.5f\t\t%-6.5f\n', loopIndex, table(loopIndex, 1), table(loopIndex, 2));
-    end
+    if fileOutputData{1}
+        fId = fopen('output/beta_rayleigh.txt', 'wt');
 
-    fclose(fId);
+        fprintf(fId, 'Counter\tWave height\tProbability density\n');
+
+        for loopIndex = 1:size(table, 1)
+            fprintf(fId, '%d\t%-6.5f\t\t%-6.5f\n', loopIndex, table(loopIndex, 1), table(loopIndex, 2));
+        end
+
+        fclose(fId);
+    end
 end
