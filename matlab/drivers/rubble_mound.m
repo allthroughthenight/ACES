@@ -49,19 +49,53 @@ clc
 %   CERC_NS: stability number
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+SET_PATHS();
 
-Hs=5.0;
-Ts=10.0;
-cotnsl=100.0;
-ds=9.0;
-cotssl=2.0;
-unitwt=165.0;
-P=0.1;
-S=2.0;
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
+
+[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+
+if single_case
+    if metric
+        [Hs] = USER_INPUT_DATA_VALUE('Enter Hs: significant wave height (m): ', 0.1, 100.0);
+    else
+        [Hs] = USER_INPUT_DATA_VALUE('Enter Hs: significant wave height (ft): ', 0.1, 100.0);
+    end
+    
+    [Ts] = USER_INPUT_DATA_VALUE('Enter Ts: signficiant wave period (sec): ', 1.0, 1000.0);
+    
+    [cotnsl] = USER_INPUT_DATA_VALUE('Enter cotnsl: cotangent of nearshore slope: ', 5.0, 10000.0);
+    
+    if metric
+        [ds] = USER_INPUT_DATA_VALUE('Enter ds: water depth at toe of revetment (m): ', 0.1, 200.0);
+    else
+        [ds] = USER_INPUT_DATA_VALUE('Enter ds: water depth at toe of revetment (ft): ', 0.1, 200.0);
+    end
+    
+    [cotssl] = USER_INPUT_DATA_VALUE('Enter cotssl: cotangent of structure slope: ', 2.0, 6.0);
+    
+    if metric
+        [unitwt] = USER_INPUT_DATA_VALUE('Enter unitwt: unit weight of rock (N/m^3): ', 1.0, 99999.0);
+    else
+        [unitwt] = USER_INPUT_DATA_VALUE('Enter unitwt: unit weight of rock (lb/ft^3): ', 1.0, 99999.0);
+    end
+    
+    [P] = USER_INPUT_DATA_VALUE('Enter P: permeability coefficient: ', 0.05, 0.6);
+    
+    [S] = USER_INPUT_DATA_VALUE('Enter S: damage level: ', 2.0, 17.0);
+else
+    Hs=5.0;
+    Ts=10.0;
+    cotnsl=100.0;
+    ds=9.0;
+    cotssl=2.0;
+    unitwt=165.0;
+    P=0.1;
+    S=2.0;
+end
+
 N=7000;
 
-g=32.17;
 rho=1.989;
 H20weight=g*rho;
 H20weight=64;

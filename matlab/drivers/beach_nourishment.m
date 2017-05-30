@@ -48,18 +48,18 @@ if ro_b>ro_n
     disp ('Borrow material is more poorly sorted than native material')
     if M_b>M_R
         disp('Borrow material is finer than native material')
-        catg==1;
+        catg=1;
     else 
         disp ('Borrow material is coarser than native material')
-        catg==2;
+        catg=2;
     end 
 else 
     if M_b<M_R
        disp('Borrow material is coarser than native material')
-       catg==3;
+       catg=3;
     else 
        disp('Borrow material is finer than native material')
-       catg==4;
+       catg=4;
     end
 end 
 
@@ -67,14 +67,17 @@ end
 if catg == 1 || catg == 2
     phi_1 = max(-1, (-phi_m_diff/(ro^2-1)));
     phi_2 = inf;
-else 
-        phi_1 = -1;
-        phi_2 = max(-1, (1+(2*phi_m_diff/(1-ro^2))));
+else
+    phi_1 = -1;
+    phi_2 = max(-1, (1+(2*phi_m_diff/(1-ro^2))));
 end 
 
 % F = integral of standard normal curve
-%R_A = 1/(1-(normcdf((phi_2-phi_m_diff)/ro)+ ...
-% normcdf((phi_1-phi_m_diff)/rho)+((normcdf(phi_2)-normcdf(phi_1))/ro)*exp(0.5*(phi_1^2-((phi_1-phi_m_diff)/ro)^2))))
+R_A = 1/(...
+    1-(normcdf((phi_2-phi_m_diff)/ro)+ ...
+    normcdf((phi_1-phi_m_diff)/ro)+...
+    ((normcdf(phi_2)-normcdf(phi_1))/ro)*exp(0.5*(phi_1^2-((phi_1-phi_m_diff)/ro)^2)))...
+    )
 
 winno = 1;
 R_j = exp(winno*((M_b-M_R)/ro_n)-(winno^2/2)*((ro_b^2/ro_n^2)-1))

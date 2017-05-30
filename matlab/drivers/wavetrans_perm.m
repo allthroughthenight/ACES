@@ -51,22 +51,78 @@ clc
 %   freeb: freeboard
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+SET_PATHS();
 
-H=2.0;
-T=10.0;
-ds=9.6;
-nummat=1; 
-d50=[1.46];
-por=[0.37];
-hs=10.5;
-cotssl=1.0;
-b=8.5;
-numlay=1;
-th=[9.60];
-hlen=[25.60];
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-g=32.17;
+[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+
+if single_case
+    [H] = USER_INPUT_DATA_VALUE('Enter H: incident wave height (m): ', 0.1, 100.0);
+    
+    [T] = USER_INPUT_DATA_VALUE('Enter T: wave period (s): ', 1.0, 1000.0);
+    
+    [ds] = USER_INPUT_DATA_VALUE('Enter ds: water depth at structure toe (m): ', 0.1, 200.0);
+    
+    [nummat] = USER_INPUT_DATA_VALUE('Enter nummat: number of materials comprising the breakwater: ', 1, 4);
+    
+    d50 = [];
+    por = [];
+    for matIndex = 1:nummat
+        [d50Input] = USER_INPUT_DATA_VALUE(['Enter d50: mean diameter of material #' num2str(matIndex) ' (m): '], 0.05, 99.0);
+
+        [porInput] = USER_INPUT_DATA_VALUE(['Enter p: porosity of material #' num2str(matIndex) ': '], 0.0, 100.0);
+        
+        d50 = [d50 d50Input];
+        por = [por porInput];
+    end
+    
+    [hs] = USER_INPUT_DATA_VALUE('Enter hs: structure height above toe (m): ', 0.1, 200.0);
+    
+    [cottheta] = USER_INPUT_DATA_VALUE('Enter cottheta: cotangent of structure slope: ', 1.0, 5.0);
+    
+    [b] = USER_INPUT_DATA_VALUE('Enter b: structure crest width (m): ', 0.1, 200.0);
+    
+    [numlay] = USER_INPUT_DATA_VALUE('Enter numlay: number of horizontal layers in the breakwater: ', 1, 4);
+    
+    th = [];
+    for layIndex = 1:numlay
+        [thInput] = USER_INPUT_DATA_VALUE(['Enter th: thickness of horizontal layer #' num2str(layIndex) ' (m): '], 0.1, 200.0);
+        
+        th = [th thInput];
+    end
+    
+    hlen = [];
+    for matIndex = 1:nummat
+        hlenTemp = [];
+        
+        for layIndex = 1:numlay
+            [hlenInput] = USER_INPUT_DATA_VALUE(['Enter hlen: horizontal length of matertial # ' num2str(matIndex) ' in layer #' num2str(layIndex) ' (m): '], 0.0, 200.0);
+            
+            hlenTemp = [hlenTemp hlenInput];
+        end
+        
+        if matIndex == 1
+            hlen = hlenTemp;
+        else
+            hlen = [hlen; hlenTemp];
+        end
+    end
+else
+    H=2.0;
+    T=10.0;
+    ds=9.6;
+    nummat=1; 
+    d50=[1.46];
+    por=[0.37];
+    hs=10.5;
+    cotssl=1.0;
+    b=8.5;
+    numlay=1;
+    th=[9.60];
+    hlen=[25.60];
+end
+
 nu=0.0000141; %ft^2/s
 
 [Hb]=ERRWAVBRK1(ds,0.78);
@@ -81,7 +137,7 @@ assert(ds<hs,'Error: Method does not apply to submerged structures.')
 
 assert(sum(th)==ds,'Error: Water depth must equal sum of all layer thicknesses.')
 
-[KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,ds,hs,b,numlay,th,hlen,nummat,d50,por,cotssl,nu,g);
+[KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,ds,hs,b,numlay,th,hlen,nummat,d50,por,cottheta,nu,g);
 
 fprintf('%s \t\t\t %-6.3f \n','Reflection coefficient', Kr)
 fprintf('%s \n','Wave transmission coefficient')

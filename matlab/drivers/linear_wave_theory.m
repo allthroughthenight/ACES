@@ -41,111 +41,39 @@ clc
 %   pres: pressure (N/m^2 or lb ft^2 )
 %% -------------------------------------------------------------
 
-% Ask user if running windows or linux to set functions path
-accepted = false;
-while accepted == false
-    linux=input('Linux or Windows? (l or w): ', 's');
-    
-    if strcmp('l', linux);
-        accepted = true;
-        linux=true;
-    elseif strcmp('w', linux);
-        accepted = true;
-        linux=false;
-    else
-        fprintf('l or w only\n');
-    end
-end
+SET_PATHS();
 
-% Set path to functions for windows or linux base on previous answer
-if linux
-  % Path to functions folder for linux
-  functionsPath = '~/aces/matlab/functions';
-else
-  % Path to fucntions folder for windows
-  functionsPath = strcat (getenv('USERPROFILE'), '\\Documents\\aces\\matlab\\functions');
-end
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-% Add correct function path
-addpath(functionsPath);
-
-% Ask user for single or multi-input (from a file)
-accepted = false;
-single_case = '';
-while accepted == false
-    single_case=input('Single or Multi-case? (s or m): ', 's');
-    
-    if strcmp('s',single_case);
-        accepted = true;
-        single_case=true;
-    elseif strcmp('m', single_case);
-        accepted = true;
-        single_case=false;
-    else
-        fprintf('s or m only\n');
-    end
-end
-
-% Ask user if input imperial or metric
-accepted = false;
-unitSystem = '';
-while accepted == false
-    unitSystem=input('Input Imperial or Metric? (I or M): ', 's');
-    
-    if strcmp('I', unitSystem);
-        accepted = true;
-        unitSystem='I';
-    elseif strcmp('M', unitSystem);
-        accepted = true;
-        unitSystem='M';
-    else
-        fprintf('f or m only\n');
-    end
-end
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input for metric measurments
-if single_case && strcmp('M', unitSystem)
-	prompt = 'Enter H: wave height (m): ';
-	H = input(prompt);
+if single_case
+    [H] = USER_INPUT_DATA_VALUE(['Enter H: wave height (' labelUnitDist '): '], 0.1, 200);
 
-	prompt = 'Enter T: wave period (sec): ';
-	T = input(prompt);
+    [T] = USER_INPUT_DATA_VALUE('Enter T: wave period (sec): ', 1.0, 1000.0);
 
-	prompt = 'Enter d: water depth (m): ';
-	d = input(prompt);
+    [d] = USER_INPUT_DATA_VALUE(['Enter d: water depth (' labelUnitDist '): '], 0.1, 5000.0);
     
-    prompt = 'Enter z: vertical coordinate (m): ';
-	z = input(prompt);
+    [z] = USER_INPUT_DATA_VALUE(['Enter z: vertical coordinate (' labelUnitDist '): '], -5100.0, 100.0);
     
-    prompt = 'Enter xL: horizontal coordinate as fraction of wavelength (x/L): ';
-	xL = input(prompt);
+    [xL] = USER_INPUT_DATA_VALUE('Enter xL: horizontal coordinate as fraction of wavelength (x/L): ', 0.0, 1.0);
     
-% Single case input for imperial (feet) measurments
-elseif single_case && strcmp('I', unitSystem)
-	prompt = 'Enter H: wave height (ft): ';
-	H = input(prompt);
-
-	prompt = 'Enter T: wave period (sec): ';
-	T = input(prompt);
-
-	prompt = 'Enter d: water depth (ft): ';
-	d = input(prompt);
-    
-    prompt = 'Enter z: vertical coordinate (ft): ';
-	z = input(prompt);
-    
-    prompt = 'Enter xL: horizontal coordinate as fraction of wavelength (x/L): ';
-	xL = input(prompt);
-
+    numCases = 1;
 else
-    % TODO 
-    % Default multi-case block. Eventually to be repalced with csv/tsv file
-    % reader
-    H=10;
-    T=15.0;
-    d=25;
-    z=-12.5;
-    xL=0.5;
+    multiCaseData = {...
+        ['H: wave height (' labelUnitDist ')'], 0.1, 200;...
+        'T: wave period (sec)', 1.0, 1000.0;...
+        ['d: water depth (' labelUnitDist ')'], 0.1, 5000.0;...
+        ['z: vertical coordinate (' labelUnitDist ')'], -5100.0, 100.0;...
+        'xL: horizontal coordinate as fraction of wavelength (x/L)', 0.0, 1.0};
+    [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
+    
+    HList = varData(1, :);
+    TList = varData(2, :);
+    dList = varData(3, :);
+    zList = varData(4, :);
+    xLList = varData(5, :);
 end
 
 
@@ -153,80 +81,90 @@ end
 % Unit system conversion Constants
 twopi=2*pi;
 nIteration = 50;
-if unitSystem == 'I'; % imperial
-    g=32.17; % gravitational acceleration (ft/sec^2)
-    rho=1.989; % rho/g = 63.99/32.17 lb sec^2/ft^4 (sea water)
-else  unitSystem == 'M'; % metric
-    rho = 1025.09; % kg/sec^2
-    g = 9.81; % kg/sec^2
+% if ~metric % imperial
+%     rho=1.989; % rho/g = 63.99/32.17 lb sec^2/ft^4 (sea water)
+% else % metric
+%     rho = 1025.09; % kg/sec^2
+% end
+
+for loopIndex = 1:numCases
+    if ~single_case
+        H = HList(loopIndex);
+        T = TList(loopIndex);
+        d = dList(loopIndex);
+        z = zList(loopIndex);
+        xL = xLList(loopIndex);
+    end
+    
+    [L,k]=WAVELEN(d,T,nIteration,g);
+
+    theta=xL*twopi; %theta=(kx-wt) where arbitrarily t=0 and k=2*pi/L
+
+    % Check for monochromatic wave breaking (depth limited - no slope)
+    [Hb]=ERRWAVBRK1(d,0.78);
+    assert(H<Hb,'Error: Input wave broken (Hb = %6.2f %s)',Hb,labelUnitDist)
+
+    % Check to make sure vertical coordinate is within waveform
+    eta=(H/2)*cos(theta);
+    assert(z<eta && (z+d)>0,'Error: Point outside waveform.')
+
+    % Main Computations
+    arg=(2*k*d/(sinh(2*k*d)));
+    tot=d+z;
+
+    C=L/T;
+    Cg=0.5*(1+arg)*C;
+    E=(1/8)*rho*g*(H^2);
+    Ef=E*Cg;
+    Ur=L^2*H/(d^3);
+    px=(-H/2)*(cosh(k*tot)/sinh(k*d))*sin(theta);
+    py=(H/2)*(sinh(k*tot)/sinh(k*d))*cos(theta);
+    u=(H*pi/T)*(cosh(k*tot)/sinh(k*d))*cos(theta);
+    w=(H*pi/T)*(sinh(k*tot)/sinh(k*d))*sin(theta);
+    dudt=(H*2*pi^2/(T^2))*(cosh(k*tot)/sinh(k*d))*sin(theta);
+    dwdt=(-H*2*pi^2/(T^2))*(sinh(k*tot)/sinh(k*d))*cos(theta);
+    pres=-rho*g*z+rho*g*(H/2)*(cosh(k*tot)/cosh(k*d))*cos(theta);
+
+    fprintf('\t\t\t\t\t\t\t\t %s \n','Units');
+    fprintf('%s \t\t\t %-6.2f \t %s \n','Wavelength',L,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f \t %s/s \n','Celerity',C,labelUnitDist);
+    fprintf('%s \t\t %-6.2f \t %s/s \n','Group speed',Cg,labelUnitDist);
+    fprintf('%s \t\t %-8.2f \t %s-%s/%s^2 \n','Energy density',E,labelUnitWt,labelUnitDist,labelUnitDist);
+    fprintf('%s \t\t %-8.2f \t %s-%s/%s-s \n','Energy flux',Ef,labelUnitWt,labelUnitDist,labelUnitDist);
+    fprintf('%s \t\t %-6.2f \n','Ursell number',Ur);
+    fprintf('%s \t\t\t %-6.2f \t %s \n','Elevation',eta,labelUnitDist);
+    fprintf('%s \t %-6.2f \t %s \n','Horz. displacement',px,labelUnitDist);
+    fprintf('%s \t %-6.2f \t %s \n','Vert. displacement',py,labelUnitDist);
+    fprintf('%s \t\t %-6.2f \t %s/s \n','Horz. velocity',u,labelUnitDist);
+    fprintf('%s \t\t %-6.2f \t %s/s \n','Vert. velocity',w,labelUnitDist);
+    fprintf('%s \t %-6.2f \t %s/s^2 \n','Horz. acceleration',dudt,labelUnitDist);
+    fprintf('%s \t %-6.2f \t %s/s^2 \n','Vert. acceleration',dwdt,labelUnitDist);
+    fprintf('%s \t\t\t %-8.2f \t %s/%s^2 \n','Pressure',pres,labelUnitWt,labelUnitDist);
+
+    if single_case
+        %Plotting waveform
+        plotxL=(-1:0.001:1);
+        plottheta=plotxL*twopi;
+
+        ploteta=(H/2)*cos(plottheta);
+        plotu=(H*pi/T)*(cosh(k*tot)/sinh(k*d))*cos(plottheta);
+        plotw=(H*pi/T)*(sinh(k*tot)/sinh(k*d))*sin(plottheta);
+
+        figure(1)
+        subplot(3,1,1); plot(plotxL,ploteta); ylim([min(ploteta)-1 max(ploteta)+1])
+        hline = refline_v2([0 0]);
+        set(hline,'Color','r','LineStyle','--')
+        ylabel(['Elevation [' labelUnitDist ']'])
+
+        subplot(3,1,2); plot(plotxL,plotu); ylim([min(plotu)-1 max(plotu)+1])
+        hline = refline_v2([0 0]);
+        set(hline,'Color','r','LineStyle','--')
+        ylabel(['Velocity, u [' labelUnitDist '/s]'])
+
+        subplot(3,1,3); plot(plotxL,plotw); ylim([min(plotw)-1 max(plotw)+1])
+        hline = refline_v2([0 0]);
+        set(hline,'Color','r','LineStyle','--')
+        ylabel(['Velocity, w [' labelUnitDist '/s]'])
+        xlabel('x/L')
+    end
 end
-
-[L,k]=WAVELEN(d,T,nIteration,g);
-
-theta=xL*twopi; %theta=(kx-wt) where arbitrarily t=0 and k=2*pi/L
-
-% Check for monochromatic wave breaking (depth limited - no slope)
-[Hb]=ERRWAVBRK1(d,0.78);
-assert(H<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
-
-% Check to make sure vertical coordinate is within waveform
-eta=(H/2)*cos(theta);
-assert(z<eta && (z+d)>0,'Error: Point outside waveform.')
-
-% Main Computations
-arg=(2*k*d/(sinh(2*k*d)));
-tot=d+z;
-
-C=L/T;
-Cg=0.5*(1+arg)*C;
-E=(1/8)*rho*g*(H^2);
-Ef=E*Cg;
-Ur=L^2*H/(d^3);
-px=(-H/2)*(cosh(k*tot)/sinh(k*d))*sin(theta);
-py=(H/2)*(sinh(k*tot)/sinh(k*d))*cos(theta);
-u=(H*pi/T)*(cosh(k*tot)/sinh(k*d))*cos(theta);
-w=(H*pi/T)*(sinh(k*tot)/sinh(k*d))*sin(theta);
-dudt=(H*2*pi^2/(T^2))*(cosh(k*tot)/sinh(k*d))*sin(theta);
-dwdt=(-H*2*pi^2/(T^2))*(sinh(k*tot)/sinh(k*d))*cos(theta);
-pres=-rho*g*z+rho*g*(H/2)*(cosh(k*tot)/cosh(k*d))*cos(theta);
-
-fprintf('\t\t\t\t\t\t\t\t %s \n','Units');
-fprintf('%s \t\t\t %-6.2f \t %s \n','Wavelength',L,'m');
-fprintf('%s \t\t\t %-6.2f \t %s \n','Celerity',C,'m/s');
-fprintf('%s \t\t %-6.2f \t %s \n','Group speed',Cg,'m/s');
-fprintf('%s \t\t %-8.2f \t %s \n','Energy density',E,'N-m/m^2');
-fprintf('%s \t\t %-8.2f \t %s \n','Energy flux',Ef,'N-m/m-s');
-fprintf('%s \t\t %-6.2f \n','Ursell number',Ur);
-fprintf('%s \t\t\t %-6.2f \t %s \n','Elevation',eta,'m');
-fprintf('%s \t %-6.2f \t %s \n','Horz. displacement',px,'m');
-fprintf('%s \t %-6.2f \t %s \n','Vert. displacement',py,'m');
-fprintf('%s \t\t %-6.2f \t %s \n','Horz. velocity',u,'m/s');
-fprintf('%s \t\t %-6.2f \t %s \n','Vert. velocity',w,'m/s');
-fprintf('%s \t %-6.2f \t %s \n','Horz. acceleration',dudt,'m/s^2');
-fprintf('%s \t %-6.2f \t %s \n','Vert. acceleration',dwdt,'m/s^2');
-fprintf('%s \t\t\t %-8.2f \t %s \n','Pressure',pres,'N/m^2');
-
-%Plotting waveform
-plotxL=(-1:0.001:1);
-plottheta=plotxL*twopi;
-
-ploteta=(H/2)*cos(plottheta);
-plotu=(H*pi/T)*(cosh(k*tot)/sinh(k*d))*cos(plottheta);
-plotw=(H*pi/T)*(sinh(k*tot)/sinh(k*d))*sin(plottheta);
-
-figure(1)
-subplot(3,1,1); plot(plotxL,ploteta); ylim([min(ploteta)-1 max(ploteta)+1])
-hline = refline_v2([0 0]);
-set(hline,'Color','r','LineStyle','--')
-ylabel('Elevation [m]')
-
-subplot(3,1,2); plot(plotxL,plotu); ylim([min(plotu)-1 max(plotu)+1])
-hline = refline_v2([0 0]);
-set(hline,'Color','r','LineStyle','--')
-ylabel('Velocity, u [m/s]')
-
-subplot(3,1,3); plot(plotxL,plotw); ylim([min(plotw)-1 max(plotw)+1])
-hline = refline_v2([0 0]);
-set(hline,'Color','r','LineStyle','--')
-ylabel('Velocity, w [m/s]')
-xlabel('x/L')

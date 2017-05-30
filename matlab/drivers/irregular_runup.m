@@ -31,12 +31,27 @@ clc
 %   I: Irribarren number
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+SET_PATHS();
 
-Hs0=4.6;
-Tp=9.50;
-cottheta=13.0;
-g=32.17;
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
+
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+
+if single_case
+    if metric
+        [Hs0] = USER_INPUT_DATA_VALUE('Enter Hs0: deepwater significant wave height (m): ', 0.1, 100.0);
+    else
+        [Hs0] = USER_INPUT_DATA_VALUE('Enter Hs0: deepwater significant wave height (ft): ', 0.1, 100.0);
+    end
+    
+    [Tp] = USER_INPUT_DATA_VALUE('Enter Tp: peak energy wave period (sec): ', 0.1, 100.0);
+    
+    [cottheta] = USER_INPUT_DATA_VALUE('Enter cottheta: cotangent of foreshore slope: ', 0.1, 100.0);
+else
+    Hs0=4.6;
+    Tp=9.50;
+    cottheta=13.0;
+end
 
 %Coefficients provided by Mase (1989)
 amax=2.32;
@@ -63,8 +78,8 @@ R110=Hs0*a110*(I^b110);
 R13=Hs0*a13*(I^b13);
 Ravg=Hs0*aavg*(I^bavg);
 
-fprintf('%s \t %-6.2f \n','Maximum runup',Rmax)
-fprintf('%s \t %-6.2f \n','Runup exceeded by 2% of runup',R2)
-fprintf('%s \t %-6.2f \n','Avg. of highest 1/10 runups',R110)
-fprintf('%s \t %-6.2f \n','Avg. of highest 1/3 runups',R13)
-fprintf('%s \t %-6.2f \n','Maximum runup',Ravg)
+fprintf('%s \t\t\t\t\t %-6.2f %s \n','Maximum runup',Rmax,labelUnitDist)
+fprintf('%s \t %-6.2f %s \n','Runup exceeded by 2% of runup',R2,labelUnitDist)
+fprintf('%s \t %-6.2f %s \n','Avg. of highest 1/10 runups',R110,labelUnitDist)
+fprintf('%s \t\t %-6.2f %s \n','Avg. of highest 1/3 runups',R13,labelUnitDist)
+fprintf('%s \t\t\t\t\t %-6.2f %s \n','Maximum runup',Ravg,labelUnitDist)

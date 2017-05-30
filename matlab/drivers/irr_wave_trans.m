@@ -46,120 +46,99 @@ clc
 %   OTHERS
 %-------------------------------------------------------------
 
-% Ask user if running windows or linux to set functions path
-accepted = false;
-while accepted == false
-    linux=input('Linux or Windows? (l or w): ', 's');
-    
-    if strcmp('l', linux);
-        accepted = true;
-        linux=true;
-    elseif strcmp('w', linux);
-        accepted = true;
-        linux=false;
-    else
-        fprintf('l or w only\n');
-    end
-end
+SET_PATHS();
 
-% Set path to functions for windows or linux base on previous answer
-if linux
-  % Path to functions folder for linux
-  functionsPath = '~/aces/matlab/functions';
-else
-  % Path to fucntions folder for windows
-  functionsPath = strcat (getenv('USERPROFILE'), '\\Documents\\aces\\matlab\\functions');
-end
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-% Add correct function path
-addpath(functionsPath);
-
-% Ask user for single or multi-input (from a file)
-accepted = false;
-single_case = '';
-while accepted == false
-    single_case=input('Single or Multi-case? (s or m): ', 's');
-    
-    if strcmp('s',single_case);
-        accepted = true;
-        single_case=true;
-    elseif strcmp('m', single_case);
-        accepted = true;
-        single_case=false;
-    else
-        fprintf('s or m only\n');
-    end
-end
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input
 if single_case
-	prompt = 'Enter Ho: significant deepwater wave height]: ';
-	Ho = input(prompt);
+    if metric
+        [Ho] = USER_INPUT_DATA_VALUE('Enter Ho: significant deepwater wave height (m): ', 0.61, 6.09);
+    else
+        [Ho] = USER_INPUT_DATA_VALUE('Enter Ho: significant deepwater wave height (ft): ', 2.0, 20.0);
+    end
 
-	prompt = 'Enter d: water depth: ';
-	d = input(prompt);
+    [d] = USER_INPUT_DATA_VALUE(['Enter d: water depth (' labelUnitDist '): '], 10.0, 5000.0);
 
-	prompt = 'Enter Ts: significant wave period: ';
-	Ts = input(prompt);
+    [Ts] = USER_INPUT_DATA_VALUE('Enter Ts: significant wave period (s): ', 4.0, 16.0);
     
-    prompt = 'Enter cotnsl: cotangent of nearshore slope: ';
-	cotnsl = input(prompt);
+    [cotnsl] = USER_INPUT_DATA_VALUE('Enter cotnsl: cotangent of nearshore slope: ', 30.0, 100.0);
     
-    prompt = 'Enter direc: principle direction of incident wave spectrum: ';
-	direc = input(prompt);
+    [direc] = USER_INPUT_DATA_VALUE('Enter direc: principle direction of incident wave spectrum (deg): ', -75.0, 75.0);
 
+    numCases = 1;
 else
-    % TODO 
-    % Default multi-case block. Eventually to be repalced with csv/tsv file
-    % reader
-	Ho=6.096;
-    d=15.24;
-    Ts=8.0;
-    cotnsl=100.0;
-    direc=10.0;
+    if metric
+        multiCaseData = {'Ho: significant deepwater wave height (m)', 0.61, 6.09};
+    else
+        multiCaseData = {'Ho: significant deepwater wave height (ft)', 2.0, 20.0};
+    end
+    
+    multiCaseData = [multiCaseData;...
+        {['d: water depth (' labelUnitDist ')'], 10.0, 5000.0;...
+        'Ts: significant wave period (s)', 4.0, 16.0;...
+        'cotnsl: cotangent of nearshore slope', 30.0, 100.0;...
+        'direc: principle direction of incident wave spectrum (deg)', -75.0, 75.0}];
+    [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
+    
+    HoList = varData(1, :);
+    dList = varData(2, :);
+    TsList = varData(3, :);
+    cotnslList = varData(4, :);
+    direcList = varData(5, :);
 end
 
 % Meter to centimeter constant
 m2cm=100;
+g=g*m2cm;
 
-% Convert meter input to centimeters
-g=9.81*m2cm;
-Ho=Ho*m2cm;
-d=d*m2cm;
+for loopIndex = 1:numCases
+    if ~single_case
+        Ho = HoList(loopIndex);
+        d = dList(loopIndex);
+        Ts = TsList(loopIndex);
+        cotnsl = cotnslList(loopIndex);
+        direc = direcList(loopIndex);
+    end
+    
+    % Convert meter input to centimeters
+    Ho=Ho*m2cm;
+    d=d*m2cm;
 
-[Hb]=ERRWAVBRK1(d,0.78);
-assert(Ho<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
+    [Hb]=ERRWAVBRK1(d,0.78);
+    assert(Ho<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
 
-[Ks,Kr,Hmax,Hrms,Hbar,Hs,H10,H02,SBrms,HoLo,dLo,dHo,deepd,theta,Sw,Hxo,cdfo,Hx,cdfx]=GODA(Ho,d,Ts,cotnsl,direc,g);
+    [Ks,Kr,Hmax,Hrms,Hbar,Hs,H10,H02,SBrms,HoLo,dLo,dHo,deepd,theta,Sw,Hxo,cdfo,Hx,cdfx]=GODA(Ho,d,Ts,cotnsl,direc,g);
 
-figure(1)
-plot(Hxo/m2cm,cdfo)
-title('Deep Water')
-xlabel('H [m]')
-ylabel('CDF')
+    if single_case
+        figure(1)
+        plot(Hxo/m2cm,cdfo)
+        title('Deep Water')
+        xlabel('H [m]')
+        ylabel('CDF')
 
-figure(2)
-plot(Hx/m2cm,cdfx)
-title('Subject Depth')
-xlabel('H [m]')
-ylabel('CDF2')
+        figure(2)
+        plot(Hx/m2cm,cdfx)
+        title('Subject Depth')
+        xlabel('H [m]')
+        ylabel('CDF2')
+    end
 
-fprintf('\t\t %s \t\t %s \n','Subject','Deep')
-fprintf('%s \t\t %-6.2f \t %-6.2f \n','Hs',Hs(2)/m2cm,Hs(1)/m2cm)
-fprintf('%s \t %-6.2f \t %-6.2f \n','Hmean',Hbar(2)/m2cm,Hbar(1)/m2cm)
-fprintf('%s \t %-6.2f \t %-6.2f \n','Hrms',Hrms(2)/m2cm,Hrms(1)/m2cm)
-fprintf('%s \t %-6.2f \t %-6.2f \n','H10%',H10(2)/m2cm,H10(1)/m2cm)
-fprintf('%s \t %-6.2f \t %-6.2f \n','H02%',H02(2)/m2cm,H02(1)/m2cm)
-fprintf('%s \t %-6.2f \t %-6.2f \n','Hmax%',Hmax(2)/m2cm,Hmax(1)/m2cm)
-disp(' ')
-fprintf('%s \t\t %-6.4f \t %-6.4f \n','Ks',Ks(2),Ks(1))
-fprintf('%s \t %-6.4f \t %-6.4f \n','SBrms',SBrms(2)/m2cm,SBrms(1)/m2cm)
-fprintf('%s \t\t %-6.4f \t %-6.4f \n','Sw',Sw(2)/m2cm,Sw(1)/m2cm)
-fprintf('%s \t %-6.4f \t %-6.4f \n','Ho/Lo',HoLo(1),HoLo(1))
-fprintf('%s \t\t %-6.4f \n','Kr',Kr(1))
-fprintf('%s \t %-6.4f \t %-6.4f \n','d/Ho',dHo(2),dHo(1))
-fprintf('%s \t %-6.4f \t %-6.4f \n','d/Lo',dLo(2),dLo(1))
-
-
-
-
+    fprintf('\t\t %s \t %s \t\t %s \n','Subject','Deep','Units')
+    fprintf('%s \t\t %-6.2f \t %-6.2f \t %s \n','Hs',Hs(2)/m2cm,Hs(1)/m2cm,labelUnitDist)
+    fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','Hmean',Hbar(2)/m2cm,Hbar(1)/m2cm,labelUnitDist)
+    fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','Hrms',Hrms(2)/m2cm,Hrms(1)/m2cm,labelUnitDist)
+    fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','H10%',H10(2)/m2cm,H10(1)/m2cm,labelUnitDist)
+    fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','H02%',H02(2)/m2cm,H02(1)/m2cm,labelUnitDist)
+    fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','Hmax%',Hmax(2)/m2cm,Hmax(1)/m2cm,labelUnitDist)
+    disp(' ')
+    fprintf('%s \t\t %-6.4f \t %-6.4f \n','Ks',Ks(2),Ks(1))
+    fprintf('%s \t %-6.4f \t %-6.4f \t %s \n','SBrms',SBrms(2)/m2cm,SBrms(1)/m2cm,labelUnitDist)
+    fprintf('%s \t\t %-6.4f \t %-6.4f \t %s \n','Sw',Sw(2)/m2cm,Sw(1)/m2cm,labelUnitDist)
+    fprintf('%s \t %-6.4f \t %-6.4f \n','Ho/Lo',HoLo(1),HoLo(1))
+    fprintf('%s \t\t %-6.4f \n','Kr',Kr(1))
+    fprintf('%s \t %-6.4f \t %-6.4f \n','d/Ho',dHo(2),dHo(1))
+    fprintf('%s \t %-6.4f \t %-6.4f \n','d/Lo',dLo(2),dLo(1))
+end

@@ -58,116 +58,100 @@ clc
 %   db: breaking wave depth (m)
 %-------------------------------------------------------------
 
-% Ask user if running windows or linux to set functions path
-accepted = false;
-while accepted == false
-    linux=input('Linux or Windows? (l or w): ', 's');
-    
-    if strcmp('l', linux);
-        accepted = true;
-        linux=true;
-    elseif strcmp('w', linux);
-        accepted = true;
-        linux=false;
-    else
-        fprintf('l or w only\n');
-    end
-end
+SET_PATHS();
 
-% Ask user for single or multi-input (from a file)
-accepted = false;
-single_case = '';
-while accepted == false
-    single_case=input('Single or Multi-case? (s or m): ', 's');
-    
-    if strcmp('s',single_case);
-        accepted = true;
-        single_case=true;
-    elseif strcmp('m', single_case);
-        accepted = true;
-        single_case=false;
-    else
-        fprintf('s or m only\n');
-    end
-end
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
+
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input
 if single_case
-	prompt = 'Enter H1: wave height at known location (m): ';
-	H1 = input(prompt);
+    [H1] = USER_INPUT_DATA_VALUE(['Enter H1: wave height at known location (' labelUnitDist '): '], 0.1, 200.0);
+    
+    [T] = USER_INPUT_DATA_VALUE('Enter T: wave period at known location (sec): ', 1.0, 1000.0);
 
-	prompt = 'Enter T: wave period at known location (sec): ';
-	T = input(prompt);
-
-	prompt = 'Enter d1: water depth at known location (m): ';
-	d1 = input(prompt);
+    [d1] = USER_INPUT_DATA_VALUE(['Enter d1: water depth at known location (' labelUnitDist '): '], 0.1, 5000.0);
     
-    prompt = 'Enter alpha1: wave crest angle (deg): ';
-	alpha1 = input(prompt);
+    [alpha1] = USER_INPUT_DATA_VALUE('Enter alpha1: wave crest angle (deg): ', 0.0, 90.0);
     
-    prompt = 'Enter cotphi: cotan of nearshore slope: ';
-	cotphi = input(prompt);
+    [cotphi] = USER_INPUT_DATA_VALUE('Enter cotphi: cotan of nearshore slope: ', 5.0, 1000.0);
     
-    prompt = 'Enter d2: water depth at desired location (m): ';
-	d2 = input(prompt);
+    [d2] = USER_INPUT_DATA_VALUE(['Enter d2: water depth at desired location (' labelUnitDist '): '], 0.1, 5000.0);
     
+    numCases = 1;
 else
-    % TODO 
-    % Default multi-case block. Eventually to be repalced with csv/tsv file
-    % reader
-    H1=10;
-    T=7.50;
-    d1=25;
-    alpha1=10.0;
-    cotphi=100;
-    d2=20;
+    multiCaseData = {...
+        ['H1: wave height at known location (' labelUnitDist ')'], 0.1, 200.0;...
+        'T: wave period at known location (sec)', 1.0, 1000.0;...
+        ['d1: water depth at known location (' labelUnitDist ')'], 0.1, 5000.0;...
+        'alpha1: wave crest angle (deg)', 0.0, 90.0;...
+        'cotphi: cotan of nearshore slope', 5.0, 1000.0;...
+        ['d2: water depth at desired location (' labelUnitDist ')'], 0.1, 5000.0};
+    [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
+    
+    H1List = varData(1, :);
+    TList = varData(2, :);
+    d1List = varData(3, :);
+    alpha1List = varData(4, :);
+    cotphiList = varData(5, :);
+    d2List = varData(6, :);
 end
 
-rho=1.989;
-g=32.17;
-m=1/cotphi;
+for loopIndex = 1:numCases
+    if ~single_case
+        H1 = H1List(loopIndex);
+        T = TList(loopIndex);
+        d1 = d1List(loopIndex);
+        alpha1 = alpha1List(loopIndex);
+        cotphi = cotphiList(loopIndex);
+        d2 = d2List(loopIndex);
+    end
+    
+    %rho=1.989;
+    m=1/cotphi;
 
-[Hb]=ERRWAVBRK1(d1,0.78);
-assert(H1<Hb,'Error: Known wave broken (Hb = %6.2f m)',Hb)
+    [Hb]=ERRWAVBRK1(d1,0.78);
+    assert(H1<Hb,'Error: Known wave broken (Hb = %6.2f %s)',Hb,labelUnitDist)
 
-%determine known wave properties
-[c1,c0,cg1,cg0,k1,L1,L0,reldep1]=LWTGEN(d1,T,g);
-[E1,P1,Ur1,setdown1]=LWTTWM(cg1,d1,H1,L1,reldep1,rho,g,k1);
+    %determine known wave properties
+    [c1,c0,cg1,cg0,k1,L1,L0,reldep1]=LWTGEN(d1,T,g);
+    [E1,P1,Ur1,setdown1]=LWTTWM(cg1,d1,H1,L1,reldep1,rho,g,k1);
 
-[steep,maxstp]=ERRSTP(H1,d1,L1);
-assert(steep<maxstp,'Error: Known wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+    [steep,maxstp]=ERRSTP(H1,d1,L1);
+    assert(steep<maxstp,'Error: Known wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
 
-%determine deepwater wave properties
-[alpha0,H0]=LWTDWS(alpha1,c1,cg1,c0,H1);
+    %determine deepwater wave properties
+    [alpha0,H0]=LWTDWS(alpha1,c1,cg1,c0,H1);
 
-E0=(1/8)*rho*g*(H0^2);
-P0=E0*cg0;
-HL=H0/L0;
+    E0=(1/8)*rho*g*(H0^2);
+    P0=E0*cg0;
+    HL=H0/L0;
 
-assert(HL<(1/7),'Error: Deepwater wave unstable, [H0/L0] > (1/7)')
+    assert(HL<(1/7),'Error: Deepwater wave unstable, [H0/L0] > (1/7)')
 
-%determine subject wave properties
-[c2,c0,cg2,cg0,k2,L2,L0,reldep2]=LWTGEN(d2,T,g);
-[alpha2,H2,kr,ks]=LWTTWS(alpha0,c2,cg2,c0,H0);
-[E2,P2,Ur2,setdown2]=LWTTWM(cg2,d2,H2,L2,reldep2,rho,g,k2);
+    %determine subject wave properties
+    [c2,c0,cg2,cg0,k2,L2,L0,reldep2]=LWTGEN(d2,T,g);
+    [alpha2,H2,kr,ks]=LWTTWS(alpha0,c2,cg2,c0,H0);
+    [E2,P2,Ur2,setdown2]=LWTTWM(cg2,d2,H2,L2,reldep2,rho,g,k2);
 
-[Hb,db]=ERRWAVBRK3(H0,L0,T,m);
-assert(H2<Hb,'Error: Subject wave broken (Hb = %6.2f m, hb = %6.2f m)',Hb,db)
+    [Hb,db]=ERRWAVBRK3(H0,L0,T,m);
+    assert(H2<Hb,'Error: Subject wave broken (Hb = %6.2f m, hb = %6.2f %s)',Hb,db,labelUnitDist)
 
-[steep,maxstp]=ERRSTP(H2,d2,L2);
-assert(steep<maxstp,'Error: Subject wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+    [steep,maxstp]=ERRSTP(H2,d2,L2);
+    assert(steep<maxstp,'Error: Subject wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
 
-fprintf('\t\t\t\t\t %s \t\t %s \t\t %s \t\t\n','Known','Deepwater','Subject');
-fprintf('%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t\n','Wave height',H1,H0,H2)
-fprintf('%s \t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t\n','Wave crest angle',alpha1,alpha0,alpha2)
-fprintf('%s \t\t\t %-5.2f \t %-5.2f \t\t %-5.2f \t\t\n','Wavelength',L1,L0,L2)
-fprintf('%s \t\t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t\n','Celerity',c1,c0,c2)
-fprintf('%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t\n','Group speed',cg1,cg0,cg2)
-fprintf('%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t\n','Energy density',E1,E0,E2)
-fprintf('%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t\n','Energy flux',P1,P0,P2)
-fprintf('%s \t\t %-5.2f \t\t\t\t\t\t %-5.2f \n','Ursell number',Ur1,Ur2)
-fprintf('%s \t\t\t\t\t %-5.2f \n','Wave steepness',HL)
-fprintf('\n')
-fprintf('%s \t\t\t\n','Breaking parameters')
-fprintf('%s \t\t %-5.2f \t\n','Breaking height',Hb)
-fprintf('%s \t\t\t %-5.2f \t\n','Breaking depth',db)
+    fprintf('\t\t\t\t\t %s \t\t %s \t\t %s \t\t %s\n','Known','Deepwater','Subject','Units');
+    fprintf('%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s \n','Wave height',H1,H0,H2,labelUnitDist)
+    fprintf('%s \t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t deg \n','Wave crest angle',alpha1,alpha0,alpha2)
+    fprintf('%s \t\t\t %-5.2f \t %-5.2f \t\t %-5.2f \t\t %s \n','Wavelength',L1,L0,L2,labelUnitDist)
+    fprintf('%s \t\t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s/s \n','Celerity',c1,c0,c2,labelUnitDist)
+    fprintf('%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s/s \n','Group speed',cg1,cg0,cg2,labelUnitDist)
+    fprintf('%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t %s-%s/%s^2 \n','Energy density',E1,E0,E2,labelUnitDist,labelUnitWt,labelUnitDist)
+    fprintf('%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t %s-%s/sec-%s \n','Energy flux',P1,P0,P2,labelUnitDist,labelUnitWt,labelUnitDist)
+    fprintf('%s \t\t %-5.2f \t\t\t\t\t\t %-5.2f \n','Ursell number',Ur1,Ur2)
+    fprintf('%s \t\t\t\t\t %-5.2f \n','Wave steepness',HL)
+    fprintf('\n')
+    fprintf('%s \t\t\t\n','Breaking parameters')
+    fprintf('%s \t\t %-5.2f %s \t\n','Breaking height',Hb,labelUnitDist)
+    fprintf('%s \t\t\t %-5.2f %s \t\n','Breaking depth',db,labelUnitDist)
+end

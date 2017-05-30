@@ -35,65 +35,33 @@ clc
 %       return period Tr
 %-------------------------------------------------------------
 
-% Ask user if running windows or linux to set functions path
-accepted = false;
-while accepted == false
-    linux=input('Linux or Windows? (l or w): ', 's');
-    
-    if strcmp('l', linux);
-        accepted = true;
-        linux=true;
-    elseif strcmp('w', linux);
-        accepted = true;
-        linux=false;
-    else
-        fprintf('l or w only\n');
-    end
-end
+SET_PATHS();
 
-% Set path to functions for windows or linux base on previous answer
-if linux
-  % Path to functions folder for linux
-  functionsPath = '~/aces/matlab/functions';
-else
-  % Path to fucntions folder for windows
-  functionsPath = strcat (getenv('USERPROFILE'), '\\Documents\\aces\\matlab\\functions');
-end
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-% Add correct function path
-addpath(functionsPath);
-
-% Ask user for single or multi-input (from a file)
-accepted = false;
-single_case = '';
-while accepted == false
-    single_case=input('Single or Multi-case? (s or m): ', 's');
-    
-    if strcmp('s',single_case);
-        accepted = true;
-        single_case=true;
-    elseif strcmp('m', single_case);
-        accepted = true;
-        single_case=false;
-    else
-        fprintf('s or m only\n');
-    end
-end
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 if single_case
-	prompt = 'Enter Nt: estimated total number of events: ';
-	Nt=input(prompt);
+    [Nt] = USER_INPUT_DATA_VALUE('Enter Nt: estimated total number of events: ', 0.0, 10000.0);
 
-	prompt = 'Enter K: length of the record in years: ';
-	K=input(prompt);
+    [K] = USER_INPUT_DATA_VALUE('Enter K: length of the record in years: ', 0.0, 999.9);
 
-	prompt = 'Enter d: water depth: ';
-	d=input(prompt);
+    [d] = USER_INPUT_DATA_VALUE(['Enter d: water depth [' labelUnitDist ']: '], 0.0, 1000.0);
 
-	fprintf('Hs: significant wave heights from long-term data source already entered');
-	Hs=[9.32;8.11;7.19;7.06;6.37;6.15;6.03;5.72;4.92;4.90;4.78;4.67;4.64;4.19;3.06];
-    % TODO
-    % Set single case for each 'Hs' entry?
+    [hsCount] = USER_INPUT_DATA_VALUE('Enter the number of significant wave heights: ', 1, 200);
+    Hs = [];
+    for hsLoopIndex = 1:hsCount
+        hsTemp = USER_INPUT_DATA_VALUE(['Enter significant wave height [' labelUnitDist '] #' num2str(hsLoopIndex) ': '], 0.0, 100.0);
+        
+        Hs = [Hs hsTemp];
+    end
+    
+    clear hsLoopIndex;
+    clear hsCount;
+    clear hsTemp;
+    
+% 	fprintf('Hs: significant wave heights from long-term data source already entered');
+% 	Hs=[9.32;8.11;7.19;7.06;6.37;6.15;6.03;5.72;4.92;4.90;4.78;4.67;4.64;4.19;3.06];
 else
     % TODO 
     % Default multi-case block. Eventually to be repalced with csv/tsv file
@@ -113,7 +81,7 @@ d=d/0.3048;
 
 [Hb]=ERRWAVBRK1(d,0.78);
 for j=1:length(Hs)
-    assert(Hs(j)<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
+    assert(Hs(j)<Hb,'Error: Input wave broken (Hb = %6.2f %s)',Hb,labelUnitDist)
 end
 
 ret=[1.0;1.1;1.2;1.3;1.4;1.5;1.6;1.7;1.8;1.9;2.0;5.0;10.0;25.0;50.0;100.0];
@@ -291,7 +259,12 @@ fprintf('\t\t\t\t %s \t\t\t %s \t %s \t %s \t %s \n','FT-I','W (k=0.75)','W (k=1
 fprintf('%s \t %-6.4f \t\t %-6.4f \t\t %-6.4f \t\t %-6.4f \t\t %-6.4f \n', 'Corr. coeff.',rxy(1),rxy(2),rxy(3),rxy(4),rxy(5))
 fprintf('%s \t %-6.4f \t\t %-6.4f \t\t %-6.4f \t\t %-6.4f \t\t %-6.4f \n\n', 'Sq. of Resid.',sumresid(1),sumresid(2),sumresid(3),sumresid(4),sumresid(5))
 
-fprintf('%s \t %s \t\t %s \t\t %s \t\t %s \t\t %s \n','Return period','Hs [m]','Hs [m]','Hs [m]','Hs [m]','Hs [m]')
+if metric
+    fprintf('%s \t %s \t\t %s \t\t %s \t\t %s \t\t %s \n','Return period','Hs [m]','Hs [m]','Hs [m]','Hs [m]','Hs [m]')
+else
+    fprintf('%s \t %s \t\t %s \t\t %s \t\t %s \t\t %s \n','Return period','Hs [ft]','Hs [ft]','Hs [ft]','Hs [ft]','Hs [ft]')
+end
+
 for m=1:6
     if m<6
         fprintf('%-i \t\t\t\t %-6.2f \t\t %-6.2f \t\t %-6.2f \t\t %-6.2f \t\t %-6.2f \n',ret(index(m)),Hsr(index(m),1),Hsr(index(m),2),Hsr(index(m),3),...
