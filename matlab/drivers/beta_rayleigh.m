@@ -10,6 +10,8 @@ clc
 % Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
 % Date Created: April 28, 2011
 % Date Verified: June 27, 2012
+% Modifications done by Yaprak Onat 
+% Last Verified:
 
 % Requires the following functions:
 % ERRWAVBRK1
@@ -48,10 +50,6 @@ if single_case
     
     numCases = 1;
 else
-% 	Hmo=10.0;
-% 	Tp=11.5;
-% 	d=25.00;
-    
     multiCaseData = {...
             ['Hmo: zero-moment wave height [' labelUnitDist ']'], 0.1, 60.0;...
             'Tp: peak wave period [s]', 2.0, 30.0;...
@@ -61,20 +59,6 @@ else
     HmoList = varData(1, :);
     TpList = varData(2, :);
     dList = varData(3, :);
-end
-
-% Feet to meters constant for convertion
-ft2m=0.3048;
-
-% Convert feet input to meters based if input is in feet
-if metric
-    if single_case
-        Hmo = Hmo*ft2m;
-        d = d*ft2m;
-    else
-        HmoList = HmoList*ft2m;
-        dList = dList*ft2m;
-    end
 end
 
 Htype(1)=0.50; %Hmed;
@@ -144,16 +128,16 @@ for loopIndex = 1:numCases
         Hinc=Hb/100;
         disp('Input conditions indicate Beta-Rayleigh distribution')
         a1=0.00089;
-        b1=0.834;
+        b1=0.834; 
         a2=0.000098;
-        b2=1.208;
+        b2=1.208; 
 
         d1=a1*dterm^(-b1);
-        assert(d1<35.0,'Error: d/gT^2 approaching infinity')
+        assert(d1<=35.0,'Error: d/gT^2 approaching infinity')
         Hrms=(1/sqrt(2))*exp(d1)*Hmo; %root-mean-square wave height
 
         d2=a2*dterm^(-b2);
-        assert(d2<35.0,'Error: d/gT^2 approaching infinity')
+        assert(d2<=35.0,'Error: d/gT^2 approaching infinity')
 
         Hrmsq=(1/sqrt(2))*exp(d2)*Hmo^2; %root-mean-quad wave heigth
 
