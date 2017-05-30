@@ -1,3 +1,14 @@
+import math
+import sys
+sys.path.append('../functions')
+from ERRSTP import ERRSTP
+from ERRWAVBRK1 import ERRWAVBRK1
+from ERRWAVBRK2 import ERRWAVBRK2
+from WAVELEN import WAVELEN
+from WFVW1 import WFVW1
+from WFVW2 import WFVW2
+from WFVW3 import WFVW3
+from WFVW4 import WFVW4
 
 ## ACES Update to MATLAB
 #-------------------------------------------------------------
