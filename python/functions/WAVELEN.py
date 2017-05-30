@@ -1,4 +1,6 @@
 import math
+import numpy as np
+
 #
 # function wavelength(d,T,n,g);
 #
@@ -22,7 +24,7 @@ def WAVELEN(d, T, n, g):
     k = 2 * math.pi / L
 
     # TODO
-    # ko = find( d < =  0)
-    # L(ko) = 0
+    ko = np.where(d <= 0)
+    L[ko] = 0
 
     return L, k
