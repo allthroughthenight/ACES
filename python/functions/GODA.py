@@ -122,7 +122,7 @@ def GODA(Ho, dloc, Ts, S, direc, g):
                 Kreff = GODA4(direc, Ts, d, Ho, g)
                 sbrms = 0.01 * Hop / math.sqrt(Hop / Lo * (1 + d / Hop))
                 A2 = (1.416 / Ks)**2
-
+                # TODO forgot to covnert this portion 
                 p = zeros(1, 150)
                 di = zeros(1, 8)
                 x1 = zeros(1, 8)
