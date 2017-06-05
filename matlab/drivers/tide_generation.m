@@ -49,9 +49,12 @@ clc
 %   pcst: number of tide cycles per day per constiuent
 %-------------------------------------------------------------
 
+
 SET_PATHS();
 
 [metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+
+% Enter general time & output specifications
 
 [year] = USER_INPUT_DATA_VALUE('Enter year simulation starts (YYYY): ', 1900, 2050);
 
@@ -63,33 +66,52 @@ SET_PATHS();
 
 [tlhrs] = USER_INPUT_DATA_VALUE('Enter length of record (tlhrs) (HH.H): ', 0, 744);
 
-prompt = 'Enter total number of gauges: ';
-nogauge=input(prompt);
-
-[glong] = USER_INPUT_DATA_VALUE('Enter gauge longitude (deg): ', -180, 180);
-
 [delt] = USER_INPUT_DATA_VALUE('Enter output time interval (min): ', 1, 60);
 
 [gauge0] = USER_INPUT_DATA_VALUE(['Enter mean water level height above datum [' labelUnitDist ']: '], -100, 100);
 
+% Enter Constituents data entry 
 
-% Meters to feet constant for conversion
-m2ft=3.28084;
+[glong] = USER_INPUT_DATA_VALUE('Enter gauge longitude (deg): ', -180, 180);
 
-% Convert feet input to meters based if input is in feet
-if metric
-    gauge0 = gauge0*m2ft;
+% constituent_data_use_default = USER_INPUT_FINITE_CHOICE(...
+%     ['Would you like to load the default Constituent Data or load your own from a file?\n'...
+%         'Press [D] for default or [F] for file: '],...
+%     {'D', 'd', 'F', 'f'});
+% strcmp(constituent_data_use_default, 'F') || strcmp(constituent_data_use_default, 'f')
+
+accepted = false;
+while ~accepted
+    fprintf('\nConstituent Data Loading from file\n');
+    [constituentFilename] = USER_INPUT_FILE_NAME();
+
+    fid = fopen(constituentFilename);
+    C = textscan(fid, '%s %f %f');
+    fclose(fid);
+
+    if length(C{2}) == 0 || length(C{3}) == 0
+        fprintf('ERROR: Constituent Data Incomplete.\n');
+        fprintf('Please correct the input file and try again.\n');
+    else
+        accepted = true;
+    end
 end
-
-delthr=delt/60;
-
-fid = fopen('tides.txt');
-C = textscan(fid, '%s %f %f');
-fclose(fid);
 
 cst=C{1};
 amp=C{2};
 ep=C{3};
+
+% MIGHT CHANGE IT AFTER CONFIRMATION
+m2ft = 3.28084;
+if metric
+    gauge0 = gauge0 * m2ft;
+end
+
+delthr=delt/60;
+
+%prompt = 'Enter total number of gauges: ';
+% nogauge=input(prompt);
+nogauge = 1; % one gauge is examined. 
 
 acst=[28.9841042,30.0,28.4397295,15.0410686,57.9682084,...
      13.9430356,86.9523127,44.0251729,60.0,57.4238337,28.5125831,90.0,...
