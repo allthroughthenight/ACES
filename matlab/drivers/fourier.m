@@ -49,24 +49,46 @@ clc
 %   OTHERS
 %-------------------------------------------------------------
 
-addpath('~/aces/matlab/functions'); % Path to functions folder
+SET_PATHS();
 
-%must be entered in English units
-H=4;
-d=22;
-celdef=1; %1 for Eulerian, 2 for Stokes
-T=9.0;
-u=0.0;
-nofour=16;
-nosteps=5;
+[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
-g=32.2;
-[Hbs]=ERRWAVBRK(H,T,0,d,0.78);l
+[H] = USER_INPUT_DATA_VALUE(['Enter H: wave height (' labelUnitDist '): '], 0.1, 200.0);
+
+[T] = USER_INPUT_DATA_VALUE('Enter T: wave period (s): ', 1.0, 1000.0);
+
+[d] = USER_INPUT_DATA_VALUE(['Enter d: water depth (' labelUnitDist '): '], 0.1, 5000.0);
+
+[celdef] = USER_INPUT_FINITE_CHOICE('Enter celdef: celerity definition (1 for Euler, 2 for Stokes): ', {'1', '2'});
+
+[u] = USER_INPUT_DATA_VALUE(['Enter u: mean velocity (' labelUnitDist 'ps): '], 1.0, 10.0);
+
+[nofour] = USER_INPUT_DATA_VALUE('Enter nofour: the number of terms in Fourier Series: ', 1, 25);
+
+[nosteps] = USER_INPUT_DATA_VALUE('Enter nosteps: the number of steps in Wave Height ramping: ', 1, 10);
+
+
+[Hbs]=ERRWAVBRK(H,T,0,d,0.78);
 if false
 	if error==1
 	    str = ['Error: Input wave broken (Hb = ',num2str(Hbs),' m)'];
 	    disp(str)
-	    break
 	end
 end
 [Hnon,L,Hod,unon]=FWTPRE(g,T,H,d,u);
+
+% File Output
+fileOutputArgs = {};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+if fileOutputData{1}
+    fId = fopen('output/fourier.txt', 'wt');
+
+    fprintf(fId, 'Partial Listing of Plot Output File 1\n\n');
+    
+    fprintf(fId, 'Section 1 of the plot output file 1\n\n');
+    
+    fprintf(fId, 'Section 2 of the plot output file 2\n\n');
+
+    fclose(fId);
+end

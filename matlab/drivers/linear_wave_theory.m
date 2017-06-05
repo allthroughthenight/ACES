@@ -168,3 +168,33 @@ for loopIndex = 1:numCases
         xlabel('x/L')
     end
 end
+
+% File Output
+if single_case
+    fileOutputArgs = {};
+    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+    if fileOutputData{1}
+        fId = fopen('output\linear_wave_theory.txt', 'wt');
+        
+        fprintf(fId, 'Linear Wave Theory Summary\n\n');
+        
+        fprintf(fId, 'Item\t\t\tValue\t\t\t %s \n','Units');
+        fprintf(fId, '%s \t\t\t %-6.2f \t %s \n','Wavelength',L,labelUnitDist);
+        fprintf(fId, '%s \t\t\t %-6.2f \t %s/s \n','Celerity',C,labelUnitDist);
+        fprintf(fId, '%s \t\t %-6.2f \t %s/s \n','Group speed',Cg,labelUnitDist);
+        fprintf(fId, '%s \t\t %-8.2f \t %s-%s/%s^2 \n','Energy density',E,labelUnitWt,labelUnitDist,labelUnitDist);
+        fprintf(fId, '%s \t\t %-8.2f \t %s-%s/%s-s \n','Energy flux',Ef,labelUnitWt,labelUnitDist,labelUnitDist);
+        fprintf(fId, '%s \t\t %-6.2f \n','Ursell number',Ur);
+        fprintf(fId, '%s \t\t\t %-6.2f \t %s \n','Elevation',eta,labelUnitDist);
+        fprintf(fId, '%s \t %-6.2f \t %s \n','Horz. displacement',px,labelUnitDist);
+        fprintf(fId, '%s \t %-6.2f \t %s \n','Vert. displacement',py,labelUnitDist);
+        fprintf(fId, '%s \t\t %-6.2f \t %s/s \n','Horz. velocity',u,labelUnitDist);
+        fprintf(fId, '%s \t\t %-6.2f \t %s/s \n','Vert. velocity',w,labelUnitDist);
+        fprintf(fId, '%s \t %-6.2f \t %s/s^2 \n','Horz. acceleration',dudt,labelUnitDist);
+        fprintf(fId, '%s \t %-6.2f \t %s/s^2 \n','Vert. acceleration',dwdt,labelUnitDist);
+        fprintf(fId, '%s \t\t\t %-8.2f \t %s/%s^2 \n','Pressure',pres,labelUnitWt,labelUnitDist);
+        
+        fclose(fId);
+    end
+end

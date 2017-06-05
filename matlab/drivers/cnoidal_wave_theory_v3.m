@@ -364,6 +364,29 @@ for loopIndex = 1:numCases
         end
     end
 end
+
+% File Output
+if single_case
+    fileOutputArgs = {'Enter the filename (no extension): ', 'Enter the description for this file: '};
+    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+    if fileOutputData{1}
+        fId = fopen(['output\' fileOutputData{2} '.txt'], 'wt');
+
+        fprintf(fId, 'Partial Listing of Plot Output File 1 for %s\n\n', fileOutputData{3});
+
+        fprintf(fId, 'X/L\tETA (ft)\tU (ft/sec)\tW (ft/sec)\n');
+
+        for loopIndex = 1:length(plotxL)
+            fprintf(fId, '%-6.3f\t%-6.3f\t\t%-6.3f\t\t%-6.3f\n',...
+                plotxL(loopIndex),...
+                ploteta(loopIndex),...
+                plotu(loopIndex),...
+                plotw(loopIndex));
+        end
+    end
+end
+
 % %
 % %
 % %
