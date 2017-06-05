@@ -37,11 +37,15 @@ clc
 
 SET_PATHS();
 
-[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
-
 [metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
-if single_case
+[manualOrFile] = USER_INPUT_FINITE_CHOICE(...
+    ['Would you like to enter data manually or load from a file?\n'...
+        '[M] for manual entry or [F] for file loading: '],...
+    {'M', 'm', 'F', 'f'});
+data_entry_manual = strcmp(manualOrFile, 'M') || strcmp(manualOrFile, 'm');
+
+if data_entry_manual
     [Nt] = USER_INPUT_DATA_VALUE('Enter Nt: estimated total number of events: ', 0.0, 10000.0);
 
     [K] = USER_INPUT_DATA_VALUE('Enter K: length of the record in years: ', 0.0, 999.9);
@@ -52,25 +56,39 @@ if single_case
     Hs = [];
     for hsLoopIndex = 1:hsCount
         hsTemp = USER_INPUT_DATA_VALUE(['Enter significant wave height [' labelUnitDist '] #' num2str(hsLoopIndex) ': '], 0.0, 100.0);
-        
+
         Hs = [Hs hsTemp];
     end
-    
+
     clear hsLoopIndex;
     clear hsCount;
     clear hsTemp;
+else
+    accepted = false;
+    while ~accepted
+        [filename] = USER_INPUT_FILE_NAME();
+
+        fId = fopen(filename);
+
+        fileData = textscan(fId, '%f');
+
+        fclose(fId);
+        
+        if length(fileData{1} >= 4) && length(fileData{1} <= 203)
+            accepted = true;
+        else
+            fprintf('File must have Nt, K, d, and between 1 and 200 storm heights.\n');
+        end
+    end
     
+    Nt = fileData{1}(1);
+    K = fileData{1}(2);
+    d = fileData{1}(3);
+    Hs = fileData{1}(4:end);
+end
+
 % 	fprintf('Hs: significant wave heights from long-term data source already entered');
 % 	Hs=[9.32;8.11;7.19;7.06;6.37;6.15;6.03;5.72;4.92;4.90;4.78;4.67;4.64;4.19;3.06];
-else
-    % TODO 
-    % Default multi-case block. Eventually to be repalced with csv/tsv file
-    % reader
-	Nt=20;
-	K=20;
-	d=500;
-	Hs=[9.32;8.11;7.19;7.06;6.37;6.15;6.03;5.72;4.92;4.90;4.78;4.67;4.64;4.19;3.06];
-end
 
 N=length(Hs);
 lambda=Nt/K;
@@ -290,6 +308,7 @@ end
 
 fprintf('%i %s %s \n',conf,'% ','Confidence Interval, (Lower Bound - Upper Bound)')
 fprintf('%s \n','Return period')
+fprintf('\t\t\t\t %s \t\t %s \t %s \t %s \t %s \n','FT-I','W (k=0.75)','W (k=1.00)','W (k=1.40)','W (k=2.00)')
 
 for m=1:6
     if m<6
@@ -302,7 +321,14 @@ for m=1:6
 end
 
 fprintf('%s \n','Percent Chance for Significant Height Equaling or Exceeding Return Period Hs')
-disp(round(printpe))
+fprintf('      %6d%6d%6d%6d%6d%6d\n',...
+    printpe(1, 2),...
+    printpe(1, 3),...
+    printpe(1, 4),...
+    printpe(1, 5),...
+    printpe(1, 6),...
+    printpe(1, 7));
+disp(round(printpe(2:end, :)));
 
 for m=1:5
     figure(m)
@@ -333,4 +359,68 @@ for m=1:5
         xlabel('Return period [yr]')
         legend('Weibull (k=2.00)','Data','Confidence Bounds','Location','SouthEast')
     end
+end
+
+% File Output
+fileOutputArgs = {};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+if fileOutputData{1}
+    fId = fopen('output/ext_Hs_analysis.txt', 'wt');
+    
+    distList = {'FISHER-TIPPETT TYPE (FT-I) DISTRIBUTION',...
+        'WEIBULL DISTRIBUTION k = 0.75',...
+        'WEIBULL DISTRIBUTION k = 1.00',...
+        'WEIBULL DISTRIBUTION k = 1.40',...
+        'WEIBULL DISTRIBUTION k = 2.00'};
+    
+    fprintf(fId, 'EXTREMAL SIGNIFICANT WAVE HEIGHT ANALYSIS\n');
+    fprintf(fId, 'DELFT Data\n\n');
+    
+    fprintf(fId, 'N = %d STORMS\n', N);
+    fprintf(fId, 'NT = %d STORMS\n', Nt);
+    fprintf(fId, 'NU = %-6.2f\n', nu);
+    fprintf(fId, 'K = %-6.2f YEARS\n', K);
+    fprintf(fId, 'LAMBDA = %-6.2f STORMS PER YEAR\n', lambda);
+    fprintf(fId, 'MEAN OF SAMPLE DATA = %-6.3f FEET\n', Sx/N);
+    fprintf(fId, 'STANDARD DEVIATION OF SAMPLE = %-6.3f FEET\n', standev);
+    
+    for distIndex = 1:length(distList)
+        fprintf(fId, '\n%s\n', distList{distIndex});
+        fprintf(fId, 'F(Hs) = EXP(-EXP(-(Hs-B)/A)) - Equation 1\n');
+        fprintf(fId, 'A = %-6.3f %s\n', alpha(distIndex), labelUnitDist);
+        fprintf(fId, 'B = %-6.3f %s\n', beta(distIndex), labelUnitDist);
+        fprintf(fId, 'CORRELATION = %-6.4f\n', rxy(distIndex));
+        fprintf(fId, 'SUM SQUARE OF RESIDUALS = %-6.4f %s\n', sumresid(distIndex), labelUnitDist);
+
+        fprintf(fId, '\nRANK\tHsm\tF(Hs<=Hsm)\tYm\tA*Ym+B\t\tHsm-(A*Ym+B)\n');
+        fprintf(fId, '\t(Ft)\tEq. 3\t\tEq. 5\tEq. 4 (%s)\t(%s)\n', labelUnitDist, labelUnitDist);
+
+        for loopIndex = 1:length(Hs)
+            fprintf(fId, '%d\t%-6.2f\t%-6.4f\t\t%-6.3f\t%-6.4f\t\t%-6.4f\n',...
+                loopIndex,...
+                Hs(loopIndex),...
+                yact(loopIndex, distIndex),...
+                ym(loopIndex, distIndex),...
+                xxr(loopIndex, distIndex),...
+                Hs(loopIndex)-xxr(loopIndex, distIndex));
+        end
+
+        fprintf(fId, '\nRETURN PERIOD TABLE with %d%% CONFIDENCE INTERVAL\n', conf);
+
+        fprintf(fId, '\nRETURN\tHs\tSIGR\tHs-1.28*SIGR\tHs+1.28*SIGR\n');
+        fprintf(fId, 'PERIOD\t(%s)\t(%s)\t(%s)\t\t(%s)\n', labelUnitDist, labelUnitDist, labelUnitDist, labelUnitDist);
+        fprintf(fId, '(Yr)\tEq. 6\tEq. 10\n');
+
+        for loopIndex = 1:length(index)
+            fprintf(fId, '%-6.2f\t%-6.2f\t%-6.2f\t%-6.2f\t\t%-6.2f\n',...
+                printside2(loopIndex),...
+                Hsr(index(loopIndex), distIndex),...
+                sigr(index(loopIndex), distIndex),...
+                Hsr(index(loopIndex), distIndex) - 1.28*sigr(index(loopIndex), distIndex),...
+                Hsr(index(loopIndex), distIndex) + 1.28*sigr(index(loopIndex), distIndex));
+        end
+    end
+    
+    fclose(fId);
 end
