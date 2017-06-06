@@ -10,7 +10,7 @@ clc
 % Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
 % Date Created: April 28, 2011
 % Date Verified: June 27, 2012
-% Modifications done by Yaprak Onat 
+% Modifications done by Yaprak Onat
 % Last Verified:
 
 % Requires the following functions:
@@ -47,7 +47,7 @@ if single_case
     [Tp] = USER_INPUT_DATA_VALUE('Enter Tp: peak wave period [s]: ', 2.0, 30.0);
 
     [d] = USER_INPUT_DATA_VALUE(['Enter d: water depth [' labelUnitDist ']: '], 0.1, 3000.0);
-    
+
     numCases = 1;
 else
     multiCaseData = {...
@@ -55,7 +55,7 @@ else
             'Tp: peak wave period [s]', 2.0, 30.0;...
             ['d: water depth [' labelUnitDist ']'], 0.1, 3000.0};
     [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
-    
+
     HmoList = varData(1, :);
     TpList = varData(2, :);
     dList = varData(3, :);
@@ -72,7 +72,7 @@ for loopIndex = 1:numCases
         Tp = TpList(loopIndex);
         d = dList(loopIndex);
     end
-    
+
     [Hb]=ERRWAVBRK1(d,0.9);
     assert(Hmo<Hb,'Error: Input wave broken (Hb = %6.2f %s)',Hb,labelUnitDist)
 
@@ -128,9 +128,9 @@ for loopIndex = 1:numCases
         Hinc=Hb/100;
         disp('Input conditions indicate Beta-Rayleigh distribution')
         a1=0.00089;
-        b1=0.834; 
+        b1=0.834;
         a2=0.000098;
-        b2=1.208; 
+        b2=1.208;
 
         d1=a1*dterm^(-b1);
         assert(d1<=35.0,'Error: d/gT^2 approaching infinity')
@@ -204,7 +204,7 @@ if single_case
     % File Output
     fileOutputArgs = {};
     [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
-    
+
     if fileOutputData{1}
         fId = fopen('output/beta_rayleigh.txt', 'wt');
 
