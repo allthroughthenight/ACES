@@ -113,11 +113,21 @@ use_value_F = wgtyp == 1 || wgtyp == 2;
 use_value_d = wgtyp == 2 || wgtyp == 4;
 use_values_restricted = wgtyp == 3 || wgtyp == 4;
 
+[use_knots] = USER_INPUT_FINITE_CHOICE(...
+    ['Speed options:\n[M] ' labelSpeed '\n[K] knots\nSelect option: '],...
+    {'M', 'm', 'K', 'k'});
+use_knots = strcmp(use_knots, 'K') || strcmp(use_knots, 'k');
+if use_knots
+    labelSpeedFinal = 'knots';
+else
+    labelSpeedFinal = labelSpeed;
+end
+
 % Single case input
 if single_case
     [zobs] = USER_INPUT_DATA_VALUE(['Enter zobs: elevation of observed winds [' labelUnitDist ']: '], 1.0, 5000.0);
 
-    [uobs] = USER_INPUT_DATA_VALUE(['Enter uobs: observed wind speed [' labelSpeed ']: '], 0.1, 200.0);
+    [Uobs] = USER_INPUT_DATA_VALUE(['Enter uobs: observed wind speed [' labelSpeedFinal ']: '], 0.1, 200.0);
 
     [dtemp] = USER_INPUT_DATA_VALUE('Enter dtemp: air-sea temperature difference [deg C]: ', -100.0, 100.0);
     
@@ -144,14 +154,25 @@ if single_case
         
         [ang1] = USER_INPUT_DATA_VALUE('Enter ang1: direction of first radial fetch [deg]: ', 0.0, 360.0);
         
-        [] = USER_INPUT_DATA_VALUE('Enter angs: fetch length [m]: ', );
+        [Nfet] = USER_INPUT_DATA_VALUE('Enter Nfet: number of radial fetches: ', 2, 360);
+        Nfet = floor(Nfet);
+        
+        angs = [];
+        for angsLoopIndex = 1:Nfet
+            angTemp = USER_INPUT_DATA_VALUE(['Enter angs: fetch length [' labelUnitDist '] #' num2str(angsLoopIndex) ': '], 0,9999);
+            
+            angs = [angs angTemp];
+        end
+        
+        clear angsLoopIndex;
+        clear angTemp;
     end
     
     numCases = 1;
 else
     multiCaseData = {...
         ['zobs: elevation of observed winds [' labelUnitDist ']'], 1.0, 5000.0;...
-        ['uobs: observed wind speed [' labelSpeed ']'], 0.1, 200.0;...
+        ['uobs: observed wind speed [' labelSpeedFinal ']'], 0.1, 200.0;...
         'dtemp: air-sea temperature difference [deg C]', -100.0, 100.0;...
         'duro: duration of observed wind [hr]', 0.1, 86400.0;...
         'durf: duration of final wind [hr]', 0.1, 86400.0;...
@@ -164,6 +185,16 @@ else
     if use_value_d
         multiCaseData = [multiCaseData; {['d: average depth of fetch [' labelUnitDist ']: '], 0.1, 10000.0}];
     end
+    
+    if use_values_restricted
+        multiCaseData = [multiCaseData;...
+            {'wdir: wind direction [deg]', 0.0, 360.0;...
+            'dang: radial angle increment [deg]', 1.0, 180.0;...
+            'ang1: direction of first radial fetch [deg]', 0.0, 360.0;...
+            'Nfet: number of radial fetches', 2, 360;...
+            ['angs: fetch length [' labelUnitDist ']'], 0, 9999}];
+    end
+    
     
     [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
     
@@ -185,6 +216,16 @@ else
         dList = varData(optVarNum, :);
         optVarNum = optVarNum + 1;
     end
+    
+    if use_values_restricted
+        wdirList = varData(optVarNum, :);
+        dangList = varData(optVarNum + 1, :);
+        ang1List = varData(optVarNum + 2, :);
+        NfetList = varData(optVarNum + 3, :);
+        angsList = varData(optVarNum + 4, :);
+        
+        optVarNum = optVarNum + 5;
+    end
 end
 
 % Constant for convertions
@@ -197,6 +238,14 @@ mi2m=1609.344;
 F2C=5/9;
 knots2mps=0.5144;
 
+if use_knots
+    speedConversion = knots2mps;
+elseif ~metric
+    speedConversion = mph2mps;
+else
+    speedConversion = 1.0;
+end
+
 if wgtyp==1 %Open Water - Deep
 %    F=27;
 %    d=0;
@@ -207,17 +256,17 @@ elseif wgtyp==2 %Open Water - Shallow
     phi=0;
 elseif wgtyp==3 %Restricted - Deep
 %    d=0;
-    wdir=120;
-    dang=12;
-    ang1=0;
-    angs=[3.7;12.3;13.4;12.2;13.2;36.0;35.6;28.7;26.8;13.0;10.4;10.1;6.4;5.7];
+%    wdir=120;
+%    dang=12;
+%    ang1=0;
+%    angs=[3.7;12.3;13.4;12.2;13.2;36.0;35.6;28.7;26.8;13.0;10.4;10.1;6.4;5.7];
     [F,phi,theta]=WGFET(ang1,dang,wdir,angs);
 else %Restricted - Shallow
 %    d=13;
-    wdir=120;
-    dang=12;
-    ang1=0;
-    angs=[3.7;12.3;13.4;12.2;13.2;36.0;35.6;28.7;26.8;13.0;10.4;10.1;6.4;5.7];
+%    wdir=120;
+%    dang=12;
+%    ang1=0;
+%    angs=[3.7;12.3;13.4;12.2;13.2;36.0;35.6;28.7;26.8;13.0;10.4;10.1;6.4;5.7];
     %angs=[3.7;12.3;13.4;12.2;13.2;36.0;35.6;28.7;10.4;5.7];
     [F,phi,theta]=WGFET(ang1,dang,wdir,angs);
 end
@@ -225,7 +274,7 @@ end
 for loopIndex = 1:numCases
     if ~single_case
         zobs = zobsList(loopIndex);
-        uobs = uobsList(loopIndex);
+        Uobs = uobsList(loopIndex);
         dtemp = dtempList(loopIndex);
         duro = duroList(loopIndex);
         durf = durfList(loopIndex);
@@ -237,25 +286,41 @@ for loopIndex = 1:numCases
         if use_value_d
             d = dList(loopIndex);
         end
+        
+        if use_values_restricted
+            wdir = wdirList(loopIndex);
+            dang = dangList(loopIndex);
+            ang1 = ang1List(loopIndex);
+            Nfet = NfetList(loopIndex);
+            angs = angs(loopIndex);
+        end
     end
     
     assert(lat~=0, 'Error: Latitude must be a non-zero value.')
     
-    [ue]=WADJ(uobs*mph2mps,zobs*ft2m,dtemp,F*mi2m,duro*hr2s,durf*hr2s,lat*deg2rad,windobs);
+%    [ue]=WADJ(Uobs*mph2mps,zobs*ft2m,dtemp,F*mi2m,duro*hr2s,durf*hr2s,lat*deg2rad,windobs);
+    [ue]=WADJ(Uobs*speedConversion,zobs*ft2m,dtemp,F*mi2m,duro*hr2s,durf*hr2s,lat*deg2rad,windobs);
 
     [ua,Hmo,Tp,wgmsg]=WGRO(d*ft2m,F*mi2m,phi,durf*hr2s,ue,wgtyp);
 
-    fprintf('%s %s \n','Wave growth: ',wgmsg)
-    if wgtyp==3 || wgtyp==4
-        fprintf('%s \t %-6.2f \n','Mean wave direction',theta)
-        fprintf('%s \t\t\t\t %-6.2f \n','Wind fetch',F)
+    if use_values_restricted
+        fprintf('%s \t\t\t\t %-6.2f %s\n','Wind fetch',F, labelUnitDist);
+        fprintf('%s \t\t\t %-6.2f deg\n', 'Wind Direction', wdir);
     end
-    % TODO: Add metric speed
-    fprintf('%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/mph2mps, labelSpeed)
-    fprintf('%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/mph2mps, labelSpeed)
+    
+%    fprintf('%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/mph2mps, labelSpeedFinal);
+    fprintf('%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/speedConversion, labelSpeedFinal);
+%    fprintf('%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/mph2mps, labelSpeedFinal);
+    fprintf('%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/speedConversion, labelSpeedFinal);
+    
+    if use_values_restricted
+        fprintf('%s \t %-6.2f deg\n','Mean wave direction',theta);
+    end
 
-    fprintf('%s \t\t\t %-6.2f %s \n','Wave height ',Hmo/ft2m,labelUnitDist)
-    fprintf('%s \t\t\t %-6.2f s \n','Wave period ',Tp)
+    fprintf('%s \t\t\t %-6.2f %s \n','Wave height ',Hmo/ft2m,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f s \n','Wave period ',Tp);
+    
+    fprintf('%s %s \n','Wave growth: ',wgmsg);
 end
 
 if single_case
