@@ -65,9 +65,11 @@ SET_PATHS();
 [metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 if metric
-    labelSpeed = 'km/h';
+    labelSpeed = 'm/s';
+    labelUnitDistLrg = 'km';
 else
     labelSpeed = 'mph';
+    labelUnitDistLrg = 'mi';
 end
 
 % fprintf('%s \n','Wind observation types: ');
@@ -138,7 +140,7 @@ if single_case
     [lat] = USER_INPUT_DATA_VALUE('Enter lat: latitude of wind observation [deg]: ', 0.0, 180.0);
     
     if use_value_F
-        [F] = USER_INPUT_DATA_VALUE(['Enter F: length of wind fetch [' labelUnitDist ']: '], 0.0, 9999.0);
+        [F] = USER_INPUT_DATA_VALUE(['Enter F: length of wind fetch [' labelUnitDistLrg ']: '], 0.0, 9999.0);
     end
     
     if use_value_d
@@ -149,23 +151,53 @@ if single_case
     
     if use_values_restricted
         [wdir] = USER_INPUT_DATA_VALUE('Enter wdir: wind direction [deg]: ', 0.0, 360.0);
+%         TODO: Check WDIR vs Fetch data. WDIR must meet this criterion:
+% *       ang1 -45 degrees <= WDIR <= anglast + 45 degrees
+        
         
         [dang] = USER_INPUT_DATA_VALUE('Enter dang: radial angle increment [deg]: ', 1.0, 180.0);
         
         [ang1] = USER_INPUT_DATA_VALUE('Enter ang1: direction of first radial fetch [deg]: ', 0.0, 360.0);
         
-        [Nfet] = USER_INPUT_DATA_VALUE('Enter Nfet: number of radial fetches: ', 2, 360);
-        Nfet = floor(Nfet);
+        [manualOrFile] = USER_INPUT_FINITE_CHOICE(...
+            ['Would you like to enter fetch length data manually or load from a file?\n'...
+                '[M] for manual entry or [F] for file loading: '],...
+            {'M', 'm', 'F', 'f'});
+        data_entry_manual = strcmp(manualOrFile, 'M') || strcmp(manualOrFile, 'm');
         
-        angs = [];
-        for angsLoopIndex = 1:Nfet
-            angTemp = USER_INPUT_DATA_VALUE(['Enter angs: fetch length [' labelUnitDist '] #' num2str(angsLoopIndex) ': '], 0,9999);
+        if data_entry_manual
+            [Nfet] = USER_INPUT_DATA_VALUE('Enter Nfet: number of radial fetches: ', 2, 360);
+            Nfet = floor(Nfet);
+
+            angs = [];
+            for angsLoopIndex = 1:Nfet
+                angTemp = USER_INPUT_DATA_VALUE(['Enter angs: fetch length [' labelUnitDistLrg '] #' num2str(angsLoopIndex) ': '], 0,9999);
+
+                angs = [angs angTemp];
+            end
+
+            clear angsLoopIndex;
+            clear angTemp;
+        else
+            accepted = false;
+            while ~accepted
+                [filename] = USER_INPUT_FILE_NAME();
+
+                fId = fopen(filename);
+
+                fileData = textscan(fId, '%f');
+
+                fclose(fId);
+
+                if length(fileData{1} >= 2) && length(fileData{1} <= 360)
+                    accepted = true;
+                else
+                    fprintf('File must have Nt, K, d, and between 1 and 200 storm heights.\n');
+                end
+            end
             
-            angs = [angs angTemp];
+            angs = fileData{1};
         end
-        
-        clear angsLoopIndex;
-        clear angTemp;
     end
     
     numCases = 1;
@@ -192,7 +224,7 @@ else
             'dang: radial angle increment [deg]', 1.0, 180.0;...
             'ang1: direction of first radial fetch [deg]', 0.0, 360.0;...
             'Nfet: number of radial fetches', 2, 360;...
-            ['angs: fetch length [' labelUnitDist ']'], 0, 9999}];
+            ['angs: fetch length [' labelUnitDistLrg ']'], 0, 9999}];
     end
     
     
@@ -235,15 +267,24 @@ hr2s=3600;
 min2s=60;
 deg2rad=pi/180;
 mi2m=1609.344;
+km2m=0.001;
 F2C=5/9;
 knots2mps=0.5144;
 
-if use_knots
-    speedConversion = knots2mps;
-elseif ~metric
-    speedConversion = mph2mps;
+if ~metric
+    conversionDist = ft2m;
+    conversionDistLrg = mi2m;
 else
-    speedConversion = 1.0;
+    conversionDist = 1.0;
+    conversionDistLrg = km2m;
+end
+
+if use_knots
+    conversionSpeed = knots2mps;
+elseif ~metric
+    conversionSpeed = mph2mps;
+else
+    conversionSpeed = 1.0;
 end
 
 if wgtyp==1 %Open Water - Deep
@@ -299,25 +340,32 @@ for loopIndex = 1:numCases
     assert(lat~=0, 'Error: Latitude must be a non-zero value.')
     
 %    [ue]=WADJ(Uobs*mph2mps,zobs*ft2m,dtemp,F*mi2m,duro*hr2s,durf*hr2s,lat*deg2rad,windobs);
-    [ue]=WADJ(Uobs*speedConversion,zobs*ft2m,dtemp,F*mi2m,duro*hr2s,durf*hr2s,lat*deg2rad,windobs);
+    [ue]=WADJ(Uobs*conversionSpeed,...
+        zobs*conversionDist,...
+        dtemp,...
+        F*conversionDistLrg,...
+        duro*hr2s,...
+        durf*hr2s,...
+        lat*deg2rad,...
+        windobs);
 
-    [ua,Hmo,Tp,wgmsg]=WGRO(d*ft2m,F*mi2m,phi,durf*hr2s,ue,wgtyp);
+    [ua,Hmo,Tp,wgmsg]=WGRO(d*conversionDist,F*conversionDistLrg,phi,durf*hr2s,ue,wgtyp);
 
     if use_values_restricted
-        fprintf('%s \t\t\t\t %-6.2f %s\n','Wind fetch',F, labelUnitDist);
+        fprintf('%s \t\t\t\t %-6.2f %s\n','Wind fetch',F, labelUnitDistLrg);
         fprintf('%s \t\t\t %-6.2f deg\n', 'Wind Direction', wdir);
     end
     
 %    fprintf('%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/mph2mps, labelSpeedFinal);
-    fprintf('%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/speedConversion, labelSpeedFinal);
+    fprintf('%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/conversionSpeed, labelSpeedFinal);
 %    fprintf('%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/mph2mps, labelSpeedFinal);
-    fprintf('%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/speedConversion, labelSpeedFinal);
+    fprintf('%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/conversionSpeed, labelSpeedFinal);
     
     if use_values_restricted
         fprintf('%s \t %-6.2f deg\n','Mean wave direction',theta);
     end
 
-    fprintf('%s \t\t\t %-6.2f %s \n','Wave height ',Hmo/ft2m,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f %s \n','Wave height ',Hmo/conversionDist,labelUnitDist);
     fprintf('%s \t\t\t %-6.2f s \n','Wave period ',Tp);
     
     fprintf('%s %s \n','Wave growth: ',wgmsg);
@@ -331,11 +379,24 @@ if single_case
     if fileOutputData{1}
         fId = fopen('output/wind_adj.txt', 'wt');
 
-        fprintf(fId, 'Partial Listing of Plot Output File 1\n\n');
+        fprintf(fId, 'Wind Adj\n\n');
+        
+        if use_values_restricted
+            fprintf(fId, '%s \t\t\t %-6.2f %s\n','Wind fetch',F, labelUnitDistLrg);
+            fprintf(fId, '%s \t\t\t %-6.2f deg\n', 'Wind Direction', wdir);
+        end
 
-        fprintf(fId, 'Section 1 of the plot output file 1\n\n');
+        fprintf(fId, '%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/conversionSpeed, labelSpeedFinal);
+        fprintf(fId, '%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/conversionSpeed, labelSpeedFinal);
 
-        fprintf(fId, 'Section 2 of the plot output file 2\n\n');
+        if use_values_restricted
+            fprintf(fId, '%s \t\t %-6.2f deg\n','Mean wave direction',theta);
+        end
+
+        fprintf(fId, '%s \t\t\t %-6.2f %s \n','Wave height ',Hmo/conversionDist,labelUnitDist);
+        fprintf(fId, '%s \t\t\t %-6.2f s \n','Wave period ',Tp);
+
+        fprintf(fId, '%s %s \n','Wave growth: ',wgmsg);
 
         fclose(fId);
     end
