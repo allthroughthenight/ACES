@@ -97,23 +97,7 @@ else
 end
 
 %% *********** Don't change anything here ******************
-% Unit system conversion Constants
 twopi=2*pi;
-% if ~metric % imperial
-% %    g=32.17; % gravitational acceleration (ft/sec^2)
-%     if water == 'S';
-%     rho=1.989; % rho/g = 63.99/32.17 lb sec^2/ft^4 (sea water)
-%     else rho = 1.940; % rho/g = 62.415475/32.17 lb sec^2/ft^4 (fresh water)
-%     end
-%    % rho=1.989; %seawater set at 1025.09 kg/m^3, fresh set at 999.8 kg/m^3
-% else % metric
-% %    g = 9.81; % kg/sec^2
-%     if water == 'S';
-%     rho = 1025.09; % kg/m^3, (sea water)
-%     else rho = 999.8; % kg/m^3 ( fresh water)
-%     end
-% end
-
 
 for loopIndex = 1:numCases
     if ~single_case
