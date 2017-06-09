@@ -47,6 +47,8 @@ SET_PATHS();
 
 [metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
+[water, rho] = USER_INPUT_SALT_FRESH_WATER(metric);
+
 % Single case input for metric measurments
 if single_case
     [H] = USER_INPUT_DATA_VALUE(['Enter H: wave height (' labelUnitDist '): '], 0.1, 200);
@@ -78,14 +80,9 @@ end
 
 
 %% *********** Don't change anything here ******************
-% Unit system conversion Constants
+
 twopi=2*pi;
 nIteration = 50;
-% if ~metric % imperial
-%     rho=1.989; % rho/g = 63.99/32.17 lb sec^2/ft^4 (sea water)
-% else % metric
-%     rho = 1025.09; % kg/sec^2
-% end
 
 for loopIndex = 1:numCases
     if ~single_case
@@ -132,7 +129,7 @@ for loopIndex = 1:numCases
     fprintf('%s \t\t %-8.2f \t %s-%s/%s^2 \n','Energy density',E,labelUnitWt,labelUnitDist,labelUnitDist);
     fprintf('%s \t\t %-8.2f \t %s-%s/%s-s \n','Energy flux',Ef,labelUnitWt,labelUnitDist,labelUnitDist);
     fprintf('%s \t\t %-6.2f \n','Ursell number',Ur);
-    fprintf('%s \t\t\t %-6.2f \t %s \n','Elevation',eta,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f \t %s \n','Water Surface Elevation',eta,labelUnitDist);
     fprintf('%s \t %-6.2f \t %s \n','Horz. displacement',px,labelUnitDist);
     fprintf('%s \t %-6.2f \t %s \n','Vert. displacement',py,labelUnitDist);
     fprintf('%s \t\t %-6.2f \t %s/s \n','Horz. velocity',u,labelUnitDist);
