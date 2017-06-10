@@ -50,7 +50,7 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 % Single case input
 if single_case
@@ -103,7 +103,7 @@ for loopIndex = 1:numCases
         direc = direcList(loopIndex);
     end
     
-    % Convert meter input to centimeters
+   % Convert meter input to centimeters
     Ho=Ho*m2cm;
     d=d*m2cm;
 
@@ -113,16 +113,18 @@ for loopIndex = 1:numCases
     [Ks,Kr,Hmax,Hrms,Hbar,Hs,H10,H02,SBrms,HoLo,dLo,dHo,deepd,theta,Sw,Hxo,cdfo,Hx,cdfx]=GODA(Ho,d,Ts,cotnsl,direc,g);
 
     if single_case
+        plot1Hxo = Hxo/m2cm;
         figure(1)
-        plot(Hxo/m2cm,cdfo)
+        plot(plot1Hxo,cdfo)
         title('Deep Water')
-        xlabel('H [m]')
+        xlabel(['H [' labelUnitDist ']'])
         ylabel('CDF')
 
+        plot2Hx = Hx/m2cm;
         figure(2)
-        plot(Hx/m2cm,cdfx)
+        plot(plot2Hx,cdfx)
         title('Subject Depth')
-        xlabel('H [m]')
+        xlabel(['H [' labelUnitDist ']'])
         ylabel('CDF2')
     end
 
@@ -141,4 +143,27 @@ for loopIndex = 1:numCases
     fprintf('%s \t\t %-6.4f \n','Kr',Kr(1))
     fprintf('%s \t %-6.4f \t %-6.4f \n','d/Ho',dHo(2),dHo(1))
     fprintf('%s \t %-6.4f \t %-6.4f \n','d/Lo',dLo(2),dLo(1))
+end
+
+d=d/m2cm;
+
+% File Output
+if single_case
+    fileOutputArgs = {};
+    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+    if fileOutputData{1}
+        fId = fopen('output\irr_wave_trans.txt', 'wt');
+        
+        fprintf(fId, 'Wave Height versus Cumulative Probability\nDistribution of Exceedance\n\n');
+        
+        fprintf(fId, 'Deep Water\tWater Depth = %-6.2f %s\n', d, labelUnitDist);
+        fprintf(fId, 'H (%s)\tCDF\tH(%s)\tCDF2\n', labelUnitDist, labelUnitDist);
+        
+        for loopIndex = 1:length(plot1Hxo)
+            fprintf(fId, '%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f\n', plot1Hxo(loopIndex), cdfo(loopIndex), plot2Hx(loopIndex), cdfx(loopIndex));
+        end
+        
+        fclose(fId);
+    end
 end
