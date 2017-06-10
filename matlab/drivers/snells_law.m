@@ -62,7 +62,9 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+
+[water, rho] = USER_INPUT_SALT_FRESH_WATER(metric);
 
 % Single case input
 if single_case
@@ -154,4 +156,31 @@ for loopIndex = 1:numCases
     fprintf('%s \t\t\t\n','Breaking parameters')
     fprintf('%s \t\t %-5.2f %s \t\n','Breaking height',Hb,labelUnitDist)
     fprintf('%s \t\t\t %-5.2f %s \t\n','Breaking depth',db,labelUnitDist)
+end
+
+% File Output
+if single_case
+    fileOutputArgs = {};
+    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+    if fileOutputData{1}
+        fId = fopen('output\snells_law.txt', 'wt');
+        
+        fprintf(fId, '\t\t\t %s \t\t %s \t\t %s \t\t %s\n','Known','Deepwater','Subject','Units');
+        fprintf(fId, '%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s \n','Wave height',H1,H0,H2,labelUnitDist);
+        fprintf(fId, '%s \t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t deg \n','Wave crest angle',alpha1,alpha0,alpha2);
+        fprintf(fId, '%s \t\t %-5.2f \t %-5.2f \t\t %-5.2f \t\t %s \n','Wavelength',L1,L0,L2,labelUnitDist);
+        fprintf(fId, '%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s/s \n','Celerity',c1,c0,c2,labelUnitDist);
+        fprintf(fId, '%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s/s \n','Group speed',cg1,cg0,cg2,labelUnitDist);
+        fprintf(fId, '%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t %s-%s/%s^2 \n','Energy density',E1,E0,E2,labelUnitDist,labelUnitWt,labelUnitDist);
+        fprintf(fId, '%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t %s-%s/sec-%s \n','Energy flux',P1,P0,P2,labelUnitDist,labelUnitWt,labelUnitDist);
+        fprintf(fId, '%s \t\t %-5.2f \t\t\t\t\t %-5.2f \n','Ursell number',Ur1,Ur2);
+        fprintf(fId, '%s \t\t %-5.2f \n','Wave steepness',HL);
+        fprintf(fId, '\n');
+        fprintf(fId, '%s \t\t\t\n','Breaking parameters');
+        fprintf(fId, '%s \t\t %-5.2f %s \t\n','Breaking height',Hb,labelUnitDist);
+        fprintf(fId, '%s \t\t\t %-5.2f %s \t\n','Breaking depth',db,labelUnitDist);
+        
+        fclose(fId);
+    end
 end
