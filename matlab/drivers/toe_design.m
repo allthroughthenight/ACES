@@ -41,7 +41,9 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+
+[water, rho] = USER_INPUT_SALT_FRESH_WATER(metric);
 
 if single_case
     [H] = USER_INPUT_DATA_VALUE(['Enter Hi: wave height (' labelUnitDist '): '], 0.1, 100.0);
@@ -134,4 +136,22 @@ for loopIndex = 1:numCases
     fprintf('%s \t\t\t\t\t %-6.2f %s \t\n','Width of toe apron',b,labelUnitDist)
     fprintf('%s \t %-6.2f %s \t\n','Weight of individual armor unit',w,labelUnitWt)
     fprintf('%s \t\t\t %-6.2f %s \t\n','Water depth at top of tow',dl,labelUnitDist)
+end
+
+if single_case
+    % File Output
+    fileOutputArgs = {};
+    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+    
+    if fileOutputData{1}
+        fId = fopen('output/toe_design.txt', 'wt');
+        
+        fprintf(fId, 'Toe Protection Design Output\n\n');
+        
+        fprintf(fId, '%s                 %-6.2f %s\n','Width of toe apron',b,labelUnitDist);
+        fprintf(fId, '%s    %-6.2f %s\n','Weight of individual armor unit',w,labelUnitWt);
+        fprintf(fId, '%s          %-6.2f %s\n','Water depth at top of tow',dl,labelUnitDist);
+        
+        fclose(fId);
+    end
 end
