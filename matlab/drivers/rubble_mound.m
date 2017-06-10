@@ -53,7 +53,9 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+
+[water, rho] = USER_INPUT_SALT_FRESH_WATER(metric);
 
 if single_case
     if metric
@@ -83,22 +85,12 @@ if single_case
     [P] = USER_INPUT_DATA_VALUE('Enter P: permeability coefficient: ', 0.05, 0.6);
     
     [S] = USER_INPUT_DATA_VALUE('Enter S: damage level: ', 2.0, 17.0);
-else
-    Hs=5.0;
-    Ts=10.0;
-    cotnsl=100.0;
-    ds=9.0;
-    cotssl=2.0;
-    unitwt=165.0;
-    P=0.1;
-    S=2.0;
+
 end
 
 N=7000;
 
-rho=1.989;
 H20weight=g*rho;
-H20weight=64;
 
 m=1/cotnsl;
 
@@ -206,15 +198,15 @@ esp=tanssl/((2*pi*Hm0/(g*(Tp^2)))^(1/2));
 [runupr_max]=RUNUPR(Hm0,esp,1.022,0.247);
 [runupr_conserv]=RUNUPR(Hm0,esp,1.286,0.247);
 
-fprintf('%s %-6.2f \n','Armor layer thickness = ',rarmor)
-fprintf('%s \t %s \t %s \n','Percent less than by weight', 'Weight','Dimension')
+fprintf('%s %-6.2f %s\n','Armor layer thickness = ',rarmor, labelUnitDist )
+fprintf('%s \t %s (%s) \t %s (%s) \n','Percent less than by weight', 'Weight', labelUnitWt,'Dimension', labelUnitDist)
 fprintf('%-3.1f \t\t\t\t\t\t\t %-6.2f \t %-6.2f \n',0.0,alw0,ald0);
 fprintf('%-3.1f \t\t\t\t\t\t\t %-6.2f \t %-6.2f \n',15.0,alw15,ald15);
 fprintf('%-3.1f \t\t\t\t\t\t\t %-6.2f \t %-6.2f \n',50.0,alw50,ald50);
 fprintf('%-3.1f \t\t\t\t\t\t\t %-6.2f \t %-6.2f \n',85.0,alw85,ald85);
 fprintf('%-3.1f \t\t\t\t\t\t\t %-6.2f \t %-6.2f \n\n',100.0,alw100,ald100);
-fprintf('%s %-6.2f \n','Filter layer thickness = ',rfilter)
-fprintf('%s \t %s \t %s \n','Percent less than by weight', 'Weight','Dimension')
+fprintf('%s %-6.2f %s\n','Filter layer thickness = ',rfilter, labelUnitDist)
+fprintf('%s \t %s (%s) \t %s (%s) \n','Percent less than by weight', 'Weight', labelUnitWt,'Dimension', labelUnitDist)
 fprintf('%-3.1f \t\t\t\t\t\t\t %-6.2f \t %-6.2f \n',0.0,blw0,bld0);
 fprintf('%-3.1f \t\t\t\t\t\t\t %-6.2f \t %-6.2f \n',15.0,blw15,bld15);
 fprintf('%-3.1f \t\t\t\t\t\t\t %-6.2f \t %-6.2f \n',50.0,blw50,bld50);
@@ -222,8 +214,8 @@ fprintf('%-3.1f \t\t\t\t\t\t\t %-6.2f \t %-6.2f \n',85.0,blw85,bld85);
 fprintf('%-3.1f \t\t\t\t\t\t\t %-6.2f \t %-6.2f \n\n',100.0,blw100,bld100);
 
 fprintf('%s \n','Irregular runup')
-fprintf('%s %-6.2f \n','Conservative = ',runupr_conserv)
-fprintf('%s %-6.2f \n','Expected Maximum = ',runupr_max)
+fprintf('%s %-6.2f %s \n','Conservative = ',runupr_conserv, labelUnitDist )
+fprintf('%s %-6.2f %s \n','Expected Maximum = ',runupr_max, labelUnitDist)
 
 
     
