@@ -111,9 +111,9 @@ windobs = str2num(windobs);
         'Select option: '],...
     {'1', '2', '3', '4'});
 wgtyp = str2num(wgtyp);
-use_value_F = wgtyp == 1 || wgtyp == 2;
-use_value_d = wgtyp == 2 || wgtyp == 4;
-use_values_restricted = wgtyp == 3 || wgtyp == 4;
+is_water_open = wgtyp == 1 || wgtyp == 2;
+is_water_shallow = wgtyp == 2 || wgtyp == 4;
+%is_water_restricted = wgtyp == 3 || wgtyp == 4;
 
 [use_knots] = USER_INPUT_FINITE_CHOICE(...
     ['Speed options:\n[M] ' labelSpeed '\n[K] knots\nSelect option: '],...
@@ -139,65 +139,18 @@ if single_case
     
     [lat] = USER_INPUT_DATA_VALUE('Enter lat: latitude of wind observation [deg]: ', 0.0, 180.0);
     
-    if use_value_F
+    if is_water_open
         [F] = USER_INPUT_DATA_VALUE(['Enter F: length of wind fetch [' labelUnitDistLrg ']: '], 0.0, 9999.0);
     end
     
-    if use_value_d
+    if is_water_shallow
         [d] = USER_INPUT_DATA_VALUE(['Enter d: average depth of fetch [' labelUnitDist ']: '], 0.1, 10000.0);
     else
         d = 0;
     end
     
-    if use_values_restricted
+    if ~is_water_open
         [wdir] = USER_INPUT_DATA_VALUE('Enter wdir: wind direction [deg]: ', 0.0, 360.0);
-%         TODO: Check WDIR vs Fetch data. WDIR must meet this criterion:
-% *       ang1 -45 degrees <= WDIR <= anglast + 45 degrees
-        
-        
-        [dang] = USER_INPUT_DATA_VALUE('Enter dang: radial angle increment [deg]: ', 1.0, 180.0);
-        
-        [ang1] = USER_INPUT_DATA_VALUE('Enter ang1: direction of first radial fetch [deg]: ', 0.0, 360.0);
-        
-        [manualOrFile] = USER_INPUT_FINITE_CHOICE(...
-            ['Would you like to enter fetch length data manually or load from a file?\n'...
-                '[M] for manual entry or [F] for file loading: '],...
-            {'M', 'm', 'F', 'f'});
-        data_entry_manual = strcmp(manualOrFile, 'M') || strcmp(manualOrFile, 'm');
-        
-        if data_entry_manual
-            [Nfet] = USER_INPUT_DATA_VALUE('Enter Nfet: number of radial fetches: ', 2, 360);
-            Nfet = floor(Nfet);
-
-            angs = [];
-            for angsLoopIndex = 1:Nfet
-                angTemp = USER_INPUT_DATA_VALUE(['Enter angs: fetch length [' labelUnitDistLrg '] #' num2str(angsLoopIndex) ': '], 0,9999);
-
-                angs = [angs angTemp];
-            end
-
-            clear angsLoopIndex;
-            clear angTemp;
-        else
-            accepted = false;
-            while ~accepted
-                [filename] = USER_INPUT_FILE_NAME();
-
-                fId = fopen(filename);
-
-                fileData = textscan(fId, '%f');
-
-                fclose(fId);
-
-                if length(fileData{1} >= 2) && length(fileData{1} <= 360)
-                    accepted = true;
-                else
-                    fprintf('File must have Nt, K, d, and between 1 and 200 storm heights.\n');
-                end
-            end
-            
-            angs = fileData{1};
-        end
     end
     
     numCases = 1;
@@ -210,23 +163,24 @@ else
         'durf: duration of final wind [hr]', 0.1, 86400.0;...
         'lat: latitude of wind observation [deg]', 0.0, 180.0};
     
-    if use_value_F
-        multiCaseData = [multiCaseData; {['F: length of wind fetch [' labelUnitDist ']: '], 0.0, 9999.0}];
+    if is_water_open
+        multiCaseData = [multiCaseData; {['F: length of wind fetch [' labelUnitDistLrg ']'], 0.0, 9999.0}];
     end
     
-    if use_value_d
-        multiCaseData = [multiCaseData; {['d: average depth of fetch [' labelUnitDist ']: '], 0.1, 10000.0}];
+    if is_water_shallow
+        multiCaseData = [multiCaseData; {['d: average depth of fetch [' labelUnitDist ']'], 0.1, 10000.0}];
     end
     
-    if use_values_restricted
+    if ~is_water_open
+%         multiCaseData = [multiCaseData;...
+%             {'wdir: wind direction [deg]', 0.0, 360.0;...
+%             'dang: radial angle increment [deg]', 1.0, 180.0;...
+%             'ang1: direction of first radial fetch [deg]', 0.0, 360.0;...
+%             'Nfet: number of radial fetches', 2, 360;...
+%             ['angs: fetch length [' labelUnitDistLrg ']'], 0, 9999}];
         multiCaseData = [multiCaseData;...
-            {'wdir: wind direction [deg]', 0.0, 360.0;...
-            'dang: radial angle increment [deg]', 1.0, 180.0;...
-            'ang1: direction of first radial fetch [deg]', 0.0, 360.0;...
-            'Nfet: number of radial fetches', 2, 360;...
-            ['angs: fetch length [' labelUnitDistLrg ']'], 0, 9999}];
+            {'wdir: wind direction [deg]', 0.0, 360.0}];
     end
-    
     
     [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
     
@@ -239,26 +193,72 @@ else
     
     optVarNum = 7;
     
-    if use_value_F
+    if is_water_open
         FList = varData(optVarNum, :);
         optVarNum = optVarNum + 1;
     end
     
-    if use_value_d
+    if is_water_shallow
         dList = varData(optVarNum, :);
         optVarNum = optVarNum + 1;
     end
     
-    if use_values_restricted
+    if ~is_water_open
         wdirList = varData(optVarNum, :);
-        dangList = varData(optVarNum + 1, :);
-        ang1List = varData(optVarNum + 2, :);
-        NfetList = varData(optVarNum + 3, :);
-        angsList = varData(optVarNum + 4, :);
-        
-        optVarNum = optVarNum + 5;
+%         dangList = varData(optVarNum + 1, :);
+%         ang1List = varData(optVarNum + 2, :);
+%         NfetList = varData(optVarNum + 3, :);
+%         angsList = varData(optVarNum + 4, :);
     end
 end
+
+if ~is_water_open
+    [dang] = USER_INPUT_DATA_VALUE('Enter dang: radial angle increment [deg]: ', 1.0, 180.0);
+
+    [ang1] = USER_INPUT_DATA_VALUE('Enter ang1: direction of first radial fetch [deg]: ', 0.0, 360.0);
+
+    [manualOrFile] = USER_INPUT_FINITE_CHOICE(...
+        ['Would you like to enter fetch length data manually or load from a file?\n'...
+            '[M] for manual entry or [F] for file loading: '],...
+        {'M', 'm', 'F', 'f'});
+    data_entry_manual = strcmp(manualOrFile, 'M') || strcmp(manualOrFile, 'm');
+
+    if data_entry_manual
+        [Nfet] = USER_INPUT_DATA_VALUE('Enter Nfet: number of radial fetches: ', 2, 360);
+        Nfet = floor(Nfet);
+
+        angs = [];
+        for angsLoopIndex = 1:Nfet
+            angTemp = USER_INPUT_DATA_VALUE(['Enter angs: fetch length [' labelUnitDistLrg '] #' num2str(angsLoopIndex) ': '], 0,9999);
+
+            angs = [angs angTemp];
+        end
+
+        clear angsLoopIndex;
+        clear angTemp;
+    else
+        accepted = false;
+        while ~accepted
+            [filename] = USER_INPUT_FILE_NAME();
+
+            fId = fopen(filename);
+
+            fileData = textscan(fId, '%f');
+
+            fclose(fId);
+
+            if length(fileData{1} >= 2) && length(fileData{1} <= 360)
+                accepted = true;
+            else
+                fprintf('File must have Nt, K, d, and between 1 and 200 storm heights.\n');
+            end
+        end
+
+        angs = fileData{1};
+        Nfet = length(angs);
+    end
+end
+
 
 % Constant for convertions
 ft2m=0.3048;
@@ -287,31 +287,6 @@ else
     conversionSpeed = 1.0;
 end
 
-if wgtyp==1 %Open Water - Deep
-%    F=27;
-%    d=0;
-    phi=0;
-elseif wgtyp==2 %Open Water - Shallow
-%    F=27;
-%    d=13;
-    phi=0;
-elseif wgtyp==3 %Restricted - Deep
-%    d=0;
-%    wdir=120;
-%    dang=12;
-%    ang1=0;
-%    angs=[3.7;12.3;13.4;12.2;13.2;36.0;35.6;28.7;26.8;13.0;10.4;10.1;6.4;5.7];
-    [F,phi,theta]=WGFET(ang1,dang,wdir,angs);
-else %Restricted - Shallow
-%    d=13;
-%    wdir=120;
-%    dang=12;
-%    ang1=0;
-%    angs=[3.7;12.3;13.4;12.2;13.2;36.0;35.6;28.7;26.8;13.0;10.4;10.1;6.4;5.7];
-    %angs=[3.7;12.3;13.4;12.2;13.2;36.0;35.6;28.7;10.4;5.7];
-    [F,phi,theta]=WGFET(ang1,dang,wdir,angs);
-end
-
 for loopIndex = 1:numCases
     if ~single_case
         zobs = zobsList(loopIndex);
@@ -319,25 +294,39 @@ for loopIndex = 1:numCases
         dtemp = dtempList(loopIndex);
         duro = duroList(loopIndex);
         durf = durfList(loopIndex);
+        lat = latList(loopIndex);
         
-        if use_value_F
+        if is_water_open
             F = FList(loopIndex);
         end
         
-        if use_value_d
+        if is_water_shallow
             d = dList(loopIndex);
+        else
+            d = 0;
         end
         
-        if use_values_restricted
+        if ~is_water_open
+        end
+        
+        if is_water_open
+            phi=0;
+        else
             wdir = wdirList(loopIndex);
-            dang = dangList(loopIndex);
-            ang1 = ang1List(loopIndex);
-            Nfet = NfetList(loopIndex);
-            angs = angs(loopIndex);
+            [F,phi,theta]=WGFET(ang1,dang,wdir,angs);
         end
     end
     
     assert(lat~=0, 'Error: Latitude must be a non-zero value.')
+    
+%   Check WDIR vs Fetch data. WDIR must meet this criterion:
+%   ang1 -45 degrees <= WDIR <= anglast + 45 degrees
+    if ~is_water_open
+        assert(ang1 - 45 <= wdir,...
+            'Error: wdir must be at least 45 degrees less than the first fetch angle.');
+        assert(wdir <= (ang1 + (Nfet - 1)*dang) + 45,...
+            'Error: wdir must be at most 45 degrees more than the final fetch angle.');
+    end
     
 %    [ue]=WADJ(Uobs*mph2mps,zobs*ft2m,dtemp,F*mi2m,duro*hr2s,durf*hr2s,lat*deg2rad,windobs);
     [ue]=WADJ(Uobs*conversionSpeed,...
@@ -351,7 +340,7 @@ for loopIndex = 1:numCases
 
     [ua,Hmo,Tp,wgmsg]=WGRO(d*conversionDist,F*conversionDistLrg,phi,durf*hr2s,ue,wgtyp);
 
-    if use_values_restricted
+    if ~is_water_open
         fprintf('%s \t\t\t\t %-6.2f %s\n','Wind fetch',F, labelUnitDistLrg);
         fprintf('%s \t\t\t %-6.2f deg\n', 'Wind Direction', wdir);
     end
@@ -361,7 +350,7 @@ for loopIndex = 1:numCases
 %    fprintf('%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/mph2mps, labelSpeedFinal);
     fprintf('%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/conversionSpeed, labelSpeedFinal);
     
-    if use_values_restricted
+    if ~is_water_open
         fprintf('%s \t %-6.2f deg\n','Mean wave direction',theta);
     end
 
@@ -381,7 +370,7 @@ if single_case
 
         fprintf(fId, 'Wind Adj\n\n');
         
-        if use_values_restricted
+        if ~is_water_open
             fprintf(fId, '%s \t\t\t %-6.2f %s\n','Wind fetch',F, labelUnitDistLrg);
             fprintf(fId, '%s \t\t\t %-6.2f deg\n', 'Wind Direction', wdir);
         end
@@ -389,7 +378,7 @@ if single_case
         fprintf(fId, '%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/conversionSpeed, labelSpeedFinal);
         fprintf(fId, '%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/conversionSpeed, labelSpeedFinal);
 
-        if use_values_restricted
+        if ~is_water_open
             fprintf(fId, '%s \t\t %-6.2f deg\n','Mean wave direction',theta);
         end
 
