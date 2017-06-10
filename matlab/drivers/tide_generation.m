@@ -52,7 +52,7 @@ clc
 
 SET_PATHS();
 
-[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 % Enter general time & output specifications
 

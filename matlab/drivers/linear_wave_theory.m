@@ -45,7 +45,7 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 [water, rho] = USER_INPUT_SALT_FRESH_WATER(metric);
 

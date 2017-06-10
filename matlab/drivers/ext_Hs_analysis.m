@@ -37,7 +37,7 @@ clc
 
 SET_PATHS();
 
-[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 [manualOrFile] = USER_INPUT_FINITE_CHOICE(...
     ['Would you like to enter data manually or load from a file?\n'...
