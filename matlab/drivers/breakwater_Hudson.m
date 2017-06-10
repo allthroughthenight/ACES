@@ -40,7 +40,9 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+
+[water, rho] = USER_INPUT_SALT_FRESH_WATER(metric);
 
 if single_case
     [unitwt] = USER_INPUT_DATA_VALUE(['Enter unitwt: armor specific unit weight (' labelUnitWt '/' labelUnitDist '^3): '], 1.0, 99999.0);
@@ -78,7 +80,6 @@ else
     nList = varData(7, :);
 end
 
-%rho=1.989;
 H20weight=rho*g; %64 lb/ft^3 for seawater, 62.4 for fresh
 
 for loopIndex = 1:numCases
@@ -119,4 +120,23 @@ for loopIndex = 1:numCases
     fprintf('%s \t\t\t\t\t %-6.2f %s \t \n','Crest width',b,labelUnitDist)
     fprintf('%s \t %-6.2f %s \t \n','Average cover layer thickness',r,labelUnitDist)
     fprintf('%s \t %-6.2f \t \n','Number of single armor unit',Nr)
+end
+
+if single_case
+    % File Output
+    fileOutputArgs = {};
+    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+    
+    if fileOutputData{1}
+        fId = fopen('output/breakwater_Hudson.txt', 'wt');
+        
+        fprintf(fId, 'Breakwater Hudson Output\n\n');
+        
+        fprintf(fId, '%s          %-6.2f %s\n','Weight of individual unit',w,units);
+        fprintf(fId, '%s                        %-6.2f %s\n','Crest width',b,labelUnitDist);
+        fprintf(fId, '%s      %-6.2f %s\n','Average cover layer thickness',r,labelUnitDist);
+        fprintf(fId, '%s        %-6.2f\n','Number of single armor unit',Nr);
+        
+        fclose(fId);
+    end
 end
