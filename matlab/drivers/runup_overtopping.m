@@ -71,16 +71,16 @@ option=input('Select option: ');
 has_rough_slope = option==1 || option==5 || option ==7 || option==8;
 has_overtopping = option>2;
 has_runup = option ~= 3 && option ~= 4;
-numConsts = 0;
-if has_rough_slope
-    numConsts = numConsts + 2;
-end
-if has_overtopping
-    numConsts = numConsts + 3;
-end
-if ~has_runup
-    numConsts = numConsts + 1;
-end
+% numConsts = 0;
+% if has_rough_slope
+%     numConsts = numConsts + 2;
+% end
+% if has_overtopping
+%     numConsts = numConsts + 3;
+% end
+% if ~has_runup
+%     numConsts = numConsts + 1;
+% end
 
 conversionKnots2mph = 1.15077945; %1 knots = 1.15077945 mph
 
@@ -121,94 +121,34 @@ else
     hsList = varData(6, :);
 end
 
-if numConsts > 0
-    fprintf('\nConstant Values:\n');
-    
-    if has_rough_slope
-        %Empirical coefficients for rough slope runup
-        a=0.956;
-        b=0.398;
-        
-        fprintf('a = %-6.4f\n', a);
-        fprintf('b = %-6.4f\n', b);
-    end
-    
-    if has_overtopping
-        %Empirical coefficients and values for overtopping
-        alpha=0.076463;
-        Qstar0=0.025;
-        U=35.0*conversionKnots2mph;
-        
-        fprintf('alpha = %-6.4f\n', alpha);
-        fprintf('Qstar0 = %-6.4f\n', Qstar0);
-        fprintf('U = %-6.4f knots\n', U/conversionKnots2mph);
-        
-        if option==3
-            R=15.0;
-            fprintf('R = %-6.4f\n', R);
-        elseif option==4
-            R=20.0;
-            fprintf('R = %-6.4f\n', R);
-        end
-    end
-    
-    custom_const = USER_INPUT_FINITE_CHOICE(...
-        'Use default constant values or load from file? (D or F): ',...
-        {'D', 'd', 'F', 'f'});
-    custom_const = strcmp(custom_const, 'F') || strcmp(custom_const, 'f');
+if option == 3
+    R_default = 15.0;
+elseif option == 4
+    R_default = 20.0;
+else
+    R_default = 0;
+end
+[roughSlopeCoeffData] = USER_INPUT_ROUGH_SLOPE_COEFFICIENTS(...
+    has_rough_slope, has_overtopping, has_runup,...
+    struct('numCases', numCases, 'R_default', R_default));
 
-    if custom_const
-        accepted = false;
-        while ~accepted
-
-            [fileData] = USER_INPUT_MULTI_FILE();
-
-            optVarNum = 1;
-            if size(fileData, 1) == numConsts
-                if size(fileData, 2) == 1
-                    accepted = true;
-
-                    if has_rough_slope
-                        a = fileData(optVarNum);
-                        b = fileData(optVarNum + 1);
-
-                        optVarNum = optVarNum + 2;
-                    end
-
-                    if has_overtopping
-                        alpha = fileData(optVarNum);
-                        Qstar0 = fileData(optVarNum + 1);
-                        U = fileData(optVarNum + 2)*conversionKnots2mph;
-                        R = fileData(optVarNum + 3);
-                    end
-                elseif size(fileData, 2) == numCases
-                    accepted = true;
-
-                    if has_rough_slope
-                        aList = fileData(optVarNum, :);
-                        bList = fileData(optVarNum + 1, :);
-
-                        optVarNum = optVarNum + 2;
-                    end
-
-                    if has_overtopping
-                        alphaList = fileData(optVarNum, :);
-                        Qstar0List = fileData(optVarNum + 1);
-                        UList = fileData(optVarNum + 2, :)*conversionKnots2mph;
-                        RList = fileData(optVarNum + 3, :);
-                    end
-                else
-                    fprintf('Wrong number of cases. Expected either 1 or %d, found %d.\n',...
-                        numCases, size(fileData, 2));
-                end
-            else
-                fprintf('Wrong number of constants. Expected %d, found %d.\n',...
-                    numConsts, size(fileData, 1));
-            end
-        end
-    else
-
-    end
+if isfield(roughSlopeCoeffData, 'a')
+    a = roughSlopeCoeffData.a;
+end
+if isfield(roughSlopeCoeffData, 'b')
+    b = roughSlopeCoeffData.b;
+end
+if isfield(roughSlopeCoeffData, 'alpha')
+    alpha = roughSlopeCoeffData.alpha;
+end
+if isfield(roughSlopeCoeffData, 'Qstar0')
+    Qstar0 = roughSlopeCoeffData.Qstar0;
+end
+if isfield(roughSlopeCoeffData, 'U')
+    U = roughSlopeCoeffData.U;
+end
+if isfield(roughSlopeCoeffData, 'R')
+    R = roughSlopeCoeffData.R;
 end
 
 for loopIndex = 1:numCases
@@ -220,28 +160,28 @@ for loopIndex = 1:numCases
         cottheta = cotthetaList(loopIndex);
         hs = hsList(loopIndex);
         
-        if exist('aList')
-            a = aList(loopIndex);
+        if isfield(roughSlopeCoeffData, 'aList')
+            a = roughSlopeCoeffData.aList(loopIndex);
         end
         
-        if exist('bList')
-            b = bList(loopIndex);
+        if isfield(roughSlopeCoeffData, 'bList')
+            b = roughSlopeCoeffData.bList(loopIndex);
         end
         
-        if exist('alphaList')
-            alpha = alphaList(loopIndex);
+        if isfield(roughSlopeCoeffData, 'alphaList')
+            alpha = roughSlopeCoeffData.alphaList(loopIndex);
         end
         
-        if exist('Qstar0List')
-            Qstar0 = Qstar0List(loopIndex);
+        if isfield(roughSlopeCoeffData, 'Qstar0List')
+            Qstar0 = roughSlopeCoeffData.Qstar0List(loopIndex);
         end
         
-        if exist('UList')
-            U = UList(loopIndex);
+        if isfield(roughSlopeCoeffData, 'UList')
+            U = roughSlopeCoeffData.UList(loopIndex);
         end
         
-        if exist('RList')
-            R = RList(loopIndex);
+        if isfield(roughSlopeCoeffData, 'RList')
+            R = roughSlopeCoeffData.RList(loopIndex);
         end
     end
     
