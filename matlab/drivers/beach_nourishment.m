@@ -32,54 +32,121 @@ clc
 %   rhos: density of sediment [5.14 slugs/ft^3 in FORTRAN source code]
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+SET_PATHS();
 
-Vol_i = 800000;
-   M_R = 1.8;
-  ro_n = 0.45;
-   M_b = 2.25;
-  ro_b=0.76;
-catg= zeros; % category of the material according to table 6-4-1 in Aces manual
-ro = ro_b/ro_n; % phi sorting ratio
-phi_m_diff = (M_b-M_R)/ro_n; % phi mean difference
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-% Relationships of phi means and pho standard deviations
-if ro_b>ro_n 
-    disp ('Borrow material is more poorly sorted than native material')
-    if M_b>M_R
-        disp('Borrow material is finer than native material')
-        catg=1;
-    else 
-        disp ('Borrow material is coarser than native material')
-        catg=2;
-    end 
-else 
-    if M_b<M_R
-       disp('Borrow material is coarser than native material')
-       catg=3;
-    else 
-       disp('Borrow material is finer than native material')
-       catg=4;
-    end
-end 
+[metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
-% defining phi_1 and phi_2
-if catg == 1 || catg == 2
-    phi_1 = max(-1, (-phi_m_diff/(ro^2-1)));
-    phi_2 = inf;
+if metric
+     labelUnitVolumeRate = 'm^3';
+     labelUnitGrain = 'mm';
 else
-    phi_1 = -1;
-    phi_2 = max(-1, (1+(2*phi_m_diff/(1-ro^2))));
-end 
+     labelUnitVolumeRate = 'yd^3';
+     labelUnitGrain = 'phi';
+end
 
-% F = integral of standard normal curve
-R_A = 1/(...
-    1-(normcdf((phi_2-phi_m_diff)/ro)+ ...
-    normcdf((phi_1-phi_m_diff)/ro)+...
-    ((normcdf(phi_2)-normcdf(phi_1))/ro)*exp(0.5*(phi_1^2-((phi_1-phi_m_diff)/ro)^2)))...
-    )
+if single_case
+       [Vol_i] = USER_INPUT_DATA_VALUE(['Enter Vol_i: initial volume (' labelUnitVolumeRate '): '], 1, 10^8);
+       [M_R] = USER_INPUT_DATA_VALUE(['Enter M_R: Native mean (' labelUnitGrain '): '], -5.0, 5.0);
+       [ro_n] = USER_INPUT_DATA_VALUE('Enter ro_n: Native standard deviation (phi): ', 0.01, 5.0);
+       [M_b] = USER_INPUT_DATA_VALUE(['Enter M_b: Borrow mean (' labelUnitGrain '): '], -5.0, 5.0);
+       [ro_b] = USER_INPUT_DATA_VALUE('Enter ro_b: Borrow standard deviation (phi): ', 0.01, 5.0);
+       numCases = 1;
+else
+    multiCaseData = {...
+            ['Vol_i: initial volume (' labelUnitVolumeRate ')'], 1, 10^8;...
+            ['M_R: Native mean (' labelUnitGrain ')'], -5.0, 5.0;...
+            'ro_n: Native standard deviation (phi)', 0.01, 5.0;...
+            ['M_b: Borrow mean (' labelUnitGrain ')'], -5.0, 5.0;...
+            'ro_b: Borrow standard deviation (phi)', 0.01, 5.0;};
+            
+    [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
+    
+    Vol_iList = varData(1, :);
+    M_RList = varData(2, :);
+    ro_nList = varData(3, :);
+    M_bList = varData(4, :);
+    ro_bLList = varData(5, :);
+end
 
-winno = 1;
-R_j = exp(winno*((M_b-M_R)/ro_n)-(winno^2/2)*((ro_b^2/ro_n^2)-1))
+for loopIndex = 1:numCases
+    if ~single_case
+        Vol_i = Vol_iList(loopIndex);
+        M_R = M_RList(loopIndex);
+        ro_n = ro_nList(loopIndex);
+        M_b = M_bList(loopIndex);
+        ro_b = ro_bLList(loopIndex);
+    end
+ 
+    catg= zeros; % category of the material according to table 6-4-1 in Aces manual
+     
+    if metric    % If Means are entered in mm, convert to phi units for computations.
+        M_R = - ( log(M_R) / log(2.) );
+        M_b = - ( log(M_b) / log(2.) );
+    end
+    
+    % Relationships of phi means and pho standard deviations
+    if ro_b>ro_n 
+        disp ('Borrow material is more poorly sorted than native material')
+        if M_b>M_R
+            disp('Borrow material is finer than native material')
+            catg=1;
+        else 
+            disp ('Borrow material is coarser than native material')
+            catg=2;
+        end 
+    else 
+        if M_b<M_R
+           disp('Borrow material is coarser than native material')
+           catg=3;
+        else 
+           disp('Borrow material is finer than native material')
+           catg=4;
+        end
+    end 
+    
+    delta = (M_b-M_R)/ro_n; % phi mean difference
+    sigma = ro_b/ro_n; % phi sorting ratio     
+    if sigma == 1
+            theta_1=0;
+            theta_2=inf;
+    else
+        % defining theta_1 and theta_2
+        if catg == 1 || catg == 2
+            theta_1 = max(-1, (-delta/(sigma^2-1)));
+            theta_2 = inf;
+        else
+            theta_1 = -1;
+            theta_2 = max(-1, (1+(2*delta/(1-sigma^2))));
+        end 
+    end
+    
+    % calculate overfill ratio
+    bk1 = (theta_1-delta)/sigma;
+    fn1 = BOVERF(bk1);
+    ft1 = BOVERF(theta_1);
+    
+    if theta_2 == inf
+       fn3 = ((1.0-ft1)/sigma)*exp(0.5*(theta_1^2-bk1^2));
+       R_A = 1.0/(fn1+fn3);
+    else 
+        bk2 = (theta_2-delta)/sigma;
+        fn2 = BOVERF(bk2);
+        ft2 = BOVERF(theta_2);
+        fn3 = ((ft2-ft1)/sigma)*exp(0.5*(theta_1^2-bk1^2));
+        R_A  = 1.0/(1-fn2+fn1+fn3);
+    end 
 
-Vol_D = R_A * Vol_i
+    assert(R_A>=1.0,'Error: Overfill ratio (R_A) < 1.0 Respecify data',R_A)
+
+    R_j = exp((delta-0.5*((ro_b^2/ro_n^2)-1)));
+
+    Vol_D = R_A * Vol_i;
+
+        fprintf('%s \t\t\t %-6.2f \t \n','Overfill Ratio, R_A',R_A);
+        fprintf('%s \t\t\t %-6.2f \t \n','Renourishment factor, R_j',R_j);
+        fprintf('%s \t\t\t %-6.2f %s \t \n','Design Volume, Vol_D',Vol_D,labelUnitVolumeRate);
+end
+
+
