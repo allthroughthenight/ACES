@@ -54,7 +54,6 @@ SET_PATHS();
 
 [water, rho] = USER_INPUT_SALT_FRESH_WATER(metric);
 
-% Single case input for metric measurments
 if single_case
     [H] = USER_INPUT_DATA_VALUE(['Enter H: wave height (' labelUnitDist '): '], 0.1, 200.0);
 
@@ -359,8 +358,8 @@ if single_case
 
         fprintf(fId, 'Partial Listing of Plot Output File 1 for %s\n\n', fileOutputData{3});
 
-        fprintf(fId, 'X/L\tETA (ft)\tU (ft/sec)\tW (ft/sec)\n');
-
+        fprintf(fId, 'X/L\tETA (%s)\tU (%s/sec)\tW (%s/sec)\n', labelUnitDist,labelUnitDist,labelUnitDist);
+        
         for loopIndex = 1:length(plotxL)
             fprintf(fId, '%-6.3f\t%-6.3f\t\t%-6.3f\t\t%-6.3f\n',...
                 plotxL(loopIndex),...
@@ -370,126 +369,3 @@ if single_case
         end
     end
 end
-
-% %
-% %
-% %
-% %
-% %
-% %
-% %
-% %
-% %
-% %
-% % %
-% % %
-% % % % % ST=0.0;
-% % % % % epsi=H/d;
-% % % % % alpha=(3.0*g*H*(T^2))/(16*d^2);
-% % % % % cons=(4.0*alpha)/(pi^2);
-% % % % % A=16.0/64.0;
-% % % % % B=-cons/64.0;
-% % % % % rad=sqrt(((B^2)/4.0)+((A^3)/27.0));
-% % % % % B2=-(B/2.0);
-% % % % % BA=abs(B2+rad)^(1.0/3.0);
-% % % % % BB=abs(B2-rad)^(1.0/3.0);
-% % % % %
-% % % % % if (B2+rad)>0
-% % % % %     BA=abs(BA)*1;
-% % % % % else
-% % % % %     BA=abs(BA)*-1;
-% % % % % end
-% % % % %
-% % % % % if (B2-rad)>0
-% % % % %     BB=abs(BB)*1;
-% % % % % else
-% % % % %     BB=abs(BB)*-1;
-% % % % % end
-% % % % %
-% % % % % Q=BA+BB;
-% % % % %
-% % % % % if Q>1.0
-% % % % %     Q=0.99;
-% % % % % end
-% % % % %
-% % % % % theta2p=1.0;
-% % % % % gamma=0.0;
-% % % % % j=0;
-% % % % % diff1=999;
-% % % % % diff2=999;
-% % % % % while diff1~=0 && diff2~=0
-% % % % %     j=j+1;
-% % % % %     ip2=j*j+j;
-% % % % %     TNP=theta2p+(Q^ip2);
-% % % % %     GN=gamma+ip2*(Q^(ip2-1));
-% % % % %     diff1=abs(theta2p-TNP);
-% % % % %     diff2=abs(gamma-GN);
-% % % % %     theta2p=TNP;
-% % % % %     gamma=GN;
-% % % % % end
-% % % % %
-% % % % % i=0;
-% % % % % F=999;
-% % % % % while abs(F)>(1*10^(-15))
-% % % % % theta2=theta2p*2.0*(Q^0.25);
-% % % % % SG=((pi^2)/4.0)*(theta2^4);
-% % % % % F=1.0-(SG/alpha);
-% % % % % DGDQ=4.0*(pi^2)*((theta2p^4)+(4.0*Q*gamma*(theta2p^3)));
-% % % % % DFDQ=-(DGDQ/alpha);
-% % % % % H1=-(F/DFDQ);
-% % % % % Q=Q+H1;
-% % % % % i=i+1;
-% % % % % end
-% % % % %
-% % % % % T03=1.0;
-% % % % % T02=1.0;
-% % % % % SR=0.0;
-% % % % % T04=1.0;
-% % % % % SGN=-1.0;
-% % % % %
-% % % % %
-% % % % i=0;
-% % % % diff1=999;
-% % % % diff2=999;
-% % % % diff3=999;
-% % % % diff4=999;
-% % % % while diff1~=0 && diff2~=0 && diff3~=0 && diff4~=0
-% % % % i=i+1;
-% % % % ip1=i*i+i;
-% % % % ip2=i*i;
-% % % ip3=2*i;
-% % % TN2=T02+(Q^ip1);
-% % % TN3=T03+2.0*(Q^ip2);
-% % % TN4=T04+SGN*2.0*(Q^ip2);
-% % % SRN=SR+((Q^ip3)/((1.0-(Q^ip3))^2));
-% % % SGN=SGN*(-1.0);
-% % % diff1=abs(T02-TN2);
-% % % diff2=abs(T03-TN3);
-% % % diff3=abs(SR-SRN);
-% % % diff4=abs(T04-TN4);
-% % % T02=TN2;
-% % % T03=TN3;
-% % % T04=TN4;
-% % % SR=SRN;
-% % % end
-% % % T02=2.0*(Q^0.25)*T02;
-% % % SR=(1.0/12.0)-2.0*SR;
-% % %
-% % % SM=(T02^2)/(T03^2);
-% % % BK=(pi/2.0)*(T03^2);
-% % % SMP=(T04^2)/(T03^2);
-% % % LAMBDA_old=(T04^4)/(T02^4);
-% % % BE=((1.0+(SMP^2))/3.0)*BK+((pi^2)/BK)*SR;
-% % % MU_old=BE/(SM*SM*BK);
-% % % TM1=(1.0+2.0*LAMBDA_old-3.0*MU_old)/2.0;
-% % % C_old=sqrt(g*d)*(1.0+epsi*TM1);
-% % % L_old=C_old*T;
-% % % Ur_old=(H*(L_old^2))/(d^3);
-% % % theta_old=(xL-(time/T))*2.0*BK;
-% % %
-% %
-% %
-% %
-% %
-% %
-% %
