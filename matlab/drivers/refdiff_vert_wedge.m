@@ -48,7 +48,7 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 mode=0;
 % Ask user if mode 0 single, or 1 grid
@@ -236,5 +236,140 @@ for loopIndex = 1:numCases
         beta=cat(2,ycors,beta);
         beta=cat(1,xcors,beta);
         disp(beta)
+    end
+end
+
+if single_case
+    fileOutputArgs = {};
+    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+    if fileOutputData{1}
+        if mode == 0
+            outputAppend = 'single_point';
+        else
+            outputAppend = 'uniform_grid';
+        end
+        
+        fId = fopen(['output\refdiff_vert_wedge_' outputAppend '.txt'], 'wt');
+        
+        % Single point
+        if mode == 0
+            fprintf(fId, '%s          %6.2f %s\n','Wavelength',L,labelUnitDist);
+            fprintf(fId, '%s    %6.2f\n','Mod factor (phi)',phi);
+            fprintf(fId, '%s          %6.2f %s\n','Wave phase',beta,'rad');
+            fprintf(fId, '%s     %6.2f %s\n','Mod wave height',H,labelUnitDist);
+        else
+            fprintf(fId, 'Combined Reflection and Diffraction by a Vertical Wedge\n\n');
+
+            fprintf(fId, 'Incident Wave Height\t=\t%-6.2f\t%s\tWave Period\t=\t%-6.2f\tsec\n', Hi, labelUnitDist, T);
+            fprintf(fId, 'Water Depth\t\t=\t%-6.2f\t%s\tWavelength\t=\t%-6.2f\t%s\n', d, labelUnitDist, 0, labelUnitDist);
+            fprintf(fId, 'Wave Angle\t\t=\t%-6.2f\tdeg\tWedge Angle\t=\t%-6.2f\tdeg\n\n', alpha, wedgang);
+
+            % phi table
+            fprintf(fId, '**** Modification Factors:\n');
+            fprintf(fId, '              x=  ');
+            for loopIndex = 2:length(xcors)
+                fprintf(fId, '  %8.2f', xcors(loopIndex));
+            end
+            fprintf(fId, '\n--------------------------------------------------------------------\n');
+            
+            for rowIndex = 2:size(phi, 1)
+                fprintf(fId, 'y=      %8.2f  ', phi(rowIndex, 1));
+                
+                for colIndex = 2:size(phi, 2)
+                    fprintf(fId, '  %8.2f', phi(rowIndex, colIndex));
+                end
+                
+                fprintf(fId, '\n');
+            end
+            fprintf(fId, '--------------------------------------------------------------------\n');
+            
+            fprintf(fId, '              x=  ');
+            for loopIndex = 2:length(xcors)
+                fprintf(fId, '  %8.2f', xcors(loopIndex));
+            end
+            % end phi table
+            
+            fprintf(fId, '\n\n');
+            
+            % H table
+            fprintf(fId, '**** Modified Wave Heights (%s):\n', labelUnitDist);
+            
+            fprintf(fId, '              x=  ');
+            for loopIndex = 2:length(xcors)
+                fprintf(fId, '  %8.2f', xcors(loopIndex));
+            end
+            fprintf(fId, '\n--------------------------------------------------------------------\n');
+            
+            for rowIndex = 2:size(H, 1)
+                fprintf(fId, 'y=      %8.2f  ', H(rowIndex, 1));
+                
+                for colIndex = 2:size(H, 2)
+                    fprintf(fId, '  %8.2f', H(rowIndex, colIndex));
+                end
+                
+                fprintf(fId, '\n');
+            end
+            fprintf(fId, '--------------------------------------------------------------------\n');
+            
+            fprintf(fId, '              x=  ');
+            for loopIndex = 2:length(xcors)
+                fprintf(fId, '  %8.2f', xcors(loopIndex));
+            end
+            % end H table
+            
+            fprintf(fId, '\n\n');
+            
+            % beta table
+            fprintf(fId, '**** Phase Angles (rad):\n');
+            
+            fprintf(fId, '              x=  ');
+            for loopIndex = 2:length(xcors)
+                fprintf(fId, '  %8.2f', xcors(loopIndex));
+            end
+            fprintf(fId, '\n--------------------------------------------------------------------\n');
+            
+            for rowIndex = 2:size(beta, 1)
+                fprintf(fId, 'y=      %8.2f  ', beta(rowIndex, 1));
+                
+                for colIndex = 2:size(beta, 2)
+                    fprintf(fId, '  %8.2f', beta(rowIndex, colIndex));
+                end
+                
+                fprintf(fId, '\n');
+            end
+            fprintf(fId, '--------------------------------------------------------------------\n');
+            
+            fprintf(fId, '              x=  ');
+            for loopIndex = 2:length(xcors)
+                fprintf(fId, '  %8.2f', xcors(loopIndex));
+            end
+            % end beta table
+        end
+        
+        fclose(fId);
+        
+        if mode == 1
+            fId = fopen(['output\refdiff_vert_wedge_' outputAppend '_plot.txt'], 'wt');
+            
+            fprintf(fId, 'Combined Reflection and Diffraction by a Vertical Wedge\n');
+            fprintf(fId, 'Wedge Angle: %-8.2f\tInciden Wave Angle: %-8.2f\n\n',...
+                wedgang, alpha);
+            
+            fprintf(fId, '      %s        %s      %s              rad\n',...
+                labelUnitDist, labelUnitDist, labelUnitDist);
+            for rowIndex = (length(ycors) + 1):-1:2
+                for colIndex = 2:length(xcors)
+                    fprintf(fId, '%8.2f%10.2f%8.2f%8.3f%8.2f\n',...
+                        xcors(colIndex),...
+                        ycors(rowIndex - 1),...
+                        H(rowIndex, colIndex),...
+                        phi(rowIndex, colIndex),...
+                        beta(rowIndex, colIndex));
+                end
+            end
+            
+            fclose(fId);
+        end
     end
 end
