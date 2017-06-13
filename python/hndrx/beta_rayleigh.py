@@ -36,6 +36,11 @@ def beta_rayleigh():
     d = 4
     g = 10
 
+    Htype(1)=0.50
+    Htype(2)=0.66
+    Htype(3)=0.90
+    Htype(4)=0.99
+
     Hb=errwavbrk1(d,0.9)
     if Hmo < Hb:
         print('Error: Input wave broken (Hb = ', Hb, ')')
@@ -84,7 +89,7 @@ def beta_rayleigh():
                 sum2=sum2+(Hinc/2.0+Hprv)*darea
                 pprv=pnxt
                 Hprv=Hnxt
-            Hout(k)=sum2/(1-Htype(k))
+            Hout(k)=sum2/(1-Htype(k)) %computing centroid (areasum = 1-Htype)
     else:
         Hb=d
         Hinc=Hb/100
@@ -125,3 +130,27 @@ def beta_rayleigh():
             if k<5 and sum1>Htype(k):
                 index(k)=i
                 k=k+1
+    for k in range(4):
+        sum2=0
+        Hstart=H(index(k))
+        Hinc=(Hb-Hstart)/20
+        pprv=p(index(k))
+        Hprv=Hstart
+        for i in range(20):
+            Hnxt=Hstart+Hinc*(i-1)
+            term2=(Hnxt^(2*alpha-1))/(Hb^(2*alpha))
+            term3=(1-(Hnxt/Hb)^2)^(beta-1)
+            pnxt=term1*term2*term3
+            darea=0.5*(pprv+pnxt)*Hinc %area of a trapezoid
+            sum2=sum2+(Hinc/2.0+Hprv)*darea
+            pprv=pnxt
+            Hprv=Hnxt
+        Hout(k)=sum2/(1-Htype(k)) %computing centroid (areasum = 1-Htype)
+        Hmed=H(index(1))
+
+    print('\n %s \n','Wave heights')
+    print('\t %s \t\t %-6.2f %s \n','Hrms',Hrms,labelUnitDist)
+    print('\t %s \t\t %-6.2f %s \n','Hmed',Hmed,labelUnitDist)
+    print('\t %s \t %-6.2f %s \n','H(1/3)',Hout(2),labelUnitDist)
+    print('\t %s \t %-6.2f %s \n','H(1/10)',Hout(3),labelUnitDist)
+    print('\t %s \t %-6.2f %s \n','H(1/100)',Hout(4),labelUnitDist)

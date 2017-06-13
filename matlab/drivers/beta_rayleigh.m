@@ -78,7 +78,7 @@ for loopIndex = 1:numCases
 
     [L,k]=WAVELEN(d,Tp,50,g);
     [steep,maxstp]=ERRSTP(Hmo,d,L);
-    assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+    assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep)
 
     dterm=d/(g*Tp^2);
     k=1;
