@@ -66,6 +66,14 @@ Htype(2)=0.66; %H1/3 (1-1/3);
 Htype(3)=0.90; %H1/10 (1-1/10);
 Htype(4)=0.99; %H1/100 (1-1/100);
 
+% File Output
+fileOutputArgs = {};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+if fileOutputData{1}
+    fId = fopen('output/beta_rayleigh.txt', 'wt');
+end
+
 for loopIndex = 1:numCases
     if ~single_case
         Hmo = HmoList(loopIndex);
@@ -191,6 +199,32 @@ for loopIndex = 1:numCases
     fprintf('\t %s \t %-6.2f %s \n','H(1/3)',Hout(2),labelUnitDist)
     fprintf('\t %s \t %-6.2f %s \n','H(1/10)',Hout(3),labelUnitDist)
     fprintf('\t %s \t %-6.2f %s \n','H(1/100)',Hout(4),labelUnitDist)
+    
+    if fileOutputData{1}
+        if ~single_case
+            fprintf(fId, 'Case #%d\n\n', loopIndex);
+        end
+        
+        fprintf(fId, 'Input\n');
+        fprintf(fId, 'Hmo       %8.2f %s\n', Hmo, labelUnitDist);
+        fprintf(fId, 'Tp        %8.2f s\n', Tp);
+        fprintf(fId, 'd         %8.2f %s\n\n', d, labelUnitDist);
+        
+        fprintf(fId, 'Wave heights\n');
+        fprintf(fId, 'Hrms      %8.2f %s\n', Hrms, labelUnitDist);
+        fprintf(fId, 'Hmed      %8.2f %s\n', Hmed, labelUnitDist);
+        fprintf(fId, 'H(1/3)    %8.2f %s\n', Hout(2), labelUnitDist);
+        fprintf(fId, 'H(1/10)   %8.2f %s\n', Hout(3), labelUnitDist);
+        fprintf(fId, 'H(1/100)  %8.2f %s\n', Hout(4), labelUnitDist);
+        
+        if loopIndex < numCases
+            fprintf(fId, '\n--------------------------------------\n\n');
+        end
+    end
+end
+
+if fileOutputData{1}
+    fclose(fId);
 end
 
 if single_case
@@ -201,12 +235,8 @@ if single_case
     xlabel(['H [' labelUnitDist ']'])
     ylabel('Probability density p(H)')
 
-    % File Output
-    fileOutputArgs = {};
-    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
-
     if fileOutputData{1}
-        fId = fopen('output/beta_rayleigh.txt', 'wt');
+        fId = fopen('output/beta_rayleigh_plot.txt', 'wt');
 
         fprintf(fId, 'Counter\tWave height\tProbability density\n');
 
