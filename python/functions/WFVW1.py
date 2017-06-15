@@ -1,7 +1,7 @@
 
 def WFVW1(d, H, x, L, ww):
 
-    N=90
+    N = 90
 
     #Pressure values included hydrostatic pressure
     ycm, ytm, pcm, ptm, mcm, mtm = WFVW2(N, d, L, H, x, ww, 0)
