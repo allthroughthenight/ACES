@@ -18,6 +18,7 @@ function [Ti,Ri]=MADSN1(nors,fos,nkol)
     % intermediate values
     eps=complex(nors,0)/sqrt(complex(1,-fos));
     theta=complex(0,1)*complex(nkol,0)/eps;
+
     c1=(complex(1,0)+eps)^2;
     c2=(complex(1,0)-eps)^2;
     c3=complex(1,0)-eps^2;
@@ -30,4 +31,5 @@ function [Ti,Ri]=MADSN1(nors,fos,nkol)
     %reflection coefficient
     req=(c3*(exp(theta)-exp(-theta)))/denom;
     Ri=abs(req);
+    
 end

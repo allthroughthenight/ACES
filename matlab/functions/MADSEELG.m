@@ -45,7 +45,7 @@
 function [KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,d,hs,b,numlay,thk,len,nummat,diam,por,cotssl,nu,g)
 
     deg2rads=pi/180;
-    A=H/2;
+    A=H/2; % incident wave amplitude 
     
     %Porosity of reference material
     porref=0.435;
@@ -60,7 +60,8 @@ function [KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,d,hs,b,numlay,thk,len,nummat,diam,por
     if hs<d
         lsub=hs*cotssl;
     end
-
+    lsl = lsub/L; % relative slope length 
+    
     tmin=sqrt((2*pi*1.25*lsub)/(g*tanh(2*pi*d/(1.25*lsub))));
     assert(T>tmin,'Error: Minimum wave period to be analyzed is %4.2f s.', tmin);
 
@@ -69,7 +70,8 @@ function [KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,d,hs,b,numlay,thk,len,nummat,diam,por
     % begin iterating for phi
     diff=100;
     while diff>(10^-3)
-        [RIi,Ru,fs]=MADSN2(lsub,phi,ko);
+       % [RIi,Ru,fs]=MADSN2(lsub,phi,ko);
+        [RIi,Ru,fs]=MADSN2(lsl,phi,ko);
         newphi=0.29*(diam(1)/d)^0.2*(Ru*2*A/(d/cotssl))^0.3*fs;
         newphi=atan(newphi)/2;
         diff=abs(newphi-phi);
@@ -89,7 +91,7 @@ function [KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,d,hs,b,numlay,thk,len,nummat,diam,por
 
     AIhomog=RIi*A;
 
-    dht=2.0*Ru*A;
+    dht=2.0*Ru*A; % head difference across trapezoidal breakwater
     dhe=dht;
     diff=100;
 

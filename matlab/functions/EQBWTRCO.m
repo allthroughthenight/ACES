@@ -27,10 +27,11 @@ function [Ti,Ri]=EQBWTRCO(pref,k,dref,aI,d,nu,lequ,g)
     Rc=170.0;
 
     % used in solving the transmission and reflection coefficients
-    nors=0.45;
+ %   nors=0.45;
     ss=(pref/0.45)^2;
+    nors = pref/sqrt(ss);
     kon=k*pref;
-       
+    nkol = kon * lequ;   
     betar=2.7*((1-pref)/(pref^3*dref));
 
     % guess a lambda (intermediate value) and a value for F...iterate until the
@@ -52,7 +53,11 @@ function [Ti,Ri]=EQBWTRCO(pref,k,dref,aI,d,nu,lequ,g)
     fos=F/ss;
 
     %call function MADSN1 which solves for Ti and Ri
-    [Ti,Ri]=MADSN1(nors,fos,kon*lequ);
+%    [Ti,Ri]=MADSN1(nors,fos,kon*lequ);
+    [Ti,Ri]=MADSN1(nors,fos,nkol);
+%     Ti = Ti/aI; 
+%     Ri = Ri/aI;
+
 end
 
         

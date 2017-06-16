@@ -22,6 +22,7 @@ alphar=alpha*deg2rad;
 
 Pls=0.07071*rho*(g^(3/2))*(Hb^(5/2))*sin(2*alphar);
 
+
 Q=(Pls*K)/((rhos-rho)*g*0.6);
 
 end

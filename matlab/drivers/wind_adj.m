@@ -247,7 +247,7 @@ if ~is_water_open
 
             fclose(fId);
 
-            if length(fileData{1} >= 2) && length(fileData{1} <= 360)
+            if length(fileData{1}) >= 2 && length(fileData{1}) <= 360
                 accepted = true;
             else
                 fprintf('File must have Nt, K, d, and between 1 and 200 storm heights.\n');

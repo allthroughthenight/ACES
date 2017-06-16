@@ -32,11 +32,15 @@ clc
 %   rhos: density of sediment [5.14 slugs/ft^3 in FORTRAN source code]
 %-------------------------------------------------------------
 
-addpath('../functions'); % Path to functions folder
+SET_PATHS();
 
-% Chose the unit of measurement 
-unit = {};
- disp ('chose unit of measurement, phi, mm, ASTM')
- % write if clause for selection of the character
-% Enter the data set
-% edit the sample data set
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
+
+[metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+
+fprintf('Select unit of measuremetn for output:')
+phi 
+mm 
+mesh 
+
+include how to load the data ? 

@@ -48,7 +48,7 @@ SET_PATHS();
 
 [single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+[metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
 mode=0;
 % Ask user if mode 0 single, or 1 grid
@@ -236,5 +236,35 @@ for loopIndex = 1:numCases
         beta=cat(2,ycors,beta);
         beta=cat(1,xcors,beta);
         disp(beta)
+    end
+end
+
+if single_case
+    fileOutputArgs = {};
+    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+    if fileOutputData{1}
+        if mode == 0
+            outputAppend = 'single_point';
+        else
+            outputAppend = 'uniform_grid';
+        end
+        
+        fId = fopen(['output\refdiff_vert_wedge_' outputAppend '.txt'], 'wt');
+        
+        fprintf(fId, 'Combined Reflection and Diffraction by a Vertical Wedge\n\n');
+        
+        fprintf(fId, 'Incident Wave Height\t=\t%-6.2f\t%s\tWave Period\t=\t%-6.2f\tsec\n', Hi, labelUnitDist, T);
+        fprintf(fId, 'Water Depth\t\t=\t%-6.2f\t%s\tWavelength\t=\t%-6.2f\t%s\n', d, labelUnitDist, 0, labelUnitDist);
+        fprintf(fId, 'Wave Angle\t\t=\t%-6.2f\tdeg\tWedge Angle\t=\t%-6.2f\tdeg\n\n', alpha, wedgang);
+        
+        fprintf(fId, '**** Modification Factors:\n');
+        fprintf(fId, '            x=  ');
+        for loopIndex = 2:length(xcors)
+            fprintf(fId, '  %-6.2f', xcors(loopIndex));
+        end
+        fprintf(fId, '\n
+        
+        fclose(fId);
     end
 end

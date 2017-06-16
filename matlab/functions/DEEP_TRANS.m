@@ -20,7 +20,7 @@ function [Q]=DEEP_TRANS(Ho,alpha,K,rho,g,rhos)
 deg2rad=pi/180;
 alphar=alpha*deg2rad;
 
-Pls=0.04031*rho*(g^(3/2))*(Ho^(5/2))*(cos(alphar)^(1/4))*sin(2*alphar);
+Pls=0.04031*rho*(g^(3/2))*(Ho^(5/2))*((cos(alphar))^(1/4))*sin(2*alphar);
 
 Q=(Pls*K)/((rhos-rho)*g*0.6);
 
