@@ -7,12 +7,6 @@ import math
 # Provides a statistical representation for a shallow-water wave height
 # distribution.
 
-# Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
-# Date Created: April 28, 2011
-# Date Verified: June 27, 2012
-# Modifications done by Yaprak Onat
-# Last Verified:
-
 # Requires the following functions:
 # ERRWAVBRK1
 # WAVELEN
@@ -34,46 +28,129 @@ import math
 #   OTHER:
 #------------------------------------------------------------
 
-def tide_generation():
-    Hs0 = 4.6
-    Tp = 9.50
-    cottheta = 13.0
-    g = 32.17
+def beta_rayleigh():
 
-    #Coefficients provided by Mase (1989)
-    amax = 2.32
-    bmax = 0.77
-    a2 = 1.86
-    b2 = 0.71
-    a110 = 1.70
-    b110 = 0.71
-    a13 = 1.38
-    b13 = 0.70
-    aavg = 0.88
-    bavg = 0.69
+    # input
+    Hmo = 9
+    Tp = 4
+    d = 4
+    g = 10
 
-    # Meters to feet constant for conversion
-    m2ft=3.28084;
+    Htype(1)=0.50
+    Htype(2)=0.66
+    Htype(3)=0.90
+    Htype(4)=0.99
 
-    L0 = g * (Tp**2) / (2 * math.pi)
-    steep = Hs0 / L0
-    if steep >= 0.142:
-        print('Error: Input wave unstable (Max: 0.142,  [H / L]  =  %0.4f)' % steep)
-        return
+    Hb=errwavbrk1(d,0.9)
+    if Hmo < Hb:
+        print('Error: Input wave broken (Hb = ', Hb, ')')
 
-    tantheta = 1 / cottheta
-    I = tantheta / math.sqrt(Hs0 / L0)
+    L = wavelen(d, Tp, 50, g)
+    k = wavelen(d, Tp, 50, g)
+    steep = errstp(Hmo, d, l)
+    maxstep = errstp(Hmo, d, l)
 
-    Rmax = Hs0 * amax * (I**bmax)
-    R2 = Hs0 * a2 * (I**b2)
-    R110 = Hs0 * a110 * (I**b110)
-    R13 = Hs0 * a13 * (I**b13)
-    Ravg = Hs0 * aavg * (I**bavg)
+    if steep < maxstep:
+        print('Error: Input wave unstable (Max:', maxstep, '[H/L] =', steep,'')
 
-    print('%s \t %-6.2f \n' % ('Maximum runup', Rmax))
-    print('%s \t %-6.2f \n' % ('Runup exceeded by 2% of runup', R2))
-    print('%s \t %-6.2f \n' % ('Avg. of highest 1 / 10 runups', R110))
-    print('%s \t %-6.2f \n' % ('Avg. of highest 1 / 3 runups', R13))
-    print('%s \t %-6.2f \n' % ('Maximum runup', Ravg))
+    dterm = d / ( g * Tp^2 )
+    k = 1
+    sum1 = 0
 
-tide_generation()
+    if dterm > 0.01:
+        print('Input conditions indicate Rayleigh distribution')
+        Hb=sqrt(5)*Hmo
+        Hinc=Hb/10000
+        sigma=Hmo/4
+        Hrms=2*sqrt(2)*sigma
+
+        for x in range(2, 1001):
+            H(i)=Hinc*(i-1)
+            term1=exp(-(H(i)/Hrms)^2)
+            term2=(2*H(i))/Hrms^2
+            p(i)=term1*term2
+            sum1=sum1+(p(i)*Hinc)
+
+            if k<5 and sum1>Htype(k):
+                index(k)=i
+                k=k+1
+        for k in xrange(4):
+            sum2=0
+            Hstart=H(index(k))
+            Hinc=(Hb-Hstart)/10000
+            pprv=p(index(k))
+            Hprv=Hstart
+            for i in range(1, 1001):
+                Hnxt=Hstart+Hinc*(i-1)
+                term1=exp(-(Hnxt/Hrms)^2)
+                term2=(2*Hnxt)/Hrms^2
+                pnxt=term1*term2
+                darea=0.5*(pprv+pnxt)*Hinc
+                sum2=sum2+(Hinc/2.0+Hprv)*darea
+                pprv=pnxt
+                Hprv=Hnxt
+            Hout(k)=sum2/(1-Htype(k)) %computing centroid (areasum = 1-Htype)
+    else:
+        Hb=d
+        Hinc=Hb/100
+        disp('Input conditions indicate Beta-Rayleigh distribution')
+        a1=0.00089
+        b1=0.834
+        a2=0.000098
+        b2=1.208
+
+        d1=a1*dterm^(-b1)
+        if d1<=35.0:
+            print('Error: d/gT^2 approaching infinity')
+
+        Hrms=(1/sqrt(2))*exp(d1)*Hmo
+
+        d2=a2*dterm^(-b2)
+        if d2<=35.0:
+            print('Error: d/gT^2 approaching infinity')
+
+        Hrmsq=(1/sqrt(2))*exp(d2)*Hmo^2
+
+        # computing alpha and beta
+        K1=(Hrms/Hb)^2
+        K2=(Hrmsq^2)/(Hb^4)
+
+        alpha=(K1*(K2-K1))/(K1^2-K2)
+        beta=((1-K1)*(K2-K1))/(K1^2-K2)
+
+        term1=(2*gamma(alpha+beta))/(gamma(alpha)*gamma(beta))
+
+        for i in range(1, 101):
+            H(i)=Hinc*(i-1)
+            term2=(H(i)^(2*alpha-1))/(Hb^(2*alpha))
+            term3=(1-(H(i)/Hb)^2)^(beta-1)
+            p(i)=term1*term2*term3
+
+            sum1=sum1+(p(i)*Hinc)
+            if k<5 and sum1>Htype(k):
+                index(k)=i
+                k=k+1
+    for k in range(4):
+        sum2=0
+        Hstart=H(index(k))
+        Hinc=(Hb-Hstart)/20
+        pprv=p(index(k))
+        Hprv=Hstart
+        for i in range(20):
+            Hnxt=Hstart+Hinc*(i-1)
+            term2=(Hnxt^(2*alpha-1))/(Hb^(2*alpha))
+            term3=(1-(Hnxt/Hb)^2)^(beta-1)
+            pnxt=term1*term2*term3
+            darea=0.5*(pprv+pnxt)*Hinc %area of a trapezoid
+            sum2=sum2+(Hinc/2.0+Hprv)*darea
+            pprv=pnxt
+            Hprv=Hnxt
+        Hout(k)=sum2/(1-Htype(k)) %computing centroid (areasum = 1-Htype)
+        Hmed=H(index(1))
+
+    print('\n %s \n','Wave heights')
+    print('\t %s \t\t %-6.2f %s \n','Hrms',Hrms,labelUnitDist)
+    print('\t %s \t\t %-6.2f %s \n','Hmed',Hmed,labelUnitDist)
+    print('\t %s \t %-6.2f %s \n','H(1/3)',Hout(2),labelUnitDist)
+    print('\t %s \t %-6.2f %s \n','H(1/10)',Hout(3),labelUnitDist)
+    print('\t %s \t %-6.2f %s \n','H(1/100)',Hout(4),labelUnitDist)

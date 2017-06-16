@@ -72,42 +72,34 @@ else
     labelUnitDistLrg = 'mi';
 end
 
-% fprintf('%s \n','Wind observation types: ');
-% fprintf('%s \n','[1] Overwater (shipboard)')
-% fprintf('%s \n','[2] Overwater (not shipboard)')
-% fprintf('%s \n','[3] Shore (windward - offshore to onshore)')
-% fprintf('%s \n','[4] Shore (leeward - onshore to offshore)')
-% fprintf('%s \n','[5] Over land')
-% fprintf('%s \n\n','[6] Geostrophic wind')
-% 
-% windobs=input('Select option: ');
-% fprintf('\n')
+windObsList = {'Overwater (shipboard)';...
+    'Overwater (not shipboard)';...
+    'Shore (windward - offshore to onshore)';...
+    'Shore (leeward - onshore to offshore)';...
+    'Over land';...
+    'Geostrophic wind'};
 [windobs] = USER_INPUT_FINITE_CHOICE(...
     ['Wind observation types: \n'...
-        '[1] Overwater (shipboard)\n'...
-        '[2] Overwater (not shipboard)\n'...
-        '[3] Shore (windward - offshore to onshore)\n'...
-        '[4] Shore (leeward - onshore to offshore)\n'...
-        '[5] Over land\n'...
-        '[6] Geostrophic wind\n'...
+        '[1] ' windObsList{1} '\n'...
+        '[2] ' windObsList{2} '\n'...
+        '[3] ' windObsList{3} '\n'...
+        '[4] ' windObsList{4} '\n'...
+        '[5] ' windObsList{5} '\n'...
+        '[6] ' windObsList{6} '\n'...
         'Select option: '],...
     {'1', '2', '3', '4', '5', '6'});
 windobs = str2num(windobs);
 
-% fprintf('%s \n','Wind fetch and wave growth options: ');
-% fprintf('%s \n','[1] Open Water - Deep')
-% fprintf('%s \n','[2] Open Water - Shallow')
-% fprintf('%s \n','[3] Restricted - Deep')
-% fprintf('%s \n\n','[4] Restricted - Shallow')
-% 
-% wgtyp=input('Select option: ');
-% fprintf('\n')
+wgTypeList = {'Open Water - Deep';...
+    'Open Water - Shallow';...
+    'Restricted - Deep';...
+    'Restricted - Shallow'};
 [wgtyp] = USER_INPUT_FINITE_CHOICE(...
     ['Wind fetch and wave growth options: \n'...
-        '[1] Open Water - Deep\n'...
-        '[2] Open Water - Shallow\n'...
-        '[3] Restricted - Deep\n'...
-        '[4] Restricted - Shallow\n'...
+        '[1] ' wgTypeList{1} '\n'...
+        '[2] ' wgTypeList{2} '\n'...
+        '[3] ' wgTypeList{3} '\n'...
+        '[4] ' wgTypeList{4} '\n'...
         'Select option: '],...
     {'1', '2', '3', '4'});
 wgtyp = str2num(wgtyp);
@@ -172,12 +164,6 @@ else
     end
     
     if ~is_water_open
-%         multiCaseData = [multiCaseData;...
-%             {'wdir: wind direction [deg]', 0.0, 360.0;...
-%             'dang: radial angle increment [deg]', 1.0, 180.0;...
-%             'ang1: direction of first radial fetch [deg]', 0.0, 360.0;...
-%             'Nfet: number of radial fetches', 2, 360;...
-%             ['angs: fetch length [' labelUnitDistLrg ']'], 0, 9999}];
         multiCaseData = [multiCaseData;...
             {'wdir: wind direction [deg]', 0.0, 360.0}];
     end
@@ -205,10 +191,6 @@ else
     
     if ~is_water_open
         wdirList = varData(optVarNum, :);
-%         dangList = varData(optVarNum + 1, :);
-%         ang1List = varData(optVarNum + 2, :);
-%         NfetList = varData(optVarNum + 3, :);
-%         angsList = varData(optVarNum + 4, :);
     end
 end
 
@@ -287,6 +269,17 @@ else
     conversionSpeed = 1.0;
 end
 
+% File Output
+fileOutputArgs = {};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+if fileOutputData{1}
+    fId = fopen('output/wind_adj.txt', 'wt');
+    
+    fprintf(fId, '%s\n', windObsList{windobs});
+    fprintf(fId, '%s\n\n', wgTypeList{wgtyp});
+end
+
 for loopIndex = 1:numCases
     if ~single_case
         zobs = zobsList(loopIndex);
@@ -307,16 +300,16 @@ for loopIndex = 1:numCases
         end
         
         if ~is_water_open
-        end
-        
-        if is_water_open
-            phi=0;
-        else
             wdir = wdirList(loopIndex);
-            [F,phi,theta]=WGFET(ang1,dang,wdir,angs);
         end
     end
     
+    if is_water_open
+        phi=0;
+    else
+        [F,phi,theta]=WGFET(ang1,dang,wdir,angs);
+    end
+
     assert(lat~=0, 'Error: Latitude must be a non-zero value.')
     
 %   Check WDIR vs Fetch data. WDIR must meet this criterion:
@@ -358,17 +351,33 @@ for loopIndex = 1:numCases
     fprintf('%s \t\t\t %-6.2f s \n','Wave period ',Tp);
     
     fprintf('%s %s \n','Wave growth: ',wgmsg);
-end
-
-if single_case
-    % File Output
-    fileOutputArgs = {};
-    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
-
+    
     if fileOutputData{1}
-        fId = fopen('output/wind_adj.txt', 'wt');
+        if ~single_case
+            fprintf(fId, 'Case #%d\n\n', loopIndex);
+        end
+        
+        fprintf(fId, 'Input\n');
+        fprintf(fId, 'zobs\t\t%6.2f %s\n', zobs, labelUnitDist);
+        fprintf(fId, 'uobs\t\t%6.2f %s\n', Uobs, labelSpeedFinal);
+        fprintf(fId, 'dtemp\t\t%6.2f deg\n', dtemp);
+        fprintf(fId, 'duro\t\t%6.2f hr\n', duro);
+        fprintf(fId, 'durf\t\t%6.2f hr\n', durf);
+        fprintf(fId, 'lat\t\t%6.2f deg\n', lat);
+        
+        if is_water_open
+            fprintf(fId, 'F\t\t%6.2f %s\n', F, labelUnitDistLrg);
+        end
+        
+        if is_water_shallow
+            fprintf(fId, 'd\t\t%6.2f %s\n', d, labelUnitDist);
+        end
+        
+        if ~is_water_open
+            fprintf(fId, 'wdir\t\t%6.2f deg\n', wdir);
+        end
 
-        fprintf(fId, 'Wind Adj\n\n');
+        fprintf(fId, '\nOutput\n');
         
         if ~is_water_open
             fprintf(fId, '%s \t\t\t %-6.2f %s\n','Wind fetch',F, labelUnitDistLrg);
@@ -386,7 +395,13 @@ if single_case
         fprintf(fId, '%s \t\t\t %-6.2f s \n','Wave period ',Tp);
 
         fprintf(fId, '%s %s \n','Wave growth: ',wgmsg);
-
-        fclose(fId);
+        
+        if loopIndex < numCases
+            fprintf(fId, '\n--------------------------------------\n\n');
+        end
     end
+end
+
+if fileOutputData{1}
+    fclose(fId);
 end

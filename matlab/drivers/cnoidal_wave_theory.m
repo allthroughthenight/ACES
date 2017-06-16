@@ -54,7 +54,6 @@ SET_PATHS();
 
 [water, rho] = USER_INPUT_SALT_FRESH_WATER(metric);
 
-% Single case input for metric measurments
 if single_case
     [H] = USER_INPUT_DATA_VALUE(['Enter H: wave height (' labelUnitDist '): '], 0.1, 200.0);
 
@@ -66,15 +65,6 @@ if single_case
     
     [xL] = USER_INPUT_DATA_VALUE('Enter xL: horizontal coordinate as fraction of wavelength (x/L): ', 0.0, 1.0);
     
-    prompt = 'Enter time: time-coordinate (default=0): ';
-	time = input(prompt);
-    
-    O = 0;
-    while O ~= 1 && O ~= 2
-        prompt = 'Enter O: order approximation (1 or 2): ';
-        O = input(prompt);
-    end
-    
     numCases = 1;
 else
     multiCaseData = {...
@@ -82,9 +72,7 @@ else
             'T: wave period (sec)', 1.0, 1000.0;...
             ['d: water depth (' labelUnitDist ')'], 0.1, 5000.0;...
             ['z: vertical coordinate (' labelUnitDist ')'], -5100.0, 100.0;...
-            'xL: horizontal coordinate as fraction of wavelength (x/L)', 0.0, 1.0;...
-            'time: time-coordinate (default=0)', 0.0, inf;...
-            'O: order approximation (1 or 2)', 1, 2};
+            'xL: horizontal coordinate as fraction of wavelength (x/L)', 0.0, 1.0};
     [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
     
     HList = varData(1, :);
@@ -92,12 +80,28 @@ else
     dList = varData(3, :);
     zList = varData(4, :);
     xLList = varData(5, :);
-    timeList = varData(6, :);
-    OList = varData(7, :);
 end
 
-%% *********** Don't change anything here ******************
 twopi=2*pi;
+
+O = 0;
+while O ~= 1 && O ~= 2
+    prompt = 'Enter O: order approximation (1 or 2): ';
+    O = input(prompt);
+end
+
+prompt = 'Enter time: time-coordinate (default=0): ';
+time = input(prompt);
+
+
+% File Output
+fileOutputArgs = {'Enter the filename (no extension): ', 'Enter the description for this file: '};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+if fileOutputData{1}
+    fId = fopen(['output\' fileOutputData{2} '.txt'], 'wt');
+    fprintf(fId, '%s\n\n', fileOutputData{3});
+end
+
 
 for loopIndex = 1:numCases
     if ~single_case
@@ -106,8 +110,6 @@ for loopIndex = 1:numCases
         d = dList(loopIndex);
         z = zList(loopIndex);
         xL = xLList(loopIndex);
-        time = timeList(loopIndex);
-        O = OList(loopIndex);
     end
     
     epsi=H/d;
@@ -193,34 +195,6 @@ for loopIndex = 1:numCases
         fprintf('%s \t %-6.2f %s/sec^2 \t \n','Horz. acceleration',dudt,labelUnitDist);
         fprintf('%s \t %-6.2f %s/sec^2 \t \n','Vert. acceleration',dwdt,labelUnitDist);
         fprintf('%s \t\t\t %-8.2f %s/%s^2 \t \n','Pressure',pres,labelUnitWt,labelUnitDist);
-
-        if single_case
-            %Plotting waveform
-            plotxL=(-1:0.001:1);
-            plottheta=2*K*(plotxL-(time/T));
-            [pSN,pCN,pDN] = ellipj(plottheta,m);
-            pCSD=pSN.*pCN.*pDN;
-
-            ploteta=d*(A0+A1*pCN.^2);
-            plotu=sqrt(g*d)*(B00+B10*pCN.^2);
-            plotw=sqrt(g*d)*(4*K*d*pCSD/L)*((z+d)/d)*B10;
-
-            subplot(3,1,1); plot(plotxL,ploteta); ylim([min(ploteta)-1 max(ploteta)+1])
-            hline = refline_v2([0 0]);
-            set(hline,'Color','r','LineStyle','--')
-            ylabel(['Elevation [' labelUnitDist ']'])
-
-            subplot(3,1,2); plot(plotxL,plotu); ylim([min(plotu)-1 max(plotu)+1])
-            hline = refline_v2([0 0]);
-            set(hline,'Color','r','LineStyle','--')
-            ylabel(['Velocity, u [' labelUnitDist '/s]'])
-
-            subplot(3,1,3); plot(plotxL,plotw); ylim([min(plotw)-1 max(plotw)+1])
-            hline = refline_v2([0 0]);
-            set(hline,'Color','r','LineStyle','--')
-            ylabel(['Velocity, w [' labelUnitDist '/s]'])
-            xlabel('x/L')
-        end
 
     % Second Order Approximations
     elseif O==2 %determining m using bisection method
@@ -315,51 +289,110 @@ for loopIndex = 1:numCases
         fprintf('%s \t %-6.2f %s/sec^2 \t \n','Horz. acceleration',dudt,labelUnitDist);
         fprintf('%s \t %-6.2f %s/sec^2 \t \n','Vert. acceleration',dwdt,labelUnitDist);
         fprintf('%s \t\t\t %-8.2f %s/%s^2 \t \n','Pressure',pres,labelUnitWt,labelUnitDist);
+    end
+    
+    if fileOutputData{1}
+        if ~single_case
+            fprintf(fId, 'Case #%d\n\n', loopIndex);
+        end
 
-        if single_case
-            %Plotting waveform
-            plotxL=(-1:0.001:1);
-            plottheta=2*K*(plotxL-(time/T));
-            [pSN,pCN,pDN] = ellipj(plottheta,m);
-            pCSD=pSN.*pCN.*pDN;
+        fprintf(fId, 'Input\n');
+        fprintf(fId, 'Wave height\t\t\t%8.2f\n', H);
+        fprintf(fId, 'Wave period\t\t\t%8.2f\n', T);
+        fprintf(fId, 'Water depth\t\t\t%8.2f\n', d);
+        fprintf(fId, 'Vertical coordinate\t\t%8.2f\n', z);
+        fprintf(fId, 'Horizontal coordinate\t\t%8.2f\n  as fraction of wavelength (x/L)\n', xL);
 
-            ploteta=d*(A0+A1*pCN.^2+A2*pCN.^4);
-            plotu=sqrt(g*d)*((B00+B10*pCN.^2+B20*pCN.^4)-(1/2)*((z+d)/d)^2*(B01+B11*pCN.^2+B21*pCN.^4));
+        if O == 1
+            fprintf(fId, '\nFirst Order Approximations\n');
+        else
+            fprintf(fId, '\nSecond Order Approximations\n');
+        end
+        
+        fprintf(fId, '%s \t\t %8.2f %s\n','Wavelength',L,labelUnitDist);
+        fprintf(fId, '%s \t\t %8.2f %s/sec\n','Celerity',C,labelUnitDist);
+        fprintf(fId, '%s \t\t %8.2f %s-%s/%s^2\n','Energy density',E,labelUnitDist,labelUnitWt,labelUnitDist);
+        fprintf(fId, '%s \t\t %8.2f %s-%s/sec-%s\n','Energy flux',Ef,labelUnitDist,labelUnitWt,labelUnitDist);
+        fprintf(fId, '%s \t\t %8.2f\n','Ursell number',Ur);
+        fprintf(fId, '%s \t\t %8.2f %s\n','Elevation',eta,labelUnitDist);
+        fprintf(fId, '%s \t\t %8.2f %s/sec\n','Horz. velocity',u,labelUnitDist);
+        fprintf(fId, '%s \t\t %8.2f %s/sec\n','Vert. velocity',w,labelUnitDist);
+        fprintf(fId, '%s \t %8.2f %s/sec^2\n','Horz. acceleration',dudt,labelUnitDist);
+        fprintf(fId, '%s \t %8.2f %s/sec^2\n','Vert. acceleration',dwdt,labelUnitDist);
+        fprintf(fId, '%s \t\t %8.2f %s/%s^2\n','Pressure',pres,labelUnitWt,labelUnitDist);
 
-            pw1=((z+d)/d)*(B10+2*B20*pCN.^2);
-            pw2=(1/6)*(((z+d)/d)^3)*(B11+2*B21*pCN.^2);
-            plotw=sqrt(g*d)*(4*K*d*pCSD/L).*(pw1-pw2);
-
-            subplot(3,1,1); plot(plotxL,ploteta); ylim([min(ploteta)-1 max(ploteta)+1])
-            hline = refline_v2([0 0]);
-            set(hline,'Color','r','LineStyle','--')
-            ylabel(['Elevation [' labelUnitDist ']'])
-
-            subplot(3,1,2); plot(plotxL,plotu); ylim([min(plotu)-1 max(plotu)+1])
-            hline = refline_v2([0 0]);
-            set(hline,'Color','r','LineStyle','--')
-            ylabel(['Velocity, u [' labelUnitDist '/s]'])
-
-            subplot(3,1,3); plot(plotxL,plotw); ylim([min(plotw)-1 max(plotw)+1])
-            hline = refline_v2([0 0]);
-            set(hline,'Color','r','LineStyle','--')
-            ylabel(['Velocity, w [' labelUnitDist '/s]'])
-            xlabel('x/L')
+        if loopIndex < numCases
+            fprintf(fId, '\n--------------------------------------\n\n');
         end
     end
 end
 
-% File Output
-if single_case
-    fileOutputArgs = {'Enter the filename (no extension): ', 'Enter the description for this file: '};
-    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+fclose(fId);
 
+if single_case
+    if O == 1
+        %Plotting waveform
+        plotxL=(-1:0.001:1);
+        plottheta=2*K*(plotxL-(time/T));
+        [pSN,pCN,pDN] = ellipj(plottheta,m);
+        pCSD=pSN.*pCN.*pDN;
+
+        ploteta=d*(A0+A1*pCN.^2);
+        plotu=sqrt(g*d)*(B00+B10*pCN.^2);
+        plotw=sqrt(g*d)*(4*K*d*pCSD/L)*((z+d)/d)*B10;
+
+        subplot(3,1,1); plot(plotxL,ploteta); ylim([min(ploteta)-1 max(ploteta)+1])
+        hline = refline_v2([0 0]);
+        set(hline,'Color','r','LineStyle','--')
+        ylabel(['Elevation [' labelUnitDist ']'])
+
+        subplot(3,1,2); plot(plotxL,plotu); ylim([min(plotu)-1 max(plotu)+1])
+        hline = refline_v2([0 0]);
+        set(hline,'Color','r','LineStyle','--')
+        ylabel(['Velocity, u [' labelUnitDist '/s]'])
+
+        subplot(3,1,3); plot(plotxL,plotw); ylim([min(plotw)-1 max(plotw)+1])
+        hline = refline_v2([0 0]);
+        set(hline,'Color','r','LineStyle','--')
+        ylabel(['Velocity, w [' labelUnitDist '/s]'])
+        xlabel('x/L')
+    elseif O == 2
+        %Plotting waveform
+        plotxL=(-1:0.001:1);
+        plottheta=2*K*(plotxL-(time/T));
+        [pSN,pCN,pDN] = ellipj(plottheta,m);
+        pCSD=pSN.*pCN.*pDN;
+
+        ploteta=d*(A0+A1*pCN.^2+A2*pCN.^4);
+        plotu=sqrt(g*d)*((B00+B10*pCN.^2+B20*pCN.^4)-(1/2)*((z+d)/d)^2*(B01+B11*pCN.^2+B21*pCN.^4));
+
+        pw1=((z+d)/d)*(B10+2*B20*pCN.^2);
+        pw2=(1/6)*(((z+d)/d)^3)*(B11+2*B21*pCN.^2);
+        plotw=sqrt(g*d)*(4*K*d*pCSD/L).*(pw1-pw2);
+
+        subplot(3,1,1); plot(plotxL,ploteta); ylim([min(ploteta)-1 max(ploteta)+1])
+        hline = refline_v2([0 0]);
+        set(hline,'Color','r','LineStyle','--')
+        ylabel(['Elevation [' labelUnitDist ']'])
+
+        subplot(3,1,2); plot(plotxL,plotu); ylim([min(plotu)-1 max(plotu)+1])
+        hline = refline_v2([0 0]);
+        set(hline,'Color','r','LineStyle','--')
+        ylabel(['Velocity, u [' labelUnitDist '/s]'])
+
+        subplot(3,1,3); plot(plotxL,plotw); ylim([min(plotw)-1 max(plotw)+1])
+        hline = refline_v2([0 0]);
+        set(hline,'Color','r','LineStyle','--')
+        ylabel(['Velocity, w [' labelUnitDist '/s]'])
+        xlabel('x/L')
+    end
+    
     if fileOutputData{1}
-        fId = fopen(['output\' fileOutputData{2} '.txt'], 'wt');
+        fId = fopen(['output\' fileOutputData{2} '_plot.txt'], 'wt');
 
         fprintf(fId, 'Partial Listing of Plot Output File 1 for %s\n\n', fileOutputData{3});
 
-        fprintf(fId, 'X/L\tETA (ft)\tU (ft/sec)\tW (ft/sec)\n');
+        fprintf(fId, 'X/L\tETA (%s)\tU (%s/sec)\tW (%s/sec)\n', labelUnitDist,labelUnitDist,labelUnitDist);
 
         for loopIndex = 1:length(plotxL)
             fprintf(fId, '%-6.3f\t%-6.3f\t\t%-6.3f\t\t%-6.3f\n',...
@@ -370,126 +403,3 @@ if single_case
         end
     end
 end
-
-% %
-% %
-% %
-% %
-% %
-% %
-% %
-% %
-% %
-% %
-% % %
-% % %
-% % % % % ST=0.0;
-% % % % % epsi=H/d;
-% % % % % alpha=(3.0*g*H*(T^2))/(16*d^2);
-% % % % % cons=(4.0*alpha)/(pi^2);
-% % % % % A=16.0/64.0;
-% % % % % B=-cons/64.0;
-% % % % % rad=sqrt(((B^2)/4.0)+((A^3)/27.0));
-% % % % % B2=-(B/2.0);
-% % % % % BA=abs(B2+rad)^(1.0/3.0);
-% % % % % BB=abs(B2-rad)^(1.0/3.0);
-% % % % %
-% % % % % if (B2+rad)>0
-% % % % %     BA=abs(BA)*1;
-% % % % % else
-% % % % %     BA=abs(BA)*-1;
-% % % % % end
-% % % % %
-% % % % % if (B2-rad)>0
-% % % % %     BB=abs(BB)*1;
-% % % % % else
-% % % % %     BB=abs(BB)*-1;
-% % % % % end
-% % % % %
-% % % % % Q=BA+BB;
-% % % % %
-% % % % % if Q>1.0
-% % % % %     Q=0.99;
-% % % % % end
-% % % % %
-% % % % % theta2p=1.0;
-% % % % % gamma=0.0;
-% % % % % j=0;
-% % % % % diff1=999;
-% % % % % diff2=999;
-% % % % % while diff1~=0 && diff2~=0
-% % % % %     j=j+1;
-% % % % %     ip2=j*j+j;
-% % % % %     TNP=theta2p+(Q^ip2);
-% % % % %     GN=gamma+ip2*(Q^(ip2-1));
-% % % % %     diff1=abs(theta2p-TNP);
-% % % % %     diff2=abs(gamma-GN);
-% % % % %     theta2p=TNP;
-% % % % %     gamma=GN;
-% % % % % end
-% % % % %
-% % % % % i=0;
-% % % % % F=999;
-% % % % % while abs(F)>(1*10^(-15))
-% % % % % theta2=theta2p*2.0*(Q^0.25);
-% % % % % SG=((pi^2)/4.0)*(theta2^4);
-% % % % % F=1.0-(SG/alpha);
-% % % % % DGDQ=4.0*(pi^2)*((theta2p^4)+(4.0*Q*gamma*(theta2p^3)));
-% % % % % DFDQ=-(DGDQ/alpha);
-% % % % % H1=-(F/DFDQ);
-% % % % % Q=Q+H1;
-% % % % % i=i+1;
-% % % % % end
-% % % % %
-% % % % % T03=1.0;
-% % % % % T02=1.0;
-% % % % % SR=0.0;
-% % % % % T04=1.0;
-% % % % % SGN=-1.0;
-% % % % %
-% % % % %
-% % % % i=0;
-% % % % diff1=999;
-% % % % diff2=999;
-% % % % diff3=999;
-% % % % diff4=999;
-% % % % while diff1~=0 && diff2~=0 && diff3~=0 && diff4~=0
-% % % % i=i+1;
-% % % % ip1=i*i+i;
-% % % % ip2=i*i;
-% % % ip3=2*i;
-% % % TN2=T02+(Q^ip1);
-% % % TN3=T03+2.0*(Q^ip2);
-% % % TN4=T04+SGN*2.0*(Q^ip2);
-% % % SRN=SR+((Q^ip3)/((1.0-(Q^ip3))^2));
-% % % SGN=SGN*(-1.0);
-% % % diff1=abs(T02-TN2);
-% % % diff2=abs(T03-TN3);
-% % % diff3=abs(SR-SRN);
-% % % diff4=abs(T04-TN4);
-% % % T02=TN2;
-% % % T03=TN3;
-% % % T04=TN4;
-% % % SR=SRN;
-% % % end
-% % % T02=2.0*(Q^0.25)*T02;
-% % % SR=(1.0/12.0)-2.0*SR;
-% % %
-% % % SM=(T02^2)/(T03^2);
-% % % BK=(pi/2.0)*(T03^2);
-% % % SMP=(T04^2)/(T03^2);
-% % % LAMBDA_old=(T04^4)/(T02^4);
-% % % BE=((1.0+(SMP^2))/3.0)*BK+((pi^2)/BK)*SR;
-% % % MU_old=BE/(SM*SM*BK);
-% % % TM1=(1.0+2.0*LAMBDA_old-3.0*MU_old)/2.0;
-% % % C_old=sqrt(g*d)*(1.0+epsi*TM1);
-% % % L_old=C_old*T;
-% % % Ur_old=(H*(L_old^2))/(d^3);
-% % % theta_old=(xL-(time/T))*2.0*BK;
-% % %
-% %
-% %
-% %
-% %
-% %
-% %
