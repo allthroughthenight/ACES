@@ -88,6 +88,16 @@ end
 %rho=1.989;
 H20weight=g*rho;
 
+% File Output
+fileOutputArgs = {};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+if fileOutputData{1}
+    fId = fopen('output/toe_design.txt', 'wt');
+
+    fprintf(fId, 'Toe Protection Design Output\n\n');
+end
+
 for loopIndex = 1:numCases
     if ~single_case
         H = HList(loopIndex);
@@ -132,26 +142,36 @@ for loopIndex = 1:numCases
 
     w=(unitwt*(H^3))/((Ns^3)*((specgrav-1)^3));
 
-    fprintf('\t\t\t\t\t\t\t\t\t\t\t\t\n')
+    fprintf('\n')
     fprintf('%s \t\t\t\t\t %-6.2f %s \t\n','Width of toe apron',b,labelUnitDist)
     fprintf('%s \t %-6.2f %s \t\n','Weight of individual armor unit',w,labelUnitWt)
     fprintf('%s \t\t\t %-6.2f %s \t\n','Water depth at top of tow',dl,labelUnitDist)
-end
-
-if single_case
-    % File Output
-    fileOutputArgs = {};
-    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
     
     if fileOutputData{1}
-        fId = fopen('output/toe_design.txt', 'wt');
+        if ~single_case
+            fprintf(fId, 'Case #%d\n\n', loopIndex);
+        end
         
-        fprintf(fId, 'Toe Protection Design Output\n\n');
+        fprintf(fId, 'Input\n');
+        fprintf(fId, 'Hi                                 %6.2f %s\n', H, labelUnitDist);
+        fprintf(fId, 'T                                  %6.2f s\n', T);
+        fprintf(fId, 'ds                                 %6.2f %s\n', ds, labelUnitDist);
+        fprintf(fId, 'cotphi                             %6.2f\n', cotphi);
+        fprintf(fId, 'Kp                                 %6.2f\n', Kp);
+        fprintf(fId, 'de                                 %6.2f %s\n', de, labelUnitDist);
+        fprintf(fId, 'ht                                 %6.2f %s\n', ht, labelUnitDist);
+        fprintf(fId, 'unitwt                             %6.2f %s/%s^3\n\n', unitwt, labelUnitWt, labelUnitDist);
         
         fprintf(fId, '%s                 %-6.2f %s\n','Width of toe apron',b,labelUnitDist);
         fprintf(fId, '%s    %-6.2f %s\n','Weight of individual armor unit',w,labelUnitWt);
         fprintf(fId, '%s          %-6.2f %s\n','Water depth at top of tow',dl,labelUnitDist);
         
-        fclose(fId);
+        if loopIndex < numCases
+            fprintf(fId, '\n--------------------------------------\n\n');
+        end
     end
+end
+
+if fileOutputData{1}
+    fclose(fId);
 end

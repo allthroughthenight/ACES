@@ -94,6 +94,16 @@ end
 m2cm=100;
 g=g*m2cm;
 
+% File Output
+fileOutputArgs = {};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+if fileOutputData{1}
+    fId = fopen('output\irr_wave_trans.txt', 'wt');
+
+    fprintf(fId, 'Wave Height versus Cumulative Probability\nDistribution of Exceedance\n\n');
+end
+
 for loopIndex = 1:numCases
     if ~single_case
         Ho = HoList(loopIndex);
@@ -112,22 +122,6 @@ for loopIndex = 1:numCases
 
     [Ks,Kr,Hmax,Hrms,Hbar,Hs,H10,H02,SBrms,HoLo,dLo,dHo,deepd,theta,Sw,Hxo,cdfo,Hx,cdfx]=GODA(Ho,d,Ts,cotnsl,direc,g);
 
-    if single_case
-        plot1Hxo = Hxo/m2cm;
-        figure(1)
-        plot(plot1Hxo,cdfo)
-        title('Deep Water')
-        xlabel(['H [' labelUnitDist ']'])
-        ylabel('CDF')
-
-        plot2Hx = Hx/m2cm;
-        figure(2)
-        plot(plot2Hx,cdfx)
-        title('Subject Depth')
-        xlabel(['H [' labelUnitDist ']'])
-        ylabel('CDF2')
-    end
-
     fprintf('\t\t %s \t %s \t\t %s \n','Subject','Deep','Units')
     fprintf('%s \t\t %-6.2f \t %-6.2f \t %s \n','Hs',Hs(2)/m2cm,Hs(1)/m2cm,labelUnitDist)
     fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','Hmean',Hbar(2)/m2cm,Hbar(1)/m2cm,labelUnitDist)
@@ -143,27 +137,76 @@ for loopIndex = 1:numCases
     fprintf('%s \t\t %-6.4f \n','Kr',Kr(1))
     fprintf('%s \t %-6.4f \t %-6.4f \n','d/Ho',dHo(2),dHo(1))
     fprintf('%s \t %-6.4f \t %-6.4f \n','d/Lo',dLo(2),dLo(1))
-end
-
-d=d/m2cm;
-
-% File Output
-if single_case
-    fileOutputArgs = {};
-    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
-
+    
     if fileOutputData{1}
-        fId = fopen('output\irr_wave_trans.txt', 'wt');
-        
-        fprintf(fId, 'Wave Height versus Cumulative Probability\nDistribution of Exceedance\n\n');
-        
-        fprintf(fId, 'Deep Water\tWater Depth = %-6.2f %s\n', d, labelUnitDist);
-        fprintf(fId, 'H (%s)\tCDF\tH(%s)\tCDF2\n', labelUnitDist, labelUnitDist);
-        
-        for loopIndex = 1:length(plot1Hxo)
-            fprintf(fId, '%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f\n', plot1Hxo(loopIndex), cdfo(loopIndex), plot2Hx(loopIndex), cdfx(loopIndex));
+        if ~single_case
+            fprintf(fId, 'Case #%d\n\n', loopIndex);
         end
         
-        fclose(fId);
+        fprintf(fId, 'Input\n');
+        fprintf(fId, 'Ho\t%6.2f %s\n', Ho/m2cm, labelUnitDist);
+        fprintf(fId, 'd\t%6.2f %s\n', d/m2cm, labelUnitDist);
+        fprintf(fId, 'Ts\t%6.2f s\n', Ts);
+        fprintf(fId, 'cotnsl\t%6.2f\n', cotnsl);
+        fprintf(fId, 'direc\t%6.2f deg\n\n', direc);
+        
+        fprintf(fId, '\t%s\t\t%s\t%s\n','Subject','Deep','Units');
+        fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','Hs',Hs(2)/m2cm,Hs(1)/m2cm,labelUnitDist);
+        fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','Hmean',Hbar(2)/m2cm,Hbar(1)/m2cm,labelUnitDist);
+        fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','Hrms',Hrms(2)/m2cm,Hrms(1)/m2cm,labelUnitDist);
+        fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','H10%',H10(2)/m2cm,H10(1)/m2cm,labelUnitDist);
+        fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','H02%',H02(2)/m2cm,H02(1)/m2cm,labelUnitDist);
+        fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','Hmax%',Hmax(2)/m2cm,Hmax(1)/m2cm,labelUnitDist);
+        
+        fprintf(fId, '\n');
+        
+        fprintf(fId, '%s\t%6.4f\t\t%6.4f\n','Ks',Ks(2),Ks(1));
+        fprintf(fId, '%s\t%6.4f\t\t%6.4f\t%s\n','SBrms',SBrms(2)/m2cm,SBrms(1)/m2cm,labelUnitDist);
+        fprintf(fId, '%s\t%6.4f\t\t%6.4f\t%s\n','Sw',Sw(2)/m2cm,Sw(1)/m2cm,labelUnitDist);
+        fprintf(fId, '%s\t%6.4f\t\t%6.4f\n','Ho/Lo',HoLo(1),HoLo(1));
+        fprintf(fId, '%s\t%6.4f\n','Kr',Kr(1));
+        fprintf(fId, '%s\t%6.4f\t\t%6.4f\n','d/Ho',dHo(2),dHo(1));
+        fprintf(fId, '%s\t%6.4f\t\t%6.4f\n','d/Lo',dLo(2),dLo(1));
+        
+        if loopIndex < numCases
+            fprintf(fId, '\n--------------------------------------\n\n');
+        end
+    end
+end
+
+if fileOutputData{1}
+    fclose(fId);
+end
+
+if single_case
+    plot1Hxo = Hxo/m2cm;
+    figure(1)
+    plot(plot1Hxo,cdfo)
+    title('Deep Water')
+    xlabel(['H [' labelUnitDist ']'])
+    ylabel('CDF')
+
+    plot2Hx = Hx/m2cm;
+    figure(2)
+    plot(plot2Hx,cdfx)
+    title('Subject Depth')
+    xlabel(['H [' labelUnitDist ']'])
+    ylabel('CDF2')
+
+    if fileOutputData{1}
+        fId = fopen('output\irr_wave_trans_plot.txt', 'wt');
+
+        fprintf(fId, 'Wave Height versus Cumulative Probability\nDistribution of Exceedance\n\n');
+        
+        fprintf(fId, 'Deep Water\tWater Depth = %-6.2f %s\n', d/m2cm, labelUnitDist);
+        fprintf(fId, 'H (%s)\tCDF\tH(%s)\tCDF2\n', labelUnitDist, labelUnitDist);
+
+        for loopIndex2 = 1:length(plot1Hxo)
+            fprintf(fId, '%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f\n',...
+                plot1Hxo(loopIndex2),...
+                cdfo(loopIndex2),...
+                plot2Hx(loopIndex2),...
+                cdfx(loopIndex2));
+        end
     end
 end

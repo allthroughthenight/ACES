@@ -69,6 +69,14 @@ b13=0.70;
 aavg=0.88;
 bavg=0.69;
 
+% File Output
+fileOutputArgs = {};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+if fileOutputData{1}
+    fId = fopen('output/irregular_runup.txt', 'wt');
+end
+
 for loopIndex = 1:numCases
     if ~single_case
         Hs0 = Hs0List(loopIndex);
@@ -94,4 +102,29 @@ for loopIndex = 1:numCases
     fprintf('%s \t %-6.2f %s \n','Avg. of highest 1/10 runups',R110,labelUnitDist)
     fprintf('%s \t\t %-6.2f %s \n','Avg. of highest 1/3 runups',R13,labelUnitDist)
     fprintf('%s \t\t\t\t\t %-6.2f %s \n','Maximum runup',Ravg,labelUnitDist)
+
+    if fileOutputData{1}
+        if ~single_case
+            fprintf(fId, 'Case #%d\n\n', loopIndex);
+        end
+        
+        fprintf(fId, 'Input\n');
+        fprintf(fId, 'Hs0\t\t%6.2f %s\n', Hs0, labelUnitDist);
+        fprintf(fId, 'Tp\t\t%6.2f s\n', Tp);
+        fprintf(fId, 'cottheta\t%6.2f\n\n', cottheta);
+        
+        fprintf(fId, '%s \t\t\t %6.2f %s \n','Maximum runup',Rmax,labelUnitDist);
+        fprintf(fId, '%s \t %6.2f %s \n','Runup exceeded by 2% of runup',R2,labelUnitDist);
+        fprintf(fId, '%s \t %6.2f %s \n','Avg. of highest 1/10 runups',R110,labelUnitDist);
+        fprintf(fId, '%s \t %6.2f %s \n','Avg. of highest 1/3 runups',R13,labelUnitDist);
+        fprintf(fId, '%s \t\t\t %6.2f %s \n','Maximum runup',Ravg,labelUnitDist);
+        
+        if loopIndex < numCases
+            fprintf(fId, '\n--------------------------------------\n\n');
+        end
+    end
+end
+
+if fileOutputData{1}
+    fclose(fId);
 end

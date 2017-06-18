@@ -99,6 +99,14 @@ else
     d2List = varData(6, :);
 end
 
+% File Output
+fileOutputArgs = {};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+if fileOutputData{1}
+    fId = fopen('output\snells_law.txt', 'wt');
+end
+
 for loopIndex = 1:numCases
     if ~single_case
         H1 = H1List(loopIndex);
@@ -156,15 +164,19 @@ for loopIndex = 1:numCases
     fprintf('%s \t\t\t\n','Breaking parameters')
     fprintf('%s \t\t %-5.2f %s \t\n','Breaking height',Hb,labelUnitDist)
     fprintf('%s \t\t\t %-5.2f %s \t\n','Breaking depth',db,labelUnitDist)
-end
-
-% File Output
-if single_case
-    fileOutputArgs = {};
-    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
-
+    
     if fileOutputData{1}
-        fId = fopen('output\snells_law.txt', 'wt');
+        if ~single_case
+            fprintf(fId, 'Case #%d\n\n', loopIndex);
+        end
+        
+        fprintf(fId, 'Input\n');
+        fprintf(fId, 'H1\t%6.2f %s\n', H1, labelUnitDist);
+        fprintf(fId, 'T\t%6.2f s\n', T);
+        fprintf(fId, 'd1\t%6.2f %s\n', d1, labelUnitDist);
+        fprintf(fId, 'alpha1\t%6.2f deg\n', alpha1);
+        fprintf(fId, 'cotphi\t%6.2f\n', cotphi);
+        fprintf(fId, 'd2\t%6.2f %s\n\n', d2, labelUnitDist);
         
         fprintf(fId, '\t\t\t %s \t\t %s \t\t %s \t\t %s\n','Known','Deepwater','Subject','Units');
         fprintf(fId, '%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s \n','Wave height',H1,H0,H2,labelUnitDist);
@@ -178,9 +190,15 @@ if single_case
         fprintf(fId, '%s \t\t %-5.2f \n','Wave steepness',HL);
         fprintf(fId, '\n');
         fprintf(fId, '%s \t\t\t\n','Breaking parameters');
-        fprintf(fId, '%s \t\t %-5.2f %s \t\n','Breaking height',Hb,labelUnitDist);
-        fprintf(fId, '%s \t\t\t %-5.2f %s \t\n','Breaking depth',db,labelUnitDist);
+        fprintf(fId, '%s \t %-5.2f %s \t\n','Breaking height',Hb,labelUnitDist);
+        fprintf(fId, '%s \t\t %-5.2f %s \t\n','Breaking depth',db,labelUnitDist);
         
-        fclose(fId);
+        if loopIndex < numCases
+            fprintf(fId, '\n--------------------------------------\n\n');
+        end
     end
+end
+
+if fileOutputData{1}
+    fclose(fId);
 end

@@ -70,6 +70,14 @@ else
     ro_bLList = varData(5, :);
 end
 
+% File Output
+fileOutputArgs = {};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+if fileOutputData{1}
+    fId = fopen('output/beach_nourishment.txt', 'wt');
+end
+
 for loopIndex = 1:numCases
     if ~single_case
         Vol_i = Vol_iList(loopIndex);
@@ -144,9 +152,32 @@ for loopIndex = 1:numCases
 
     Vol_D = R_A * Vol_i;
 
-        fprintf('%s \t\t\t %-6.2f \t \n','Overfill Ratio, R_A',R_A);
-        fprintf('%s \t\t\t %-6.2f \t \n','Renourishment factor, R_j',R_j);
-        fprintf('%s \t\t\t %-6.2f %s \t \n','Design Volume, Vol_D',Vol_D,labelUnitVolumeRate);
+    fprintf('%s \t\t\t %-6.2f \t \n','Overfill Ratio, R_A',R_A);
+    fprintf('%s \t\t %-6.2f \t \n','Renourishment factor, R_j',R_j);
+    fprintf('%s \t\t\t %-6.2f %s \t \n','Design Volume, Vol_D',Vol_D,labelUnitVolumeRate);
+    
+    if fileOutputData{1}
+        if ~single_case
+            fprintf(fId, 'Case #%d\n\n', loopIndex);
+        end
+        
+        fprintf(fId, 'Input\n');
+        fprintf(fId, 'Vol_i\t%6.2f %s\n', Vol_i, labelUnitVolumeRate);
+        fprintf(fId, 'M_R\t%6.2f %s\n', M_R, labelUnitGrain);
+        fprintf(fId, 'ro_n\t%6.2f\n', ro_n);
+        fprintf(fId, 'M_b\t%6.2f %s\n', M_b, labelUnitGrain);
+        fprintf(fId, 'ro_b\t%6.2f\n\n', ro_b);
+        
+        fprintf(fId, '%s \t\t %6.2f \t \n','Overfill Ratio, R_A',R_A);
+        fprintf(fId, '%s \t %6.2f \t \n','Renourishment factor, R_j',R_j);
+        fprintf(fId, '%s \t\t %6.2f %s \t \n','Design Volume, Vol_D',Vol_D,labelUnitVolumeRate);
+        
+        if loopIndex < numCases
+            fprintf(fId, '\n--------------------------------------\n\n');
+        end
+    end
 end
 
-
+if fileOutputData{1}
+    fclose(fId);
+end

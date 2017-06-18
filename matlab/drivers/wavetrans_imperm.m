@@ -181,6 +181,14 @@ if option==3
     end
 end
 
+% File Output
+fileOutputArgs = {};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+if fileOutputData{1}
+    fId = fopen('output/wavetrans_imperm.txt', 'wt');
+end
+
 for loopIndex = 1:numCases
     if ~single_case
         H = HList(loopIndex);
@@ -251,20 +259,40 @@ for loopIndex = 1:numCases
         [Ht]=VERTKT(H,freeb,B,ds,dl);
         fprintf('%s \t %-6.3f \n','Transmitted wave height',Ht)
     end
-end
-
-if single_case
-    % File Output
-    fileOutputArgs = {};
-    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
-
+    
     if fileOutputData{1}
-        fId = fopen('output/wavetrans_imperm.txt', 'wt');
+        if ~single_case
+            fprintf(fId, 'Case #%d\n\n', loopIndex);
+        end
+        
+        fprintf(fId, 'Input\n');
+        fprintf(fId, 'H\t\t%6.2f %s\n', H, labelUnitDist);
+        fprintf(fId, 'T\t\t%6.2f %s\n', T, labelUnitDist);
+        fprintf(fId, 'cotphi\t\t%6.2f\n', cotphi);
+        fprintf(fId, 'ds\t\t%6.2f %s\n', ds, labelUnitDist);
+        fprintf(fId, 'cottheta\t%6.2f\n', cottheta);
+        fprintf(fId, 'hs\t\t%6.2f %s\n', hs, labelUnitDist);
+        fprintf(fId, 'B\t\t%6.2f %s\n', B, labelUnitDist);
+        
+        if option == 1
+            fprintf(fId, 'R\t\t%6.2f %s\n', R, labelUnitDist);
+        end
+        
+        if option == 2
+            fprintf(fId, 'hB\t\t%6.2f %s\n', hB, labelUnitDist);
+        end
+        
+        if option == 3
+            fprintf(fId, 'a\t\t%6.3f\n', a);
+            fprintf(fId, 'b\t\t%6.3f\n', b);
+        end
+        
+        fprintf(fId, '\n');
         
         if option==3
-            fprintf(fId, '%s \t\t\t\t\t\t %-6.3f \n','Runup',R);
+            fprintf(fId, '%s \t\t\t\t %6.3f \n','Runup',R);
         elseif option==4
-            fprintf(fId, '%s \t\t\t\t\t\t %-6.3f \n','Runup',R);
+            fprintf(fId, '%s \t\t\t\t %6.3f \n','Runup',R);
         end
 
         if option~=2
@@ -273,6 +301,12 @@ if single_case
             fprintf(fId, '%s \t %-6.3f \n','Transmitted wave height',Ht);
         end
         
-        fclose(fId);
+        if loopIndex < numCases
+            fprintf(fId, '\n--------------------------------------\n\n');
+        end
     end
+end
+
+if fileOutputData{1}
+    fclose(fId);
 end
