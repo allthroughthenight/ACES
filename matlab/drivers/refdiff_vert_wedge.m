@@ -83,18 +83,6 @@ if single_case
         [xcor] = USER_INPUT_DATA_VALUE(['Enter xcor: x-coordinate (' labelUnitDist '): '], -5280, 5280);
 
         [ycor] = USER_INPUT_DATA_VALUE(['Enter ycor: y-coordinate (' labelUnitDist '): '], -5280, 5280);
-    else
-        [x0] = USER_INPUT_DATA_VALUE(['Enter x0: x start coordinate (' labelUnitDist '): '], -5280, 5280);
-
-        [xend] = USER_INPUT_DATA_VALUE(['Enter xend: x end coordinate (' labelUnitDist '): '], -5280, 5280);
-
-        [dx] = USER_INPUT_DATA_VALUE(['Enter dx: x spatial increment (' labelUnitDist '): '], 0.1, 5280);
-
-        [y0] = USER_INPUT_DATA_VALUE(['Enter y0: y start coordinate (' labelUnitDist '): '], -5280, 5280);
-
-        [yend] = USER_INPUT_DATA_VALUE(['Enter yend: y end coordinate (' labelUnitDist '): '], -5280, 5280);
-
-        [dy] = USER_INPUT_DATA_VALUE(['Enter dy: y spatial increment (' labelUnitDist '): '], 0.1, 5280);
     end
     
     numCases = 1;
@@ -110,14 +98,6 @@ else
         multiCaseData = [multiCaseData;...
             {['xcor: x-coordinate (' labelUnitDist ')'], -5280, 5280;...
             ['ycor: y-coordinate (' labelUnitDist ')'], -5280, 5280}];
-    else
-        multiCaseData = [multiCaseData;...
-            {['x0: x start coordinate (' labelUnitDist ')'], -5280, 5280;...
-            ['xend: x end coordinate (' labelUnitDist ')'], -5280, 5280;...
-            ['dx: x spatial increment (' labelUnitDist ')'], 0.1, 5280;...
-            ['y0: y start coordinate (' labelUnitDist ')'], -5280, 5280;...
-            ['yend: y end coordinate (' labelUnitDist ')'], -5280, 5280;...
-            ['dy: y spatial increment (' labelUnitDist ')'], 0.1, 5280}];
     end
     
     [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
@@ -131,14 +111,22 @@ else
     if mode == 0
         xcorList = varData(6, :);
         ycorList = varData(7, :);
-    else
-        x0List = varData(6, :);
-        xendList = varData(7, :);
-        dxList = varData(8, :);
-        y0List = varData(9, :);
-        yendList = varData(10, :);
-        dyList = varData(11, :);
     end
+end
+
+%Define Uniform Grid
+if mode == 1
+    [x0] = USER_INPUT_DATA_VALUE(['Enter x0: x start coordinate (' labelUnitDist '): '], -5280, 5280);
+
+    [xend] = USER_INPUT_DATA_VALUE(['Enter xend: x end coordinate (' labelUnitDist '): '], -5280, 5280);
+
+    [dx] = USER_INPUT_DATA_VALUE(['Enter dx: x spatial increment (' labelUnitDist '): '], 0.1, 5280);
+
+    [y0] = USER_INPUT_DATA_VALUE(['Enter y0: y start coordinate (' labelUnitDist '): '], -5280, 5280);
+
+    [yend] = USER_INPUT_DATA_VALUE(['Enter yend: y end coordinate (' labelUnitDist '): '], -5280, 5280);
+
+    [dy] = USER_INPUT_DATA_VALUE(['Enter dy: y spatial increment (' labelUnitDist '): '], 0.1, 5280);
 end
 
 fileOutputArgs = {};
@@ -166,13 +154,6 @@ for loopIndex = 1:numCases
         if mode == 0
             xcor = xcorList(loopIndex);
             ycor = ycorList(loopIndex);
-        else
-            x0 = x0List(loopIndex);
-            xend = xendList(loopIndex);
-            dx = dxList(loopIndex);
-            y0 = y0List(loopIndex);
-            yend = yendList(loopIndex);
-            dy = dyList(loopIndex);
         end
     end
     
