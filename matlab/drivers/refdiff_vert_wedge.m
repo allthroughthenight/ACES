@@ -112,12 +112,12 @@ else
             ['ycor: y-coordinate (' labelUnitDist ')'], -5280, 5280}];
     else
         multiCaseData = [multiCaseData;...
-            {['x0: x start coordinate (' labelUnitDist '): '], -5280, 5280;...
-            ['xend: x end coordinate (' labelUnitDist '): '], -5280, 5280;...
-            ['dx: x spatial increment (' labelUnitDist '): '], 0.1, 5280;...
-            ['y0: y start coordinate (' labelUnitDist '): '], -5280, 5280;...
-            ['yend: y end coordinate (' labelUnitDist '): '], -5280, 5280;...
-            ['dy: y spatial increment (' labelUnitDist '): '], 0.1, 5280}];
+            {['x0: x start coordinate (' labelUnitDist ')'], -5280, 5280;...
+            ['xend: x end coordinate (' labelUnitDist ')'], -5280, 5280;...
+            ['dx: x spatial increment (' labelUnitDist ')'], 0.1, 5280;...
+            ['y0: y start coordinate (' labelUnitDist ')'], -5280, 5280;...
+            ['yend: y end coordinate (' labelUnitDist ')'], -5280, 5280;...
+            ['dy: y spatial increment (' labelUnitDist ')'], 0.1, 5280}];
     end
     
     [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
@@ -140,6 +140,20 @@ else
         dyList = varData(11, :);
     end
 end
+
+fileOutputArgs = {};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+if fileOutputData{1}
+    if mode == 0
+        outputAppend = 'single_point';
+    else
+        outputAppend = 'uniform_grid';
+    end
+
+    fId = fopen(['output\refdiff_vert_wedge_' outputAppend '.txt'], 'wt');
+end
+
 
 for loopIndex = 1:numCases
     if ~single_case
@@ -164,6 +178,34 @@ for loopIndex = 1:numCases
     
     assert(wedgang>=0 && wedgang<=180,'Error: Range is 0.0 to 180.0')
 
+    if fileOutputData{1}
+        if ~single_case
+            fprintf(fId, 'Case #%d\n\n', loopIndex);
+        end
+        
+        fprintf(fId, 'Input\n');
+        fprintf(fId, 'Hi                  %6.2f %s\n', Hi, labelUnitDist);
+        fprintf(fId, 'T                   %6.2f s\n', T);
+        fprintf(fId, 'd                   %6.2f %s\n', d, labelUnitDist);
+        fprintf(fId, 'alpha               %6.2f deg\n', alpha);
+        fprintf(fId, 'wedgang             %6.2f deg\n', wedgang);
+
+        % Single Point
+        if mode == 0
+            fprintf(fId, 'xcor                %6.2f %s\n', xcor, labelUnitDist);
+            fprintf(fId, 'ycor                %6.2f %s\n', ycor, labelUnitDist);
+        else
+            fprintf(fId, 'x0                  %6.2f %s\n', x0, labelUnitDist);
+            fprintf(fId, 'xend                %6.2f %s\n', xend, labelUnitDist);
+            fprintf(fId, 'dx                  %6.2f %s\n', dx, labelUnitDist);
+            fprintf(fId, 'y0                  %6.2f %s\n', y0, labelUnitDist);
+            fprintf(fId, 'yend                %6.2f %s\n', yend, labelUnitDist);
+            fprintf(fId, 'dy                  %6.2f %s\n', dy, labelUnitDist);
+        end
+
+        fprintf(fId, '\n');
+    end
+    
     % Single Point Case
     if mode==0
         [L,k]=WAVELEN(d,T,50,g);
@@ -181,6 +223,13 @@ for loopIndex = 1:numCases
         fprintf('%s \t %6.2f \n','Mod factor (phi)',phi);
         fprintf('%s \t\t\t %6.2f \t %s \n','Wave phase',beta,'rad');
         fprintf('%s \t %6.2f \t %s \n','Mod wave height',H,labelUnitDist);
+        
+        if fileOutputData{1}
+            fprintf(fId, '%s          %6.2f %s\n','Wavelength',L,labelUnitDist);
+            fprintf(fId, '%s    %6.2f\n','Mod factor (phi)',phi);
+            fprintf(fId, '%s          %6.2f %s\n','Wave phase',beta,'rad');
+            fprintf(fId, '%s     %6.2f %s\n','Mod wave height',H,labelUnitDist);
+        end
 
     %Uniform Grid Case
     elseif mode==1
@@ -236,29 +285,8 @@ for loopIndex = 1:numCases
         beta=cat(2,ycors,beta);
         beta=cat(1,xcors,beta);
         disp(beta)
-    end
-end
-
-if single_case
-    fileOutputArgs = {};
-    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
-
-    if fileOutputData{1}
-        if mode == 0
-            outputAppend = 'single_point';
-        else
-            outputAppend = 'uniform_grid';
-        end
         
-        fId = fopen(['output\refdiff_vert_wedge_' outputAppend '.txt'], 'wt');
-        
-        % Single point
-        if mode == 0
-            fprintf(fId, '%s          %6.2f %s\n','Wavelength',L,labelUnitDist);
-            fprintf(fId, '%s    %6.2f\n','Mod factor (phi)',phi);
-            fprintf(fId, '%s          %6.2f %s\n','Wave phase',beta,'rad');
-            fprintf(fId, '%s     %6.2f %s\n','Mod wave height',H,labelUnitDist);
-        else
+        if fileOutputData{1}
             fprintf(fId, 'Combined Reflection and Diffraction by a Vertical Wedge\n\n');
 
             fprintf(fId, 'Incident Wave Height\t=\t%-6.2f\t%s\tWave Period\t=\t%-6.2f\tsec\n', Hi, labelUnitDist, T);
@@ -268,8 +296,8 @@ if single_case
             % phi table
             fprintf(fId, '**** Modification Factors:\n');
             fprintf(fId, '              x=  ');
-            for loopIndex = 2:length(xcors)
-                fprintf(fId, '  %8.2f', xcors(loopIndex));
+            for loopIndex2 = 2:length(xcors)
+                fprintf(fId, '  %8.2f', xcors(loopIndex2));
             end
             fprintf(fId, '\n--------------------------------------------------------------------\n');
             
@@ -285,8 +313,8 @@ if single_case
             fprintf(fId, '--------------------------------------------------------------------\n');
             
             fprintf(fId, '              x=  ');
-            for loopIndex = 2:length(xcors)
-                fprintf(fId, '  %8.2f', xcors(loopIndex));
+            for loopIndex2 = 2:length(xcors)
+                fprintf(fId, '  %8.2f', xcors(loopIndex2));
             end
             % end phi table
             
@@ -296,8 +324,8 @@ if single_case
             fprintf(fId, '**** Modified Wave Heights (%s):\n', labelUnitDist);
             
             fprintf(fId, '              x=  ');
-            for loopIndex = 2:length(xcors)
-                fprintf(fId, '  %8.2f', xcors(loopIndex));
+            for loopIndex2 = 2:length(xcors)
+                fprintf(fId, '  %8.2f', xcors(loopIndex2));
             end
             fprintf(fId, '\n--------------------------------------------------------------------\n');
             
@@ -313,8 +341,8 @@ if single_case
             fprintf(fId, '--------------------------------------------------------------------\n');
             
             fprintf(fId, '              x=  ');
-            for loopIndex = 2:length(xcors)
-                fprintf(fId, '  %8.2f', xcors(loopIndex));
+            for loopIndex2 = 2:length(xcors)
+                fprintf(fId, '  %8.2f', xcors(loopIndex2));
             end
             % end H table
             
@@ -324,8 +352,8 @@ if single_case
             fprintf(fId, '**** Phase Angles (rad):\n');
             
             fprintf(fId, '              x=  ');
-            for loopIndex = 2:length(xcors)
-                fprintf(fId, '  %8.2f', xcors(loopIndex));
+            for loopIndex2 = 2:length(xcors)
+                fprintf(fId, '  %8.2f', xcors(loopIndex2));
             end
             fprintf(fId, '\n--------------------------------------------------------------------\n');
             
@@ -341,35 +369,45 @@ if single_case
             fprintf(fId, '--------------------------------------------------------------------\n');
             
             fprintf(fId, '              x=  ');
-            for loopIndex = 2:length(xcors)
-                fprintf(fId, '  %8.2f', xcors(loopIndex));
+            for loopIndex2 = 2:length(xcors)
+                fprintf(fId, '  %8.2f', xcors(loopIndex2));
             end
             % end beta table
+            
+            fprintf(fId, '\n');
         end
-        
-        fclose(fId);
-        
-        if mode == 1
-            fId = fopen(['output\refdiff_vert_wedge_' outputAppend '_plot.txt'], 'wt');
-            
-            fprintf(fId, 'Combined Reflection and Diffraction by a Vertical Wedge\n');
-            fprintf(fId, 'Wedge Angle: %-8.2f\tInciden Wave Angle: %-8.2f\n\n',...
-                wedgang, alpha);
-            
-            fprintf(fId, '      %s        %s      %s              rad\n',...
-                labelUnitDist, labelUnitDist, labelUnitDist);
-            for rowIndex = (length(ycors) + 1):-1:2
-                for colIndex = 2:length(xcors)
-                    fprintf(fId, '%8.2f%10.2f%8.2f%8.3f%8.2f\n',...
-                        xcors(colIndex),...
-                        ycors(rowIndex - 1),...
-                        H(rowIndex, colIndex),...
-                        phi(rowIndex, colIndex),...
-                        beta(rowIndex, colIndex));
-                end
+    end
+    
+    if fileOutputData{1}
+        if loopIndex < numCases
+            fprintf(fId, '\n--------------------------------------\n\n');
+        end
+    end
+end
+
+if fileOutputData{1}
+    fclose(fId);
+
+    if single_case && mode == 1
+        fId = fopen(['output\refdiff_vert_wedge_' outputAppend '_plot.txt'], 'wt');
+
+        fprintf(fId, 'Combined Reflection and Diffraction by a Vertical Wedge\n');
+        fprintf(fId, 'Wedge Angle: %-8.2f\tInciden Wave Angle: %-8.2f\n\n',...
+            wedgang, alpha);
+
+        fprintf(fId, '      %s        %s      %s              rad\n',...
+            labelUnitDist, labelUnitDist, labelUnitDist);
+        for rowIndex = (length(ycors) + 1):-1:2
+            for colIndex = 2:length(xcors)
+                fprintf(fId, '%8.2f%10.2f%8.2f%8.3f%8.2f\n',...
+                    xcors(colIndex),...
+                    ycors(rowIndex - 1),...
+                    H(rowIndex, colIndex),...
+                    phi(rowIndex, colIndex),...
+                    beta(rowIndex, colIndex));
             end
-            
-            fclose(fId);
         end
+
+        fclose(fId);
     end
 end
