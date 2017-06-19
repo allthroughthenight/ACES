@@ -51,46 +51,163 @@ clc
 
 SET_PATHS();
 
-[metric, g, rho, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
+[single_case] = USER_INPUT_SINGLE_MULTI_CASE();
 
-[H] = USER_INPUT_DATA_VALUE(['Enter H: wave height (' labelUnitDist '): '], 0.1, 200.0);
+[metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
-[T] = USER_INPUT_DATA_VALUE('Enter T: wave period (s): ', 1.0, 1000.0);
+[water, rho] = USER_INPUT_SALT_FRESH_WATER(metric);
 
-[d] = USER_INPUT_DATA_VALUE(['Enter d: water depth (' labelUnitDist '): '], 0.1, 5000.0);
+% if single_case
+%     [H] = USER_INPUT_DATA_VALUE(['Enter H: wave height (' labelUnitDist '): '], 0.1, 200.0);
+% 
+%     [T] = USER_INPUT_DATA_VALUE('Enter T: wave period (s): ', 1.0, 1000.0);
+% 
+%     [d] = USER_INPUT_DATA_VALUE(['Enter d: water depth (' labelUnitDist '): '], 0.1, 5000.0);
+% 
+%     [celdef] = USER_INPUT_FINITE_CHOICE('Enter celdef: celerity definition (1 for Euler, 2 for Stokes): ', {'1', '2'});
+% 
+%     [u] = USER_INPUT_DATA_VALUE(['Enter u: mean velocity (' labelUnitDist 'ps): '], 0.0, 10.0);
+% 
+%     [nofour] = USER_INPUT_DATA_VALUE('Enter nofour: the number of terms in Fourier Series: ', 1, 25);
+% 
+%     [nstep] = USER_INPUT_DATA_VALUE('Enter nsteps: the number of steps in Wave Height ramping: ', 1, 10);
+% 
+%      numCases = 1;
+%      
+% else % multicase 
+%     multiCaseData = {...
+%             ['H: wave height (' labelUnitDist ')'], 0.1, 200.0;...
+%             'T: wave period (sec)', 1.0, 1000.0;...
+%             ['d: water depth (' labelUnitDist ')'], 0.1, 5000.0;...
+%             'celdef: celerity definition (1 for Euler, 2 for Stokes)', 1,2;...
+%             ['u: mean velocity (' labelUnitDist 'ps)'], 1.0, 10.0;...
+%             'nofour: the number of terms in Fourier Series: ', 1, 25;...
+%             'nsteps: the number of steps in Wave Height ramping: ', 1, 10};
+% 
+%     [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
+%     
+%     HList = varData(1, :);
+%     TList = varData(2, :);
+%     dList = varData(3, :);
+%     celdefList = varData(4, :);
+%     uList = varData(5, :);
+%     nofourList = varData(6, :);
+%     nstepsList = varData(7, :);
+% end
 
-[celdef] = USER_INPUT_FINITE_CHOICE('Enter celdef: celerity definition (1 for Euler, 2 for Stokes): ', {'1', '2'});
+H = 6;
+T = 10;
+d = 20;
+celdef = 2;
+u = 0;
+nofour = 18;
+nstep = 4;
+numCases = 1;
 
-[u] = USER_INPUT_DATA_VALUE(['Enter u: mean velocity (' labelUnitDist 'ps): '], 1.0, 10.0);
-
-[nofour] = USER_INPUT_DATA_VALUE('Enter nofour: the number of terms in Fourier Series: ', 1, 25);
-
-[nosteps] = USER_INPUT_DATA_VALUE('Enter nosteps: the number of steps in Wave Height ramping: ', 1, 10);
-
-
-[Hbs]=ERRWAVBRK(H,T,0,d,0.78);
-if false
-	if error==1
-	    str = ['Error: Input wave broken (Hb = ',num2str(Hbs),' m)'];
-	    disp(str)
-	end
-end
-[Hnon,L,Hod,unon]=FWTPRE(g,T,H,d,u);
-
-
-
-% File Output
-fileOutputArgs = {};
-[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
-
-if fileOutputData{1}
-    fId = fopen('output/fourier.txt', 'wt');
-
-    fprintf(fId, 'Partial Listing of Plot Output File 1\n\n');
+for loopIndex = 1:numCases
+    if ~single_case
+        H = HList(loopIndex);
+        T = TList(loopIndex);
+        d = dList(loopIndex);
+        celdef = celdefList(loopIndex);
+        uL = uLList(loopIndex);
+        nofour = nofourList(loopIndex);
+        nstep = nostepsList(loopIndex);
+    end
+      
+    [Hnon,L,Hoverd,unon, deptyp]=FWTPRE(g,T,H,d,u); %Convert dimensional input data to nondimensional data.
+    [Hbs]=ERRWAVBRK1(d,0.75); 
+    assert(H<Hbs,'Error: Input wave broken (Hb = %6.2f %s)',Hbs,labelUnitDist)
+    [ dpi, dhe, dho, sol, z, rhs1, rhs2, b, cosa ] =...
+        FWTCALC( Hnon,Hoverd,unon, nstep, nofour, d, L, deptyp, celdef );
     
-    fprintf(fId, 'Section 1 of the plot output file 1\n\n');
+    % determine overall wave results
+    [k, C, L, u_e, u_mt, u_m, q, r, I, Ek, Ep, E, Ub2, Sxx, Ef, Q, R, ft ] = FWTRSLT( z, nofour, H, g, rho, cosa, deptyp, d );
     
-    fprintf(fId, 'Section 2 of the plot output file 2\n\n');
+    %* if you find hlimit function 
+    %* assert(H<=Hmax, 'ERROR: Limit wave exceeded')
+    
+    fprintf('%s \t\t\t %-6.2f %s/sec \t \n','Celerity',C,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f %s \t \n','Wavelength',L,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f %s/sec \t \n','Mean Eularian fluid velocity',u_e,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f %s/sec \t \n','Mean mass transport velocity',u_mt,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f %s/sec \t \n','Mean velocity relative to wave',u_m,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f %s^2/sec \t \n','Volume flux due to wave',q,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f %s^2/sec^2 \t \n','Bernoulli constant',r,labelUnitDist);
+    fprintf('----Integral Parameters ----- \n')
+    fprintf('%s \t\t\t %-6.2f %s-sec/%s^2 \t \n','Impulse',I,labelUnitWt, labelUnitDist);
+    fprintf('%s \t\t %-8.2f %s-%s/%s^2 \t \n','Kinetic energy',Ek,labelUnitDist,labelUnitWt,labelUnitDist);
+    fprintf('%s \t\t %-8.2f %s-%s/%s^2 \t \n','Potential energy',Ep,labelUnitDist,labelUnitWt,labelUnitDist);
+    fprintf('%s \t\t %-8.2f %s-%s/%s^2 \t \n','Energy density',E,labelUnitDist,labelUnitWt,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f %s^2/sec^2 \t \n','Mean square of bed velocity',Ub2,labelUnitDist);
+    fprintf('%s \t\t %-8.2f %s-%s/%s^2 \t \n','Radiation stress',Sxx,labelUnitDist,labelUnitWt,labelUnitDist);
+    fprintf('%s \t\t %-8.2f %s-%s/sec-%s \t \n','Energy flux (wave power)',Ef,labelUnitDist,labelUnitWt,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f %s^2/sec \t \n','Volume flux',Q,labelUnitDist);
+    fprintf('%s \t\t\t %-6.2f %s^2/sec^2 \t \n','Bernoulli constant',R,labelUnitDist);   
+    
+    fprintf('-------------')
+    fprintf('Solution surface elevations %s %-6.2f \t %-6.2f', labelUnitDist,(z(10)/k), (z(nofour+10)/k) );
+    fprintf('Fourier series coefficients b(i) i=1... %-6.2f', nofour )
+        for i= 1:nofour
+            fprintf('%-6.8f\n',z(i+nofour+10) )
+        end 
+    
+    
+    
+    [kinematics] = USER_INPUT_FINITE_CHOICE(...
+        'Do you want to display kinematics at point of interest ((Y)es or (N)o): ',...
+        {'Y', 'y', 'N', 'n'});
+    
+    while strcmp(kinematics, 'Y') || strcmp(kinematics, 'y')
+        [xL] = USER_INPUT_DATA_VALUE('Enter xL: horizontal coordinate as fraction of wavelength (x/L): ', 0.0, 1.0);
+        [y] = USER_INPUT_DATA_VALUE(['Enter z: vertical coordinate (' labelUnitDist '): '], -5100.0, 100.0);
 
-    fclose(fId);
+        [ ubig, wbig, ax, ay, pbig, eta ] = FWTKIN( xL, y, dpi, nofour, k, d,  z, ft, deptyp, g, rho );
+
+        fprintf('%s \t\t %-6.2f %s/sec \t \n','Horz. velocity',ubig,labelUnitDist);
+        fprintf('%s \t\t %-6.2f %s/sec \t \n','Vert. velocity',wbig,labelUnitDist);
+        fprintf('%s \t %-6.2f %s/sec^2 \t \n','Horz. acceleration',ax,labelUnitDist);
+        fprintf('%s \t %-6.2f %s/sec^2 \t \n','Vert. acceleration',ay,labelUnitDist);
+        fprintf('%s \t\t\t %-8.2f %s/%s^2 \t \n','Pressure',pbig,labelUnitWt,labelUnitDist);
+        fprintf('%s \t\t\t %-6.2f %s \t \n','Elevation',eta,labelUnitDist);
+        
+        [kinematics] = USER_INPUT_FINITE_CHOICE(...
+            'Do you want to display kinematics at point of interest ((Y)es or (N)o): ',...
+            {'Y', 'y', 'N', 'n'});
+    end
+      
+
+
+%             if single_case
+%             %Plotting waveform
+%             CALL FWTPLD 
+%             Use graphics routine to display plot data.
+%             CALL FWTPLT (-D*LENFAC)
+
+
 end
+
+    if single_case
+        fileOutputArgs = {'Enter the filename (no extension): ', 'Enter the description for this file: '};
+        [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+        if fileOutputData{1}
+            fId = fopen(['output\' fileOutputData{2} '.txt'], 'wt');
+
+            fprintf(fId, 'Kinematics at z for %s\n\n', fileOutputData{3});
+            fprintf(fId, 'X/L \tETA (%s) \tU (%s/sec) \tW (%s/sec) \tPressure (%s/%s^2) \ta_x (%s/sec^2) \ta_z (%s/sec) \n',labelUnitDist,labelUnitDist,labelUnitDist,labelUnitWt,labelUnitDist, labelUnitDist,labelUnitDist);
+
+            for loopIndex = 1:length(plotxL)
+                fprintf(fId, '%-6.3f\t%-6.3f\t\t%-6.3f\t\t%-6.3f\n',...
+                    plotxL(loopIndex),...
+                    ploteta(loopIndex),...
+                    plotu(loopIndex),...
+                    plotw(loopIndex)), ...
+                    plotpress(loopIndex),...
+                    plotax(loopIndex),...
+                    plotay(loopIndex)
+            end
+        end
+    end
+
+  
