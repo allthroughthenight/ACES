@@ -54,25 +54,25 @@ SET_PATHS();
 
 [metric, g, labelUnitDist, labelUnitWt] = USER_INPUT_METRIC_IMPERIAL();
 
-% Enter general time & output specifications
+inputDataList = {...
+    'year simulation starts (YYYY)', 1900, 2050;...
+    'month simulation starts (MM)', 1, 12;...
+    'day simulation starts (DD)', 1, 31;...
+    'hour simulation starts (HH.H)', 0, 24;...
+    'length of record (tlhrs) (HH.H)', 0, 744;...
+    'output time interval (min)', 1, 60;...
+    ['mean water level height above datum [' labelUnitDist ']'], -100, 100;...
+    'gauge longitude (deg)', -180, 180};
+[outputDataList] = USER_INPUT_FILE_INPUT_SINGLE(inputDataList);
 
-[year] = USER_INPUT_DATA_VALUE('Enter year simulation starts (YYYY): ', 1900, 2050);
-
-[mon] = USER_INPUT_DATA_VALUE('Enter month simulation starts (MM): ', 1, 12);
-
-[day] = USER_INPUT_DATA_VALUE('Enter day simulation starts (DD): ', 1, 31);
-
-[hr] = USER_INPUT_DATA_VALUE('Enter hour simulation starts (HH.H): ', 0, 24);
-
-[tlhrs] = USER_INPUT_DATA_VALUE('Enter length of record (tlhrs) (HH.H): ', 0, 744);
-
-[delt] = USER_INPUT_DATA_VALUE('Enter output time interval (min): ', 1, 60);
-
-[gauge0] = USER_INPUT_DATA_VALUE(['Enter mean water level height above datum [' labelUnitDist ']: '], -100, 100);
-
-% Enter Constituents data entry 
-
-[glong] = USER_INPUT_DATA_VALUE('Enter gauge longitude (deg): ', -180, 180);
+year = outputDataList(1);
+mon = outputDataList(2);
+day = outputDataList(3);
+hr = outputDataList(4);
+tlhrs = outputDataList(5);
+delt = outputDataList(6);
+gauge0 = outputDataList(7);
+glong = outputDataList(8);
 
 % constituent_data_use_default = USER_INPUT_FINITE_CHOICE(...
 %     ['Would you like to load the default Constituent Data or load your own from a file?\n'...
