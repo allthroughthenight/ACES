@@ -23,8 +23,12 @@ def WAVELEN(d, T, n, g):
     L = L2
     k = 2 * math.pi / L
 
-    # TODO
-    ko = np.where(d <= 0)
-    L[ko] = 0
+    if isinstance(d, list):
+        ko = [index for index, value in enumerate(d) if value <= 0]
+        for index in ko:
+            L[index] = 0
+    else:
+        if d <= 0:
+            L[0] = 0;
 
     return L, k
