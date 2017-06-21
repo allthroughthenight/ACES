@@ -1,4 +1,4 @@
-function [L,k]=WAVELEN(d,T,n,g);
+function [L,k]=WAVELEN(d,T,n,g)
 %
 % function wavelength(d,T,n,g);
 %
@@ -13,7 +13,7 @@ Leck = (g*(T^2)*0.5/pi)*sqrt(tanh(4*pi*pi*d/(T*T*g)));  % 1984 SPM, p.2-7
 
 L1 = Leck;
 
-for k=1:n,
+for k=1:n
     L2 = (g*(T^2)*0.5/pi)*tanh(2*pi*d./L1);   % check if it's right
     L1 = L2;                                 % redo
 end

@@ -70,8 +70,8 @@ function [KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,d,hs,b,numlay,thk,len,nummat,diam,por
     % begin iterating for phi
     diff=100;
     while diff>(10^-3)
-       % [RIi,Ru,fs]=MADSN2(lsub,phi,ko);
-        [RIi,Ru,fs]=MADSN2(lsl,phi,ko);
+        [RIi,Ru,fs]=MADSN2(lsub,phi,ko);
+        %[RIi,Ru,fs]=MADSN2(lsl,phi,ko);
         newphi=0.29*(diam(1)/d)^0.2*(Ru*2*A/(d/cotssl))^0.3*fs;
         newphi=atan(newphi)/2;
         diff=abs(newphi-phi);

@@ -78,6 +78,7 @@ if single_case
         d50 = [d50 d50Input];
         por = [por porInput];
     end
+    por = por/100;
     fprintf('%s \n\n','Breakwater geometry input: ');
     [hs] = USER_INPUT_DATA_VALUE(['Enter hs: structure height above toe (' labelUnitDist '): '], 0.1, 200.0);
     
