@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../functions')
 import USER_INPUT
 
 class BaseDriver(object):

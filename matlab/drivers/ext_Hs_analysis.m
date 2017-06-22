@@ -72,14 +72,14 @@ else
         fileData = textscan(fId, '%f');
 
         fclose(fId);
-        
+
         if length(fileData{1} >= 4) && length(fileData{1} <= 203)
             accepted = true;
         else
             fprintf('File must have Nt, K, d, and between 1 and 200 storm heights.\n');
         end
     end
-    
+
     Nt = fileData{1}(1);
     K = fileData{1}(2);
     d = fileData{1}(3);
@@ -366,16 +366,16 @@ fileOutputArgs = {};
 
 if fileOutputData{1}
     fId = fopen('output/ext_Hs_analysis.txt', 'wt');
-    
+
     distList = {'FISHER-TIPPETT TYPE (FT-I) DISTRIBUTION',...
         'WEIBULL DISTRIBUTION k = 0.75',...
         'WEIBULL DISTRIBUTION k = 1.00',...
         'WEIBULL DISTRIBUTION k = 1.40',...
         'WEIBULL DISTRIBUTION k = 2.00'};
-    
+
     fprintf(fId, 'EXTREMAL SIGNIFICANT WAVE HEIGHT ANALYSIS\n');
     fprintf(fId, 'DELFT Data\n\n');
-    
+
     fprintf(fId, 'N = %d STORMS\n', N);
     fprintf(fId, 'NT = %d STORMS\n', Nt);
     fprintf(fId, 'NU = %-6.2f\n', nu);
@@ -383,7 +383,7 @@ if fileOutputData{1}
     fprintf(fId, 'LAMBDA = %-6.2f STORMS PER YEAR\n', lambda);
     fprintf(fId, 'MEAN OF SAMPLE DATA = %-6.3f FEET\n', Sx/N);
     fprintf(fId, 'STANDARD DEVIATION OF SAMPLE = %-6.3f FEET\n', standev);
-    
+
     for distIndex = 1:length(distList)
         fprintf(fId, '\n%s\n', distList{distIndex});
         fprintf(fId, 'F(Hs) = EXP(-EXP(-(Hs-B)/A)) - Equation 1\n');
@@ -420,6 +420,6 @@ if fileOutputData{1}
                 Hsr(index(loopIndex), distIndex) + 1.28*sigr(index(loopIndex), distIndex));
         end
     end
-    
+
     fclose(fId);
 end

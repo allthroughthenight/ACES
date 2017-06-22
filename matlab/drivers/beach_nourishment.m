@@ -8,7 +8,7 @@ clc
 
 % Updated by: Yaprak Onat
 % Date Created: June 21, 2016
-% Date Modified: 
+% Date Modified:
 
 % Requires the following functions:
 
@@ -60,9 +60,9 @@ else
             'ro_n: Native standard deviation (phi)', 0.01, 5.0;...
             ['M_b: Borrow mean (' labelUnitGrain ')'], -5.0, 5.0;...
             'ro_b: Borrow standard deviation (phi)', 0.01, 5.0;};
-            
+
     [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
-    
+
     Vol_iList = varData(1, :);
     M_RList = varData(2, :);
     ro_nList = varData(3, :);
@@ -86,36 +86,36 @@ for loopIndex = 1:numCases
         M_b = M_bList(loopIndex);
         ro_b = ro_bLList(loopIndex);
     end
- 
+
     catg= zeros; % category of the material according to table 6-4-1 in Aces manual
-     
+
     if metric    % If Means are entered in mm, convert to phi units for computations.
         M_R = - ( log(M_R) / log(2.) );
         M_b = - ( log(M_b) / log(2.) );
     end
-    
+
     % Relationships of phi means and pho standard deviations
-    if ro_b>ro_n 
+    if ro_b>ro_n
         disp ('Borrow material is more poorly sorted than native material')
         if M_b>M_R
             disp('Borrow material is finer than native material')
             catg=1;
-        else 
+        else
             disp ('Borrow material is coarser than native material')
             catg=2;
-        end 
-    else 
+        end
+    else
         if M_b<M_R
            disp('Borrow material is coarser than native material')
            catg=3;
-        else 
+        else
            disp('Borrow material is finer than native material')
            catg=4;
         end
-    end 
-    
+    end
+
     delta = (M_b-M_R)/ro_n; % phi mean difference
-    sigma = ro_b/ro_n; % phi sorting ratio     
+    sigma = ro_b/ro_n; % phi sorting ratio
     if sigma == 1
             theta_1=0;
             theta_2=inf;
@@ -127,24 +127,24 @@ for loopIndex = 1:numCases
         else
             theta_1 = -1;
             theta_2 = max(-1, (1+(2*delta/(1-sigma^2))));
-        end 
+        end
     end
-    
+
     % calculate overfill ratio
     bk1 = (theta_1-delta)/sigma;
     fn1 = BOVERF(bk1);
     ft1 = BOVERF(theta_1);
-    
+
     if theta_2 == inf
        fn3 = ((1.0-ft1)/sigma)*exp(0.5*(theta_1^2-bk1^2));
        R_A = 1.0/(fn1+fn3);
-    else 
+    else
         bk2 = (theta_2-delta)/sigma;
         fn2 = BOVERF(bk2);
         ft2 = BOVERF(theta_2);
         fn3 = ((ft2-ft1)/sigma)*exp(0.5*(theta_1^2-bk1^2));
         R_A  = 1.0/(1-fn2+fn1+fn3);
-    end 
+    end
 
     assert(R_A>=1.0,'Error: Overfill ratio (R_A) < 1.0 Respecify data',R_A)
 
@@ -155,23 +155,23 @@ for loopIndex = 1:numCases
     fprintf('%s \t\t\t %-6.2f \t \n','Overfill Ratio, R_A',R_A);
     fprintf('%s \t\t %-6.2f \t \n','Renourishment factor, R_j',R_j);
     fprintf('%s \t\t\t %-6.2f %s \t \n','Design Volume, Vol_D',Vol_D,labelUnitVolumeRate);
-    
+
     if fileOutputData{1}
         if ~single_case
             fprintf(fId, 'Case #%d\n\n', loopIndex);
         end
-        
+
         fprintf(fId, 'Input\n');
         fprintf(fId, 'Vol_i\t%6.2f %s\n', Vol_i, labelUnitVolumeRate);
         fprintf(fId, 'M_R\t%6.2f %s\n', M_R, labelUnitGrain);
         fprintf(fId, 'ro_n\t%6.2f\n', ro_n);
         fprintf(fId, 'M_b\t%6.2f %s\n', M_b, labelUnitGrain);
         fprintf(fId, 'ro_b\t%6.2f\n\n', ro_b);
-        
+
         fprintf(fId, '%s \t\t %6.2f \t \n','Overfill Ratio, R_A',R_A);
         fprintf(fId, '%s \t %6.2f \t \n','Renourishment factor, R_j',R_j);
         fprintf(fId, '%s \t\t %6.2f %s \t \n','Design Volume, Vol_D',Vol_D,labelUnitVolumeRate);
-        
+
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
