@@ -9,7 +9,7 @@ clc
 
 % Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
 % Date Created: April 21, 2011
-% Date Modified: 
+% Date Modified:
 
 % Requires the following functions:
 % DEEP_TRANS
@@ -53,9 +53,9 @@ if single_case
     elseif option==2
        [Hb] = USER_INPUT_DATA_VALUE(['Enter Hb: breaking wave height (' labelUnitDist '): '], 0.1, 100.0);
     end
-  
+
     [alpha] = USER_INPUT_DATA_VALUE('Enter alpha: wave crest angle with shoreline (deg): ', 0, 90.0);
-    
+
     [K] = USER_INPUT_DATA_VALUE('Enter K: emprical coefficient: ', 0.0, 1.0);
 
     numCases=1;
@@ -65,21 +65,21 @@ else
      elseif option==2
         multiCaseData = [ multiCaseData; {'Enter Hb: breaking water wave height (' labelUnitDist '): ', 0.1, 100.0}];
      end
-    
+
      multiCaseData = [ multiCaseData;...
         {'Enter alpha: wave crest angle with shoreline (deg): ', 0, 90.0;...
         'Enter K: emprical coefficient: ', 0.0, 1.0}];
-  
+
     [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
-    
+
     optVarNum = 2;
-    if option==1 
+    if option==1
         HoList = varData(1, :);
         optVarNum = optVarNum + 1;
-    else 
+    else
         HbList = varData(1, :);
     end
-        
+
         alphaList = varData(2, :);
         KList = varData(3, :);
 end
@@ -91,12 +91,12 @@ for loopIndex = 1:numCases
         else
            Hb = HbList(loopIndex);
         end
-      
+
         alpha = alphaList(loopIndex);
         K = KList(loopIndex);
-       
+
     end
-    
+
     if metric
          labelUnitDistTransportRate = 'm';
          rhos = 2648; %kg/m^3 density of quartz

@@ -36,17 +36,19 @@ class ext_Hs_analysis(BaseDriver):
         self.inputList = []
 
         if not hasattr(self, "defaultValueNt"):
-            self.inputList.append(BaseField("Nt: estimated total number of events: ",  0.0, 10000.0))
+            self.inputList.append(BaseField("Enter Nt: estimated total number of events: ",  0.0, 10000.0))
 
         if not hasattr(self, "defaultValueK"):
-            self.inputList.append(BaseField("K: length of the record in years: ", 0.0, 999.9))
+            self.inputList.append(BaseField("Enter K: length of the record in years: ", 0.0, 999.9))
 
         if not hasattr(self, "defaultValue_d"):
-            self.inputList.append(BaseField("d: water depth [%s]" % (self.labelUnitDist), 0.0, 1000.0))
+            self.inputList.append(BaseField("Enter d: water depth [%s]" % (self.labelUnitDist), 0.0, 1000.0))
 
         if not hasattr(self, "defaultValuehsCount"):
-            self.inputList.append(BaseField("the number of significant wave heights: ", 1, 200))
+            self.inputList.append(BaseField("Enter the number of significant wave heights: ", 1, 200))
 
+        for x in hsCount:
+            self.inputList.append(BaseField("Enter significant wvae height #%s: "% x, 0.0, 100.0))
     # end defineInputDataList
 
     def fileOutputRequestInit(self):
@@ -77,12 +79,13 @@ class ext_Hs_analysis(BaseDriver):
             hsCount = self.defaultValuehsCount
         else:
             hsCount = self.dataOutputList[currIndex]
+            currIndex = currIndex + 1
 
         return Nt, K, d, hsCount
     # end getCalcValues
 
+#######
     def performCalculations(self):
-
         Hmo, Tp, d = self.getCalcValues()
         # Hmo = self.dataOutputList[0]
         # Tp = self.dataOutputList[1]
