@@ -1,5 +1,74 @@
 import math
 
+# def fwtcalc(Hnon,Hoverd,unon, nstep, nofour, d, L, deptyp, celdef )
+#     number = 9; % max iteration for each wave height step
+#     crit = 0.001; % convergence criterion.  If sum of magnitudes of corrections is < crit, the iteration stops
+#     num = 2*nofour+10; % initialize
+#     np = 61;
+#     assert(num<np,'Error: Too many terms in Fourier series');
+#     dpi = 4/atan(1);
+#     dhe = Hnon /nstep;
+#     dho = Hoverd / nstep;
+#
+#     for x in nstep
+#         Hnon = ns * dhe;
+#         Hoverd = ns * dho;
+#         if ns<=1  %calculate initial linear solution
+#           [ sol, z, cosa, sina ] = FWTSOL( dpi, Hoverd, Hnon, unon, number, num, nofour, deptyp, celdef );
+#         else % extrapolate for next wave height
+#             for i = 1:num
+#                 z(i) = 2*sol(i,2) - sol(i,1);
+#             end
+#         end
+#         for iter = 1:number
+#         % Calculate right sides of equations and differentiate numerically to obtain Jacobian matrix:
+#             [ rhs1 ] = FWTEQNS( d, L, z, Hoverd, nofour, Hnon, dpi, celdef, unon, cosa, sina );
+#             for i = 1: num
+#                 h = 0.01*z(i);
+#                 if abs(z(i))<crit
+#                     h = 10^-5;
+#                 end
+#                     z(i) = z(i) + h;
+#                     [ rhs2 ] = FWTEQNS( d, L, z, Hoverd, nofour, Hnon, dpi, celdef, unon, cosa, sina );
+#                     z(i) = z(i) - h;
+#                     b(i) = -rhs1(i);
+#                     for j = 1:num
+#                         a(j,i) = (rhs2(j) - rhs1(j)) / h;
+#                     end
+#             end
+#             % Solve matrix equation and correct variables using LINPACK routines
+# % Solve the matrix equation [a(i,j)][correction vector] = [b(i)]
+# % dgefa factors a double precision matrix by gaussian elimination.
+# %call dgefa(a, np, num, ipvt, info)
+#         [ a, ipvt, info ] = zgefa ( a, np, nofour );
+#    % *    assert(info~=0, 'ERROR:  Matrix singular')
+#         %call dgesl(a, np, num, ipvt, b, 0)
+#         % The b(i) are now the corrections to each variable
+#         b = dgesl ( a, np, nofour, ipvt, b, 0 );
+#         sum = 0;
+#         for i = 1:num
+#             sum =  sum + abs(b(i));
+#             z(i) = z(i) + b(i);
+#         end
+#         criter = crit;
+#         if ns == nstep
+#             criter = 0.01*crit;
+#         end
+#   %*      assert(sum>=criter, 'ERROR: Did not converge after iterations')
+#         end
+#         if ns == 1:
+#             for i in num:
+#                 sol(i,2) = z(i)
+#         else
+#             for i in num:
+#                 sol(i,1) = sol(i,2)
+#                 sol(i,2) = z(i)
+#             end
+#         end
+#     end
+# end
+
+
 def wavelen(d, T, n, g):
     Leck = (g * (T**2) * 0.5 / math.pi) * math.sqrt(math.tanh(4 * math.pi * math.pi * d / (T * T * g)))
 
@@ -32,6 +101,8 @@ def boverf(x):
     errf = 1.0 - (a1*t + a2*(t**2.0) + a3*(t**3.0) + a4*(t**4.0)+ a5*(t**5.0)) * math.exp(-(x1)*(x1))
 
     y = 0.5 + (errf * 0.5)
+
+    return y
 
 def lwtgen(h, T, g):
     # General deepwater conditions
@@ -323,9 +394,9 @@ def VERTKT(H, free, bb, ds, dl):
 def DEEP_TRANS(Ho, alpha, K, rho, g, rhos):
 
     deg2rad = math.pi / 180
-    alphar = alpha * deg2rad
+    alphar = int(alpha) * int(deg2rad)
 
-    Pls = 0.04031 * rho * (g**(3 / 2)) * (Ho**(5 / 2)) * (math.cos(alphar)**(1 / 4)) * math.sin(2 * alphar)
+    Pls = 0.04031 * rho * (g**(3 / 2)) * (int(Ho)**(5 / 2)) * (math.cos(alphar)**(1 / 4)) * math.sin(2 * alphar)
 
     Q = (Pls * K) / ((rhos - rho) * g * 0.6)
 
@@ -351,9 +422,9 @@ def DEEP_TRANS(Ho, alpha, K, rho, g, rhos):
 def BREAK_TRANS(Hb, alpha, K, rho, g, rhos):
 
     deg2rad = math.pi / 180
-    alphar = alpha * deg2rad
+    alphar = int(alpha) * int(deg2rad)
 
-    Pls = 0.07071 * rho * (g**(3 / 2)) * (Hb**(5 / 2)) * math.sin(2 * alphar)
+    Pls = 0.07071 * rho * (g**(3 / 2)) * (int(Hb)**(5 / 2)) * math.sin(2 * alphar)
 
     Q = (Pls * K) / ((rhos-rho) * g * 0.6)
 
