@@ -1,5 +1,3 @@
-import sys
-sys.path.append('../functions')
 import USER_INPUT
 
 class BaseDriver(object):
@@ -8,7 +6,14 @@ class BaseDriver(object):
 
         self.fileOutputRequestInit()
 
-        self.performCalculations()
+        if self.isSingleCase:
+            self.performCalculations(self.dataOutputList)
+        else:
+            caseIndex = 0
+            for caseData in self.dataOutputList:
+                self.performCalculations(caseData, caseIndex)
+                caseIndex = caseIndex + 1
+        # end performCalculations if
 
         # Close file if applicable
         if self.fileOutputData.saveOutput:
@@ -26,9 +31,13 @@ class BaseDriver(object):
 
         self.defineInputDataList()
 
-        self.dataOutputList = []
-        for field in self.inputList:
-            self.dataOutputList.append(USER_INPUT.DATA_VALUE(field))
+        if self.isSingleCase:
+            self.dataOutputList = []
+            for field in self.inputList:
+                self.dataOutputList.append(USER_INPUT.DATA_VALUE(\
+                    field.desc, field.min, field.max))
+        else:
+            self.dataOutputList = USER_INPUT.MULTI_MODE(self.inputList)
     # end userInput
 
     def fileOutputRequestMain(self, defaultFilename = None, requestDesc = False):
@@ -50,16 +59,16 @@ class BaseDriver(object):
             self.fileRef = open(self.fileOutputData.filename, "w")
     # end fileOutputRequest
 
-    def fileOutputWriteMain(self, dataDict):
+    def fileOutputWriteMain(self, dataDict, caseIndex = 0):
         if self.fileOutputData.saveOutput:
-            # if self.isSingleCase:
-            #     self.fileRef.write("Case #%d\n\n" % (loopIndex))
+            if not self.isSingleCase:
+                if caseIndex != 0:
+                    self.fileRef.write("\n--------------------------------------\n\n")
+                self.fileRef.write("Case #%d\n\n" % (caseIndex + 1))
+            # end if
 
             self.fileOutputWriteData(dataDict)
-
-            # if loopIndex < numCases:
-            #     print("\n--------------------------------------\n\n")
-        # end file output
+        # end file output if
     # end fileOutputWriteBase
 
     # Override Methods ###################################################
@@ -70,7 +79,7 @@ class BaseDriver(object):
     def fileOutputRequestInit(self):
         pass
 
-    def performCalculations(self):
+    def performCalculations(self, caseInputList, caseIndex = 0):
         pass
 
     def fileOutputWriteData(self, dataDict):

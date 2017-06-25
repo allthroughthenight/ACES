@@ -9,6 +9,39 @@ from ERRSTP import ERRSTP
 from ERRWAVBRK1 import ERRWAVBRK1
 from WAVELEN import WAVELEN
 
+## ACES Update to python
+#-------------------------------------------------------------
+# Driver for Beta-Rayleigh Distribution (page 1-2 of ACES User's Guide).
+# Provides a statistical representation for a shallow-water wave height
+# distribution.
+
+# Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
+# Date Created: April 28, 2011
+# Date Verified: June 27, 2012
+# Modifications done by Yaprak Onat
+# Last Verified:
+
+# Requires the following functions:
+# ERRWAVBRK1
+# WAVELEN
+# ERRSTP
+
+# MAIN VARIABLE LIST:
+#   INPUT
+#   Hmo: zero-moment wave height [m]
+#   Tp: peak wave period [s]
+#   d: water depth [m]
+
+#   OUTPUT
+#   Hrms: root-mean-square wave height [m]
+#   Hmed: median wave height [m]
+#   H13: significant wave height (average of the 1/3 highest waves) [m]
+#   H110: average of the 1/10 highest waves [m]
+#   H1100: average of the 1/100 highest waves [m]
+
+#   OTHER:
+#------------------------------------------------------------
+
 class BetaRayleigh(BaseDriver):
     def __init__(self, Hmo = None, Tp = None, d = None):
         if Hmo != None:
@@ -40,31 +73,31 @@ class BetaRayleigh(BaseDriver):
     def fileOutputRequestInit(self):
         self.fileOutputRequestMain(defaultFilename = "beta_rayleigh")
 
-    def getCalcValues(self):
+    def getCalcValues(self, caseInputList):
         currIndex = 0
 
         if hasattr(self, "defaultValueHmo"):
             Hmo = self.defaultValueHmo
         else:
-            Hmo = self.dataOutputList[currIndex]
+            Hmo = caseInputList[currIndex]
             currIndex = currIndex + 1
 
         if hasattr(self, "defaultValueTp"):
             Tp = self.defaultValueTp
         else:
-            Tp = self.dataOutputList[currIndex]
+            Tp = caseInputList[currIndex]
             currIndex = currIndex + 1
 
         if hasattr(self, "defaultValue_d"):
             d = self.defaultValue_d
         else:
-            d = self.dataOutputList[currIndex]
+            d = caseInputList[currIndex]
 
         return Hmo, Tp, d
     # end getCalcValues
 
-    def performCalculations(self):
-        Hmo, Tp, d = self.getCalcValues()
+    def performCalculations(self, caseInputList, caseIndex = 0):
+        Hmo, Tp, d = self.getCalcValues(caseInputList)
         # Hmo = self.dataOutputList[0]
         # Tp = self.dataOutputList[1]
         # d = self.dataOutputList[2]
@@ -206,8 +239,7 @@ class BetaRayleigh(BaseDriver):
 
         dataDict = {"Hmo": Hmo, "Tp": Tp, "d": d,\
             "Hrms": Hrms, "Hmed": Hmed, "Hout": Hout }
-        self.fileOutputWriteMain(dataDict)
-
+        self.fileOutputWriteMain(dataDict, caseIndex)
     # end performCalculations
 
     def fileOutputWriteData(self, dataDict):
