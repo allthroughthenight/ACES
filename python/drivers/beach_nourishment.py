@@ -1,8 +1,12 @@
-from helper_functions import *
-import math
 import sys
+import math
+sys.path.append('../functions')
 
-## ACES Update to MATLAB BEACH NOURISMENT and OVERFILL RATIO
+from base_driver import BaseDriver
+from helper_objects import BaseField
+from BOVERF import BOVERF
+
+## ACES Update to Python BEACH NOURISMENT and OVERFILL RATIO
 #-------------------------------------------------------------
 # Evaluates the suitable of borrow material as beach fill and give overfill
 # nourishment ratios. (Aces Tech Manual Chapter 6-4-1)
@@ -33,133 +37,184 @@ import sys
 #   rhos: density of sediment [5.14 slugs / ft**3 in FORTRAN source code]
 #-------------------------------------------------------------
 
-def beach_nourishment():
+class BeachNourishment(BaseDriver):
+    def __init__(self, Vol_i = None, M_R = None, ro_n = None, M_b = None, ro_b = None):
+        if Vol_i != None:
+            self.isSingleCase = True
+            self.defaultValueVol_i = Vol_i
+        if M_R != None:
+            self.isSingleCase = True
+            self.defaultValueM_R = M_R
+        if ro_n != None:
+            self.isSingleCase = True
+            self.defaultValue_ro_n = ro_n
+        if M_b != None:
+            self.isSingleCase = True
+            self.defaultValueM_b = M_b
+        if ro_b != None:
+            self.isSingleCase = True
+            self.defaultValue_ro_b = ro_b
 
-    metric = True
-    metric = input('Input in imperial or SI units? (m or s): ')
+        super(BeachNourishment, self).__init__()
+    # end __init__
 
-    if metric == 'm':
-        metric = True
-        g = 9.81
-    elif metric == 'M':
-        metric = True
-        g = 9.81
-    else:
-        g = 32.17
-        metric = False
-
-    rhos = 165.508 / g #bulk density of quartz is 165.508 lb/ft^3 - 165.508/g = 5.14
-
-    salt_water = True
-    salt_water = input('Fresh or Salt water? (F or S): ')
-
-    if salt_water == 's':
-        salt_water = True
-    elif salt_water == 'S':
-        salt_water = True
-    else:
-        salt_water = False
-
-    if metric:
-        labelUnitVolumeRate = 'm^3'
-        labelUnitGrain = 'mm';
-        if salt_water:
-            rho = 1.989
+    def defineInputDataList(self):
+        if self.isMetric:
+            self.labelUnitVolumeRate = "m^3"
+            self.labelUnitGrain = "mm"
         else:
-            rho = 1.94
+            self.labelUnitVolumeRate = "yd^3"
+            self.labelUnitGrain = "phi"
 
-    if metric:
-        labelUnitVolumeRate = 'm^3'
-        labelUnitGrain = 'mm';
-    else:
-        labelUnitVolumeRate = 'yd^3'
-        labelUnitGrain = 'phi'
+        self.inputList = []
 
-    if salt_water:
-        rho = 1.989
-    else:
-        rho = 1.94
+        if not hasattr(self, "defaultValueVol_i"):
+            self.inputList.append(BaseField(\
+                "Vol_i: initial volume (%s)" % (self.labelUnitVolumeRate), 1, 10**8))
 
-    Vol_i = input('Enter Vol_i: Initial volume ('+ labelUnitVolumeRate+ '): ')
-    M_R = input('Enter M_R: Initial volume (' + labelUnitGrain + '): ')
-    ro_n = input('Enter ro_n: Native standart deviation (phi): ')
-    M_b = input('Enter M_b: Borrow mean (' + labelUnitGrain + '): ')
-    ro_b = input('Enter ro_b: Borrow standard deviation (phi): ')
-#    Vol_i = 800000
-#    M_R = 1.8
-#    ro_n = 0.45
-#    M_b = 2.25
-#    ro_b = 0.76
+        if not hasattr(self, "defaultValueM_R"):
+            self.inputList.append(BaseField(\
+                "M_R: Native mean (%s)" % (self.labelUnitGrain), -5.0, 5.0))
 
-    ro_b = int(ro_b)
-    ro_n = int(ro_n)
-    M_b = float(M_b)
-    M_R = float(M_R)
+        if not hasattr(self, "defaultValue_ro_n"):
+            self.inputList.append(BaseField(\
+                "ro_n: Native standard deviation (phi)", 0.01, 5.0))
 
-    catg = 0 # category of the material according to table 6-4-1 in Aces manual
+        if not hasattr(self, "defaultValueM_b"):
+            self.inputList.append(BaseField(\
+                "M_b: Borrow mean (%s)" % (self.labelUnitGrain), -5.0, 5.0))
 
-    if metric:
-        M_R = - ( math.log(M_R) / math.log(2.) )
-        M_b = - ( math.log(M_b) / math.log(2.) )
+        if not hasattr(self, "defaultValue_ro_b"):
+            self.inputList.append(BaseField(\
+                "ro_b: Borrow standard deviation (phi)", 0.01, 5.0))
+    # end defineInputList
 
-    ro = ro_b / ro_n # phi sorting ratio
-    phi_m_diff = (M_b - M_R) / ro_n # phi mean difference
+    def fileOutputRequestInit(self):
+        self.fileOutputRequestMain(defaultFilename = "beach_nourishment")
 
-    # Relationships of phi means and pho standard deviations
-    if ro_b > ro_n:
-        print('Borrow material is more poorly sorted than native material')
-        if M_b > M_R:
-            print('Borrow material is finer than native material')
-            catg == 1
+    def getCalcValues(self, caseInputList):
+        currIndex = 0
+
+        if hasattr(self, "defaultValueVol_i"):
+            Vol_i = self.defaultValueVol_i
         else:
-            print('Borrow material is coarser than native material')
-            catg == 2
-    else:
-        if M_b < M_R:
-           print('Borrow material is coarser than native material')
-           catg==3
+            Vol_i = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValueM_R"):
+            M_R = self.defaultValueM_R
         else:
-           print('Borrow material is finer than native material')
-           catg==4
+            M_R = caseInputList[currIndex]
+            currIndex = currIndex + 1
 
-    delta = (M_b-M_R)/ro_n
-    sigma = ro_b/ro_n
+        if hasattr(self, "defaultValue_ro_n"):
+            ro_n = self.defaultValue_ro_n
+        else:
+            ro_n = caseInputList[currIndex]
+            currIndex = currIndex + 1
 
-    # defining phi_1 and phi_2
-    if catg == 1 or catg == 2:
-        phi_1 = max(-1, (-phi_m_diff / (ro**2-1)))
-        phi_2 = math.inf
-    else:
-        phi_1 = -1
-        phi_2 = max(-1, (1+(2 * phi_m_diff / (1-ro**2))))
+        if hasattr(self, "defaultValueM_b"):
+            M_b = self.defaultValueM_b
+        else:
+            M_b = caseInputList[currIndex]
+            currIndex = currIndex + 1
 
-    bk1 = (phi_1-delta)/sigma
-    fn1 = boverf(bk1)
-    ft1 = boverf(phi_1)
+        if hasattr(self, "defaultValue_ro_b"):
+            ro_b = self.defaultValue_ro_b
+        else:
+            ro_b = caseInputList[currIndex]
 
-    if phi_2 == math.inf:
-       fn3 = ((1.0-ft1)/sigma)*math.exp(0.5*(phi_1**2-bk1**2))
-       R_A = 1.0/(fn1+fn3)
-    else:
-        bk2 = (phi_2-delta)/sigma
-        fn2 = boverf(bk2)
-        ft2 = boverf(phi_2)
-        fn3 = ((ft2-ft1)/sigma)*math.exp(0.5*(phi_1**2-bk1**2))
-        R_A  = 1.0/(1-fn2+fn1+fn3)
+        return Vol_i, M_R, ro_n, M_b, ro_b
+    # end getCalcValues
 
-    if R_A >= 1.0:
-        print('Error: Overfill ratio (R_A) < 1.0 Respecify data')
-        sys.exit(0)
+    def performCalculations(self, caseInputList, caseIndex = 0):
+        Vol_i, M_R, ro_n, M_b, ro_b = self.getCalcValues(caseInputList)
 
-    winno = 1
-    R_j = math.exp(winno * ((M_b-M_R) / ro_n) - (winno**2 / 2) * ((ro_b**2 / ro_n**2) - 1))
+        catg = 0 # category of the material according to table 6-4-1 in Aces manual
 
-    Vol_D = R_A  *  Vol_i
+        if self.isMetric:
+            M_R = -(math.log(M_R) / math.log(2.0))
+            M_b = -(math.log(M_b) / math.log(2.0))
 
-    print('Overfill Ratio, R_A \t\t %.2f' % R_A)
-    print('Renourishment factor, R_j \t %.2f' % R_j)
-    print('Design Volunm, Vol_D \t\t %.2f %s' % (Vol_D, labelUnitVolumeRate))
+        # Relationships of phi means and pho standard deviations
+        if ro_b > ro_n:
+            print('Borrow material is more poorly sorted than native material')
+            if M_b > M_R:
+                print('Borrow material is finer than native material')
+                catg = 1
+            else:
+                print('Borrow material is coarser than native material')
+                catg = 2
+        else:
+            if M_b < M_R:
+               print('Borrow material is coarser than native material')
+               catg = 3
+            else:
+               print('Borrow material is finer than native material')
+               catg = 4
+        # end if
 
-    return R_A, R_j, Vol_D
+        delta = (M_b-M_R)/ro_n # phi mean difference
+        sigma = ro_b/ro_n # phi sorting ratio
 
-beach_nourishment()
+        if sigma == 1:
+            theta_1 = 0
+            theta_2 = float("inf")
+        else:
+            # defining theta_1 and theta_2
+            if catg == 1 or catg == 2:
+                theta_1 = max(-1, (-delta/(sigma**2 - 1)))
+                theta_2 = float("inf")
+            else:
+                theta_1 = -1
+                theta_2 = max(-1, (1 + (2*delta/(1 - sigma**2))))
+
+        # calculate overfill ratio
+        bk1 = (theta_1 - delta)/sigma
+        fn1 = BOVERF(bk1)
+        ft1 = BOVERF(theta_1)
+
+        if theta_2 == float("inf"):
+            fn3 = ((1.0 - ft1)/sigma)*math.exp(0.5*(theta_1**2 - bk1**2))
+            R_A = 1.0/(fn1 + fn3)
+        else:
+            bk2 = (theta_2 - delta)/sigma
+            fn2 = BOVERF(bk2)
+            ft2 = BOVERF(theta_2)
+            fn3 = ((ft2 - ft1)/sigma)*math.exp(0.5*(theta_1**2 - bk1**2))
+            R_A = 1.0 / (1 - fn2 + fn1 + fn3)
+        # end if
+
+        if R_A < 1.0:
+            print("Error: Overfill ratio (R_A) < 1.0. Respecify data")
+
+        R_j = math.exp((delta - 0.5*((ro_b**2 / ro_n**2) - 1)))
+
+        Vol_D = R_A * Vol_i
+
+        print("Overfill Ratio, R_A\t\t\t%6.2f" % (R_A))
+        print("Renourishment factor, R_j\t\t%6.2f" % (R_j))
+        print("Design Volume, Vol_D\t\t\t%6.2f %s" % (Vol_D, self.labelUnitVolumeRate))
+
+        dataDict = {"Vol_i": Vol_i, "M_R": M_R, "ro_n": ro_n, "M_b": M_b,\
+            "ro_b": ro_b, "R_A": R_A, "R_j": R_j, "Vol_D": Vol_D }
+        self.fileOutputWriteMain(dataDict, caseIndex)
+    # end performCalculations
+
+    def fileOutputWriteData(self, dataDict):
+        self.fileRef.write("Input\n")
+        self.fileRef.write("Vol_i\t%6.2f %s\n" %\
+            (dataDict["Vol_i"], self.labelUnitVolumeRate))
+        self.fileRef.write("M_R\t%6.2f %s\n" % (dataDict["M_R"], self.labelUnitGrain))
+        self.fileRef.write("ro_n\t%6.2f\n" % (dataDict["ro_n"]))
+        self.fileRef.write("M_b\t%6.2f %s\n" % (dataDict["M_b"], self.labelUnitGrain))
+        self.fileRef.write("ro_b\t%6.2f\n\n" % (dataDict["ro_b"]))
+
+        self.fileRef.write("Overfill Ratio, R_A\t\t\t%6.2f\n" % (dataDict["R_A"]))
+        self.fileRef.write("Renourishment factor, R_j\t\t%6.2f\n" % (dataDict["R_j"]))
+        self.fileRef.write("Design Volume, Vol_D\t\t\t%6.2f %s\n" %\
+            (dataDict["Vol_D"], self.labelUnitVolumeRate))
+    # end fileOutputWriteData
+
+
+driver = BeachNourishment()
