@@ -155,7 +155,7 @@ class BetaRayleigh(BaseDriver):
 
                 for i in range(2, 10001):
                     Hnxt = Hstart + Hinc*(i - 1)
-                    term1 = exp(-(Hnxt/Hrms)**2)
+                    term1 = math.exp(-(Hnxt/Hrms)**2)
                     term2 = (2 * Hnxt)/Hrms**2
                     pnxt = term1 * term2
                     darea = 0.5*(pprv + pnxt)*Hinc # area of a trapezoid
