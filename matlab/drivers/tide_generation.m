@@ -111,7 +111,7 @@ delthr=delt/60;
 
 %prompt = 'Enter total number of gauges: ';
 % nogauge=input(prompt);
-nogauge = 1; % one gauge is examined. 
+nogauge = 1; % one gauge is examined.
 
 acst=[28.9841042,30.0,28.4397295,15.0410686,57.9682084,...
      13.9430356,86.9523127,44.0251729,60.0,57.4238337,28.5125831,90.0,...
