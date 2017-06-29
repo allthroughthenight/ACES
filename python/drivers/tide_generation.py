@@ -6,7 +6,6 @@ from base_driver import BaseDriver
 from helper_objects import BaseField
 import USER_INPUT
 from ANG360 import ANG360
-from DAYOYR import DAYOYR
 from GAGINI import GAGINI
 from GTERMS import GTERMS
 from NFACS import NFACS

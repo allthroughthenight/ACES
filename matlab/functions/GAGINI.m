@@ -34,15 +34,15 @@ function [alpha,fndcst]=GAGINI(ngag,yr,month,day,hr,tlhrs,glong,epoch,acst,pcst)
     for i=1:ngag
         y=floor(glong(i)/15);
         s=15*y;
-   
+
         if mod(glong(i),15)>7.5
         s=s+15;
         end
-   
+
         for nc=1:length(eqcst)
             sum=eqcst(nc)+acst(nc)*(s/15);
             alpha(nc,ngag)=sum-pcst(nc)*glong(ngag)-epoch(nc,ngag);
         end
     end
 end
-       
+
