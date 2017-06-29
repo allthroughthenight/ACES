@@ -65,6 +65,17 @@ def FILE_OUTPUT(enterFilename = False, enterFileDesc = False):
     return fileOutputData
 # end FILE_OUTPUT
 
+def FINITE_CHOICE(promptMsg, choiceList):
+    inputFunc = GET_INPUT_FUNC()
+    while True:
+        choiceValue = inputFunc(promptMsg)
+
+        if choiceValue in choiceList:
+            return choiceValue
+        else:
+            print("Must be one of the choices specified.")
+# end FINITE_CHOICE
+
 def METRIC_IMPERIAL():
     inputFunc = GET_INPUT_FUNC()
 
