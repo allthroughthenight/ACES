@@ -34,14 +34,14 @@ def GAGINI(ngag,yr,month,day,hr,tlhrs,glong,epoch,acst,pcst):
 
     #determine alpha values
     for x in ngag:
-        y=floor(glong(x)/15);
-        s=15*y;
+        y=math.floor(glong[x]/15);
+        s=15*y
 
-        if (glong(x) % 15)>7.5:
+        if (glong[x] % 15)>7.5:
             s=s+15
 
-        for y in length(eqcst):
-            sum=eqcst(y)+acst(y)*(s/15)
-            alpha(y,ngag)=sum-pcst(y)*glong(ngag)-epoch(y,ngag)
+        for z in len(eqcst):
+            sum=eqcst[z]+acst[z]*(s/15)
+            alpha(z,ngag)=sum-pcst(z)*glong(ngag)-epoch(z,ngag)
 
     return alpha,fndcst

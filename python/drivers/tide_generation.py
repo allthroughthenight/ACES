@@ -1,3 +1,5 @@
+import numpy as np
+import matplotlib.pyplot as plt
 import sys
 import math
 sys.path.append('../functions')
@@ -61,132 +63,59 @@ from TIDELV import TIDELV
 #-------------------------------------------------------------
 
 def tide_generation():
-    Hs0 = 4.6
-    Tp = 9.50
-    cottheta = 13.0
-    g = 32.17
 
-    #   year: year simulation starts
-    #   mon: month simulation starts
-    #   day: day simulation starts
-    #   hr: hr simulation starts
-    #   tlhrs: length of record (hr)
-    #   nogauge: total number of gauges (default=1)
-    #   ng: gauge of interest (default=1)
-    #   glong: gauge longitude (deg)
-    #   delt: output time interval (min)
-    #   gauge0: mean water level height above datum
-    #   cst: constituents name (read-in from file called tides.txt)
-    #   amp: amplitdutes of constituents (m, read-in from file)
-    #   ep: epochs of constituents (read-in from file)
-class tide_generation(BaseDriver):
-    def __init__(self, year = None, , mon = None, day = None, hr = None, tlhrs = None, nogauge = None, ng = None, glong = None, delt = None, gauge0 = None, cst = None, amp = None, ep = None):
-        if year != None:
-            self.isSingleCase = True
-            self.defaultValueyear = year
-        if mon != None:
-            self.isSingleCase = True
-            self.defaultValuemon = mon
-        if day != None:
-            self.isSingleCase = True
-            self.defaultValueday = day
-        if hr != None:
-            self.isSingleCase = True
-            self.defaultValuehr = hr
-        if tlhrs != None:
-            self.isSingleCase = True
-            self.defaultValuetlhrs = tlhrs
-        if nogauge != None:
-            self.isSingleCase = True
-            self.defaultValuenogauge = nogauge
-        if ng != None:
-            self.isSingleCase = True
-            self.defaultValueng = ng
-        if glong != None:
-            self.isSingleCase = True
-            self.defaultValueglong = glong
-        if delt != None:
-            self.isSingleCase = True
-            self.defaultValuedelt = delt
-        if gauge0 != None:
-            self.isSingleCase = True
-            self.defaultValuegauge0 = gauge0
-        if cst != None:
-            self.isSingleCase = True
-            self.defaultValuecst = cst
-        if amp != None:
-            self.isSingleCase = True
-            self.defaultValueamp = amp
-        if ep != None:
-            self.isSingleCase = True
-            self.defaultValueep = ep
+    metric, g, labelUnitDist, labelUnitWt = USER_INPUT_METRIC_IMPERIAL();
 
-        super(tide_generation, self).__init__()
+    inputDataList = {...
+        'year simulation starts (YYYY)', 1900, 2050;...
+        'month simulation starts (MM)', 1, 12;...
+        'day simulation starts (DD)', 1, 31;...
+        'hour simulation starts (HH.H)', 0, 24;...
+        'length of record (tlhrs) (HH.H)', 0, 744;...
+        'output time interval (min)', 1, 60;...
+        ['mean water level height above datum [' labelUnitDist ']'], -100, 100;...
+        'gauge longitude (deg)', -180, 180};
+    [outputDataList] = USER_INPUT_FILE_INPUT_SINGLE(inputDataList);
 
-        self.performPlot()
-    # end __init__
+    year = outputDataList(1)
+    mon = outputDataList(2)
+    day = outputDataList(3)
+    hr = outputDataList(4)
+    tlhrs = outputDataList(5)
+    delt = outputDataList(6)
+    gauge0 = outputDataList(7)
+    glong = outputDataList(8)
 
-    def defineInputDataList(self):
-        self.inputList = []
+    # MIGHT CHANGE IT AFTER CONFIRMATION
+    m2ft = 3.28084
+    if metric
+        gauge0 = gauge0 * m2ft
 
-        if not hasattr(self, "defaultValueyear"):
-            self.inputList.append(BaseField("Enter year simulation starts (YYYY):" % 1900, 2050))
-        if not hasattr(self, "defaultValuemon"):
-            self.inputList.append(BaseField("Enter month simulation starts (MM): " % 1, 12))
-        if not hasattr(self, "defaultValueday"):
-            self.inputList.append(BaseField("Enter day simulation starts: " % 1, 31))
-        if not hasattr(self, "defaultValuehr"):
-            self.inputList.append(BaseField("Enter hour simulation starts: " % 0, 24))
-        if not hasattr(self, "defaultValuetlhrs"):
-            self.inputList.append(BaseField("Enter length of record (tlhrs) (HH.H): " % 0, 744))
-        if not hasattr(self, "defaultValuenogauge"):
-            self.inputList.append(BaseField("Enter total number of gauges: "))
-        if not hasattr(self, "defaultValueHmo"):
-            self.inputList.append(BaseField("Hmo: zero-moment wave height [%s]" % (self.labelUnitDist), 0.1, 60.0))
-        if not hasattr(self, "defaultValueHmo"):
-            self.inputList.append(BaseField("Hmo: zero-moment wave height [%s]" % (self.labelUnitDist), 0.1, 60.0))
-        if not hasattr(self, "defaultValueHmo"):
-            self.inputList.append(BaseField("Hmo: zero-moment wave height [%s]" % (self.labelUnitDist), 0.1, 60.0))
-        if not hasattr(self, "defaultValueHmo"):
-            self.inputList.append(BaseField("Hmo: zero-moment wave height [%s]" % (self.labelUnitDist), 0.1, 60.0))
-        if not hasattr(self, "defaultValueHmo"):
-            self.inputList.append(BaseField("Hmo: zero-moment wave height [%s]" % (self.labelUnitDist), 0.1, 60.0))
-    # end defineInputDataList
+    delthr=delt/60
 
-    #Coefficients provided by Mase (1989)
-    amax = 2.32
-    bmax = 0.77
-    a2 = 1.86
-    b2 = 0.71
-    a110 = 1.70
-    b110 = 0.71
-    a13 = 1.38
-    b13 = 0.70
-    aavg = 0.88
-    bavg = 0.69
+    nogauge = 1 # one gauge is examined.
 
-    # Meters to feet constant for conversion
-    m2ft=3.28084;
+    acst=[28.9841042,30.0,28.4397295,15.0410686,57.9682084,13.9430356,86.9523127,44.0251729,60.0,57.4238337,28.5125831,90.0,27.9682084,27.8953548,16.1391017,29.4556253,15.0,14.4966939,15.5854433,0.5443747,0.0821373,0.0410686,1.0158958,1.0980331,13.4715145,13.3986609,29.9589333,30.0410667,12.8542862,14.9589314,31.0158958,43.4761563,29.5284789,42.9271398,30.0821373,115.9364169,58.9841042]
 
-    L0 = g * (Tp**2) / (2 * math.pi)
-    steep = Hs0 / L0
-    if steep >= 0.142:
-        print('Error: Input wave unstable (Max: 0.142,  [H / L]  =  %0.4f)' % steep)
-        return
+    pcst=[2,2,2,1,4,1,6,3,4,4,2,6,2,2,1,2,1,1,1,0,0,0,0,0,1,1,2,2,1,1,2,3,2,3,2,8,4]
 
-    tantheta = 1 / cottheta
-    I = tantheta / math.sqrt(Hs0 / L0)
+    ## Intialize gage-specific info relevant to harmonic constituents
+    alpha,fndcst=GAGINI(nogauge,year,mon,day,hr,tlhrs,glong,ep,acst,pcst)
 
-    Rmax = Hs0 * amax * (I**bmax)
-    R2 = Hs0 * a2 * (I**b2)
-    R110 = Hs0 * a110 * (I**b110)
-    R13 = Hs0 * a13 * (I**b13)
-    Ravg = Hs0 * aavg * (I**bavg)
+    ntid=floor(tlhrs/delthr)+1
 
-    print('%s \t %-6.2f \n' % ('Maximum runup', Rmax))
-    print('%s \t %-6.2f \n' % ('Runup exceeded by 2% of runup', R2))
-    print('%s \t %-6.2f \n' % ('Avg. of highest 1 / 10 runups', R110))
-    print('%s \t %-6.2f \n' % ('Avg. of highest 1 / 3 runups', R13))
-    print('%s \t %-6.2f \n' % ('Maximum runup', Ravg))
+    tidelv = []
+    xtim = []
+    for i in ntid
+        xtim[i]=(i-1)*delthr
+        tidelv[i]=TIDELV(nogauge,xtim[i],amp,alpha,fndcst,acst)
+
+    ytide=gauge0+tidelv
+
+    plt.xlabel('Time [hr]')
+    plt.ylabel(['Elevation [' labelUnitDist ']'])
+    plt.title('Tide Elevations [from constituents]')
+    plt.plot(xtim,ytide)
+    plt.show()
 
 tide_generation()
