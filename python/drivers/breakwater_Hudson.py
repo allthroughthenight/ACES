@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../functions')
+from READ_INPUT import READ_INPUT
 
 ## ACES Update to MATLAB
 #-------------------------------------------------------------
@@ -72,4 +75,23 @@ def breakwater_Hudson(unitwt, H, Kd, kdelt, P, cotssl, n):
     print('%s \t\t %-6.2f \t \n' % ('Average cover layer thickness', r))
     print('%s \t\t %-6.2f \t \n' % ('Number of single armor unit', Nr))
 
-breakwater_Hudson(165, 11.50, 10.0, 1.02, 54.0, 2.00, 2)
+# breakwater_Hudson(165, 11.50, 10.0, 1.02, 54.0, 2.00, 2)
+
+def main():
+    unitwt = READ_INPUT('Enter unitwt: armor specific unit weight (\' labelUnitWt \'/\' labelUnitDist \'^3): ', 1.0, 99999.0);
+
+    H = READ_INPUT('Enter H: wave height (\' labelUnitDist \'): ', 0.1, 100.0)
+
+    Kd = READ_INPUT('Enter Kd: stability coefficient: ', 0, 10)
+
+    kdelt = READ_INPUT('Enter kdelt: layer coefficient: ', 0, 2)
+
+    P = READ_INPUT('Enter P: average porosity of armor layer: ', 0, 54)
+
+    cotssl = READ_INPUT('Enter cotssl: cotangent of structure slope: ', 1.0, 6.0)
+
+    n = READ_INPUT('Enter n: number of armor units comprising the thickness of the armor layer: ', 1.0, 3.0)
+
+    breakwater_Hudson(unitwt, H, Kd, kdelt, P, cotssl, n)
+
+main()
