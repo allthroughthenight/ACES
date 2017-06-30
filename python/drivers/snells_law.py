@@ -67,12 +67,12 @@ from LWTTWS import LWTTWS
 
 def snells_law(H1, T, d1, alpha1, cotphi, d2):
     # default input
-    H1 = 10
+    H1 = 10.0
     T = 7.50
-    d1 = 25
+    d1 = 25.0
     alpha1 = 10.0
-    cotphi = 100
-    d2 = 20
+    cotphi = 100.0
+    d2 = 20.0
 
     # variables being set for imperial units
     rho = 1.989
@@ -100,7 +100,7 @@ def snells_law(H1, T, d1, alpha1, cotphi, d2):
     P0 = E0 * cg0
     HL = H0 / L0
 
-    if HL >= (1 / 7):
+    if HL >= (1.0 / 7.0):
         print("Error: Deepwater wave unstable, [H0/L0] > (1/7)")
         return
 
