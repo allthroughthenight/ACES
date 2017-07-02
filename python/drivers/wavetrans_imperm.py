@@ -261,16 +261,6 @@ class WavetransImperm(BaseDriver):
     def performCalculations(self, caseInputList, caseIndex = 0):
         H, T, cotphi, ds, cottheta, hs, B, R, hB = self.getCalcValues(caseInputList)
 
-        print(H)
-        print(T)
-        print(cotphi)
-        print(ds)
-        print(cottheta)
-        print(hs)
-        print(B)
-        print(R)
-        print(hB)
-
         m = 1.0/cotphi
 
         if self.option != 2 and not (ds < hs):
@@ -315,7 +305,7 @@ class WavetransImperm(BaseDriver):
         if self.option != 2:
             Ht = HTP(B, hs, R, H, freeb)
         else:
-            dl = ds - B
+            dl = ds - hB
             Ht = VERTKT(H, freeb, B, ds, dl)
         print("Transmitted wave height\t%-6.3f" % Ht)
 
