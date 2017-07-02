@@ -56,7 +56,7 @@ def FILE_OUTPUT(enterFilename = False, enterFileDesc = False):
     if fileOutputData.saveOutput:
         if enterFilename:
             response = inputFunc("Enter the filename (no extension): ")
-            fileOutputData.filename = "%s.txt" % (response)
+            fileOutputData.filename = response
 
         if enterFileDesc:
             response = inputFunc("Enter the description for this file: ")
@@ -167,6 +167,27 @@ def MULTI_RANDOM(inputList):
 
     return dataOutputList
 # end MULTI_RANDOM
+
+def SALT_FRESH_WATER(isMetric):
+    inputFunc = GET_INPUT_FUNC()
+
+    waterType = FINITE_CHOICE(\
+        "Fresh or Salt water? (F or S): ",\
+        ["F", "f", "S", "s"])
+
+    if waterType == "S" or waterType == "s":
+        if isMetric:
+            rho = 1025.09 # kg/m^3, (sea water)
+        else:
+            rho = 1.989 # rho/g = 63.99/32.17 lb sec^2/ft^4 (sea water)
+    else:
+        if isMetric:
+            rho = 999.8 # kg/m^3 ( fresh water)
+        else:
+            rho = 1.940 # rho/g = 62.415475/32.17 lb sec^2/ft^4 (fresh water)
+
+    return waterType, rho
+# end SALT_FRESH_WATER
 
 def SINGLE_MULTI_CASE():
     inputFunc = GET_INPUT_FUNC()

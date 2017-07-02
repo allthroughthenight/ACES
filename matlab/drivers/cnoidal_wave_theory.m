@@ -297,10 +297,10 @@ for loopIndex = 1:numCases
         end
 
         fprintf(fId, 'Input\n');
-        fprintf(fId, 'Wave height\t\t\t%8.2f\n', H);
-        fprintf(fId, 'Wave period\t\t\t%8.2f\n', T);
-        fprintf(fId, 'Water depth\t\t\t%8.2f\n', d);
-        fprintf(fId, 'Vertical coordinate\t\t%8.2f\n', z);
+        fprintf(fId, 'Wave height\t\t\t%8.2f %s\n', H, labelUnitDist);
+        fprintf(fId, 'Wave period\t\t\t%8.2f s\n', T);
+        fprintf(fId, 'Water depth\t\t\t%8.2f %s\n', d, labelUnitDist);
+        fprintf(fId, 'Vertical coordinate\t\t%8.2f %s\n', z, labelUnitDist);
         fprintf(fId, 'Horizontal coordinate\t\t%8.2f\n  as fraction of wavelength (x/L)\n', xL);
 
         if O == 1
@@ -327,7 +327,9 @@ for loopIndex = 1:numCases
     end
 end
 
-fclose(fId);
+if fileOutputData{1}
+    fclose(fId);
+end
 
 if single_case
     if O == 1

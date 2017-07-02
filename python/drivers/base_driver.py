@@ -49,14 +49,17 @@ class BaseDriver(object):
 
         self.fileOutputData = USER_INPUT.FILE_OUTPUT(requestFilename, requestDesc)
 
-        if requestFilename:
-            self.fileOutputData.filename = filePath +\
-                self.fileOutputData.filename + ".txt"
-        else:
-            self.fileOutputData.filename = filePath + defaultFilename + ".txt"
-
         if self.fileOutputData.saveOutput:
+            if requestFilename:
+                self.fileOutputData.filename = filePath +\
+                    self.fileOutputData.filename + ".txt"
+            else:
+                self.fileOutputData.filename = filePath + defaultFilename + ".txt"
+
             self.fileRef = open(self.fileOutputData.filename, "w")
+
+            if requestDesc:
+                self.fileRef.write("%s\n\n" % self.fileOutputData.fileDesc)
     # end fileOutputRequest
 
     def fileOutputWriteMain(self, dataDict, caseIndex = 0):
