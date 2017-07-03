@@ -1,4 +1,5 @@
 import math
+from QOVERT import QOVERT
 
 # Determine wave overtopping rate for irregular waves
 
@@ -25,10 +26,11 @@ def QOVERT_IRR(H0, free, R, Qstar0, alpha, theta, U, g):
         isum = 199
         total = 200.0
 
+    Q = []
     for i in range(1, isum):
-        p = (1 / total) * i
-        Ri = math.sqrt(math.log(1 / p) / 2) * R
-        Q[i] = QOVERT(H0, free, Ri, Qstar0, alpha, theta, U, g)
+        p = (1.0 / total) * i
+        Ri = math.sqrt(math.log(1.0 / p) / 2.0) * R
+        Q.append(QOVERT(H0, free, Ri, Qstar0, alpha, theta, U, g))
 
     qovertop = sum(Q) / isum
 

@@ -168,6 +168,136 @@ def MULTI_RANDOM(inputList):
     return dataOutputList
 # end MULTI_RANDOM
 
+def ROUGH_SLOPE_COEFFICIENTS(\
+    has_rough_slope,\
+    has_overtopping,\
+    has_runup,\
+    inputDict):
+#   Required input arguments:
+#       numCases: the number of cases for multi-case runs (1 for single
+#       case)
+#
+#   Optional input arguments:
+#       R_default: the default value for R
+#
+#   Output arguments:
+#       numConsts: the number of constants being returned
+#       a:
+#       b:
+#       alpha:
+#       Qstar0:
+#       U:
+#       R:
+    inputFunc = GET_INPUT_FUNC()
+
+    conversionKnots2mph = 1.15077945 #1 knots = 1.15077945 mph
+    outputDict = {"numConsts": 0}
+
+    if has_rough_slope:
+        outputDict["numConsts"] += 2
+    if has_overtopping:
+        outputDict["numConsts"] += 3
+    if not has_runup:
+        outputDict["numConsts"] += 1
+
+    if has_rough_slope:
+        #Empirical coefficients for rough slope runup
+        outputDict["a"] = 0.956
+        outputDict["b"] = 0.398
+        
+        print("a = %-6.4f" % outputDict["a"])
+        print("b = %-6.4f" % outputDict["b"])
+    # end if
+
+    if has_overtopping:
+        #Empirical coefficients and values for overtopping
+        outputDict["alpha"] = 0.076463
+        outputDict["Qstar0"] = 0.025
+        outputDict["U"] = 35.0*conversionKnots2mph
+        
+        print("alpha = %-6.4f" % outputDict["alpha"])
+        print("Qstar0 = %-6.4f" % outputDict["Qstar0"])
+        print("U = %-6.4f knots" % (outputDict["U"]/conversionKnots2mph))
+
+        if not has_runup and "R_default" in inputDict:
+            outputDict["R"] = inputDict["R_default"]
+    # end if
+
+    custom_const = FINITE_CHOICE(\
+        "Use default constant values or load from file? (D or F): ",\
+        ["D", "d", "F", "f"])
+    custom_const = custom_const == "F" or custom_const == "f"
+
+    if custom_const:
+        accepted = False
+        while not accepted:
+            fileData = MULTI_FILE()
+            print(fileData)
+
+            optVarNum = 0
+            if len(fileData[0]) == outputDict["numConsts"]:
+                if len(fileData) == 1:
+                    accepted = True
+
+                    if has_rough_slope:
+                        outputDict["a"] = fileData[0][optVarNum]
+                        outputDict["b"] = fileData[0][optVarNum + 1]
+
+                        optVarNum += 2
+
+                    if has_overtopping:
+                        outputDict["alpha"] = fileData[0][optVarNum]
+                        outputDict["Qstar0"] = fileData[0][optVarNum + 1]
+                        outputDict["U"] =\
+                            fileData[0][optVarNum + 2]*conversionKnots2mph
+
+                        optVarNum += 3
+
+                    if not has_runup:
+                        outputDict["R"] = fileData[0][optVarNum]
+                elif len(fileData) == inputDict["numCases"]:
+                    accepted = True
+
+                    for key in ["a", "b", "alpha", "Qstar0", "U", "R"]:
+                        if key in outputDict:
+                            del outputDict[key]
+
+                    if has_rough_slope:
+                        outputDict["aList"] =\
+                            [caseData[optVarNum] for caseData in fileData]
+                        outputDict["bList"] =\
+                            [caseData[optVarNum + 1] for caseData in fileData]
+
+                        optVarNum += 2
+                    # end if
+
+                    if has_overtopping:
+                        outputDict["alphaList"] =\
+                            [caseData[optVarNum] for caseData in fileData]
+                        outputDict["Qstar0List"] =\
+                            [caseData[optVarNum + 1] for caseData in fileData]
+                        outputDict["UList"] =\
+                            [caseData[optVarNum + 2]*conversionKnots2mph for caseData in fileData]
+
+                        optVarNum += 3
+
+                    if not has_runup:
+                        outputDict["RList"] =\
+                            [caseData[optVarNum] for caseData in fileData]
+                else:
+                    print("Wrong number of cases. Expected either 1 or %d, found %d" %\
+                        (inputDict["numCases"], len(fileData)))
+                # end if
+            else:
+                print("Wrong number of constants. Expected %d, found %d." %\
+                    (outputDict["numConsts"], len(fileData[0])))
+            # end if
+        # end while
+    # end if
+
+    return outputDict
+# end ROUGH_SLOPE_COEFFICIENTS
+
 def SALT_FRESH_WATER(isMetric):
     inputFunc = GET_INPUT_FUNC()
 
