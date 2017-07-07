@@ -14,7 +14,7 @@ import math
 #   H0: deepwater wave height
 
 def LWTDWS(alpha, c, cg, c0, H):
-    deg2rad = math.pi / 180
+    deg2rad = math.pi / 180.0
 
     arg = (c0 / c) * math.sin(alpha * deg2rad)
     if arg >= 1:
@@ -22,7 +22,6 @@ def LWTDWS(alpha, c, cg, c0, H):
         return
 
     alpha0 = (math.asin(arg)) / deg2rad
-    alpha0 = 0
 
     ksf = math.sqrt(c0 / (2 * cg)) # shoaling coefficient
     krf = math.sqrt(math.cos(alpha0 * deg2rad) / math.cos(alpha * deg2rad)) # refraction coefficient
