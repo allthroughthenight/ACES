@@ -1,4 +1,6 @@
 import math
+import numpy as np
+from GODA2 import GODA2
 from GODA3 import GODA3
 from GODA4 import GODA4
 from GODA5 import GODA5
@@ -6,6 +8,20 @@ from GODA5 import GODA5
 # Input required in centimeters
 
 def GODA(Ho, dloc, Ts, S, direc, g):
+    Ksout = [0.0, 0.0]
+    Hmaxout = [0.0, 0.0]
+    Hrmsout = [0.0, 0.0]
+    Hmeanout = [0.0, 0.0]
+    Hsigout = [0.0, 0.0]
+    H10out = [0.0, 0.0]
+    H02out = [0.0, 0.0]
+    dLout = [0.0, 0.0]
+    SBout = [0.0, 0.0]
+    dLoout = [0.0, 0.0]
+    dHoout = [0.0, 0.0]
+    theta2dout = [0.0, 0.0]
+    etaout = [0.0, 0.0]
+
     deg2rad = math.pi / 180
     Csave = 0
     itest = 0
@@ -74,9 +90,9 @@ def GODA(Ho, dloc, Ts, S, direc, g):
     M = 0
     while d > dloc:
         if M == 1:
-            deld = xsave / 100
+            deld = xsave / 100.0
         elif M == 2:
-            deld = xsave / 500
+            deld = xsave / 500.0
 
         if N == 0:
             d = xsave
@@ -92,7 +108,7 @@ def GODA(Ho, dloc, Ts, S, direc, g):
         N = N + 1
 
         diffy = ym1 - ym2
-        if diffy == 0:
+        if np.isclose(diffy, 0.0):
             diffy = 0.125
             deld = diffy / Seff
 
@@ -114,58 +130,58 @@ def GODA(Ho, dloc, Ts, S, direc, g):
             theta2 = math.asin(argum)
             Seff = S / math.cos(theta2)
         else:
-            diff2 = 100
+            diff2 = 100.0
             Hop = Ho
             M = 2
             d = dswl + eta
             while diff2 >= 0.07:
                 Kreff = GODA4(direc, Ts, d, Ho, g)
-                sbrms = 0.01 * Hop / math.sqrt(Hop / Lo * (1 + d / Hop))
+                sbrms = 0.01 * Hop / math.sqrt(Hop / Lo * (1.0 + d / Hop))
                 A2 = (1.416 / Ks)**2
-                # TODO forgot to covnert this portion 
-                p = zeros(1, 150)
-                di = zeros(1, 8)
-                x1 = zeros(1, 8)
-                x2 = zeros(1, 8)
-                q = zeros(1, 150)
+                p = [0.0 for loopIndex in range(150)]
+                di = [0.0 for loopIndex in range(8)]
+                x1 = [0.0 for loopIndex in range(8)]
+                x2 = [0.0 for loopIndex in range(8)]
+                q = [0.0 for loopIndex in range(150)]
 
-                for j in range(1, 8):
+                for j in range(8):
                     di[j] = sbrms * sbn[j] + dswl + eta
-                    arg =  - 1.5 * math.pi * di[j] / Lo * (1 + 15 * ((1 / Seff)**(4 / 3)))
-                    arg = min(arg, 100)
-                    arg = max(arg, - 100)
+                    arg =  - 1.5 * math.pi * di[j] / Lo * (1.0 + 15.0 * ((1 / Seff)**(4.0 / 3.0)))
+                    arg = min(arg, 100.0)
+                    arg = max(arg, - 100.0)
 
-                    x1[j] = 0.18 * (Lo / Hop) * (1 - math.exp(arg)) * Kreff
+                    x1[j] = 0.18 * (Lo / Hop) * (1.0 - math.exp(arg)) * Kreff
                     x1[j] = min(x1[j], 2.8)
 
-                    if x1[j] > 0:
-                        x = 0
-                        x2[j] = (2 / 3) * x1[j]
-                        delxx = (x1[1] / 150)
+                    if x1[j] > 0.0:
+                        x = 0.0
+                        x2[j] = (2.0 / 3.0) * x1[j]
+                        delxx = (x1[0] / 150.0)
                         arg2 =  - A2 * (x1[j]**2)
-                        arg2 = min(arg2, 100)
-                        arg2 = max(arg2, - 100)
+                        arg2 = min(arg2, 100.0)
+                        arg2 = max(arg2, - 100.0)
 
-                        for i in range (1, 150):
+                        for i in range (150):
                             x = x + delxx
                             arg =  - A2 * (x**2)
-                            arg = max(arg, - 100)
-                            arg = min(arg, 100)
+                            arg = max(arg, - 100.0)
+                            arg = min(arg, 100.0)
 
                             if x > x1[j]:
-                                q[i] = 0
+                                q[i] = 0.0
                             elif x <= x2[j]:
-                                q[i] = 2 * A2 * x * math.exp(arg)
+                                q[i] = 2.0 * A2 * x * math.exp(arg)
                             else:
-                                q[i] = 2 * A2 * x * math.exp(arg) - (x - x2[j]) / (x1[j] - x2[j]) * 2 * A2 * x1[j] * math.exp(arg2)
+                                q[i] = 2.0 * A2 * x * math.exp(arg) - (x - x2[j]) / (x1[j] - x2[j]) * 2.0 * A2 * x1[j] * math.exp(arg2)
                         sumq = sum(q)
 
                         fact = delp[j] / sumq
-                        for i in range (1, 150):
+                        for i in range(150):
                             p[i] = p[i] + q[i] * fact
                 sump = sum(p)
 
                 Hmax, Hrms, Hmean, Hsig, H10, H02, etan, z = GODA2(p, delxx, Ho, sump, dL, etam1, d, zm1)
+
                 diff2 = abs((etan - eta) / etan)
                 if diff2 > 0.07:
                     eta = etan
@@ -179,7 +195,22 @@ def GODA(Ho, dloc, Ts, S, direc, g):
             Seff = S / math.cos(theta2)
 
             if N == 1:
+                Ksout[0] = Ks
+                Hmaxout[0] = Hmax
+                Hrmsout[0] = Hrms
+                Hmeanout[0] = Hmean
+                Hsigout[0] = Hsig
+                H10out[0] = H10
+                H02out[0] = H02
+                dLout[0] = dL
+                SBout[0] = sbrms
+                dLoout[0] = dLo
+                dHoout[0] = dHo
+                theta2dout[0] = theta2d
+                etaout[0] = eta
+            else:
                 Ksout[1] = Ks
+                Krout = Kreff
                 Hmaxout[1] = Hmax
                 Hrmsout[1] = Hrms
                 Hmeanout[1] = Hmean
@@ -192,29 +223,14 @@ def GODA(Ho, dloc, Ts, S, direc, g):
                 dHoout[1] = dHo
                 theta2dout[1] = theta2d
                 etaout[1] = eta
-            else:
-                Ksout[2] = Ks
-                Krout[1] = Kreff
-                Hmaxout[2] = Hmax
-                Hrmsout[2] = Hrms
-                Hmeanout[2] = Hmean
-                Hsigout[2] = Hsig
-                H10out[2] = H10
-                H02out[2] = H02
-                dLout[2] = dL
-                SBout[2] = sbrms
-                dLoout[2] = dLo
-                dHoout[2] = dHo
-                theta2dout[2] = theta2d
-                etaout[2] = eta
 
-            x = 0
-            if Hsig < 20:
+            x = 0.0
+            if Hsig < 20.0:
                 delh = 1.0
-            elif Hsig < 50:
-                delh = 2
+            elif Hsig < 50.0:
+                delh = 2.0
             else:
-                delh = 10
+                delh = 10.0
 
             ijk = 0
             ikj = 0
@@ -224,7 +240,7 @@ def GODA(Ho, dloc, Ts, S, direc, g):
                 Kreff = 1.0
             jpn = jpn + 1
 
-            for i in range(1, 150):
+            for i in range(150):
                 x = x + delxx
                 H2 = x * Hop
                 cump2 = cump1 + p[i] / sump
@@ -242,9 +258,20 @@ def GODA(Ho, dloc, Ts, S, direc, g):
                     elif is1 > 0:
                         if is1 < 1:
                             is1 = 1
-                        for it in range(1, is1):
+
+                        Ht1 = [0.0 for loopIndex in range(int(is1)*150)]
+                        Ht2 = [0.0 for loopIndex in range(int(is1)*150)]
+                        cdf = [0.0 for loopIndex in range(int(is1)*150)]
+                        cdf2 = [0.0 for loopIndex in range(int(is1)*150)]
+
+                        for it in range(int(is1)):
                             Ht = delh * (i1 + it)
-                            cump = cump1 + (Ht - H1) / (H2 - H1) * (cump2 - cump1)
+
+                            if np.isclose(H1, H2):
+                                cump = float('inf')
+                            else:
+                                cump = cump1 + (Ht - H1) / (H2 - H1) * (cump2 - cump1)
+
                             if cump > 0.999:
                                 cump1 = cump2
                                 H1 = H2
@@ -264,5 +291,6 @@ def GODA(Ho, dloc, Ts, S, direc, g):
             etam1 = etan
             ym2 = ym1
             ym1 = y
+        # end if
 
     return Ksout, Krout, Hmaxout, Hrmsout, Hmeanout, Hsigout, H10out, H02out, SBout, HoLo, dLoout, dHoout, xsave, theta2dout, etaout, Ht1, cdf, Ht2, cdf2
