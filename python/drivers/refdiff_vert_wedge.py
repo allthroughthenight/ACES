@@ -1,5 +1,17 @@
+import sys
+import math
+sys.path.append('../functions')
 
-## ACES Update to MATLAB
+from base_driver import BaseDriver
+from helper_objects import BaseField
+import USER_INPUT
+from DRWEDG import DRWEDG
+from ERRSTP import ERRSTP
+from ERRWAVBRK import ERRWAVBRK
+from ERRWAVBRK1 import ERRWAVBRK1
+from WAVELEN import WAVELEN
+
+## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Combined Diffraction and Reflection by a Vertical Wedge
 # (page 3-3 in ACES User's Guide). Estimates wave height modifcation due
@@ -42,93 +54,424 @@
 #   OTHERS
 #-------------------------------------------------------------
 
-def refdiff_vert_wedge(Hi, T, d, alpha, wedgang, mode, xcor, ycor, x0, xend, dx, y0, yend, dy):
+class RefdiffVertWedge(BaseDriver):
+    def __init__(self, Hi = None, T = None, d = None,\
+        alpha = None, wedgang = None, mode = None, xcor = None,\
+        ycor = None, x0 = None, xend = None, dx = None, y0 = None,\
+        yend = None, dy = None):
+        if Hi != None:
+            self.isSingleCase = True
+            self.defaultValueHi = Hi
+        if T != None:
+            self.isSingleCase = True
+            self.defaultValueT = T
+        if d != None:
+            self.isSingleCase = True
+            self.defaultValue_d = d
+        if alpha != None:
+            self.isSingleCase = True
+            self.defaultValue_alpha = alpha
+        if wedgang != None:
+            self.isSingleCase = True
+            self.defaultValue_wedgang = wedgang
+        if mode != None:
+            self.isSingleCase = True
+            self.defaultValue_d = d
+        if d != None:
+            self.isSingleCase = True
+            self.defaultValue_d = d
+        if d != None:
+            self.isSingleCase = True
+            self.defaultValue_d = d
 
-    Hi = 2
-    T = 8
-    d = 20
-    alpha = 135
-    wedgang = 15
-    mode = 0
-    g = 32.17
+        super(RefdiffVertWedge, self).__init__()
+    # end __init__
 
-    assert(wedgang >= 0  and wedgang <= 180), ('Error: Range is 0.0 to 180.0')
+    def userInput(self):
+        self.mode = USER_INPUT.FINITE_CHOICE(\
+            "Mode 1 Single Case or Mode 2 Grid Case (1 or 2): ",\
+            ["1", "2"])
+        if self.mode == "1":
+            self.mode = 0
+        else:
+            self.mode = 1
 
-    if mode == 0:
+        super(RefdiffVertWedge, self).userInput()
+
+        if self.mode == 1:
+            if not hasattr(self, "defaultValue_x0"):
+                self.x0 = USER_INPUT.DATA_VALUE(\
+                    "x0: x start coordinate (%s)" % self.labelUnitDist,\
+                    -5280.0, 5280.0)
+            else:
+                self.x0 = self.defaulValue_x0
+
+            if not hasattr(self, "defaultValue_xend"):
+                self.xend = USER_INPUT.DATA_VALUE(\
+                    "xend: x end coordinate (%s)" % self.labelUnitDist,\
+                    -5280.0, 5280.0)
+            else:
+                self.xend = self.defaulValue_xend
+
+            if not hasattr(self, "defaultValue_dx"):
+                self.dx = USER_INPUT.DATA_VALUE(\
+                    "dx: x spatial increment (%s)" % self.labelUnitDist,\
+                    0.1, 5280.0)
+            else:
+                self.dx = self.defaulValue_dx
+
+            if not hasattr(self, "defaultValue_y0"):
+                self.y0 = USER_INPUT.DATA_VALUE(\
+                    "y0: y start coordinate (%s)" % self.labelUnitDist,\
+                    -5280.0, 5280.0)
+            else:
+                self.y0 = self.defaulValue_y0
+
+            if not hasattr(self, "defaultValue_yend"):
+                self.yend = USER_INPUT.DATA_VALUE(\
+                    "yend: y end coordinate (%s)" % self.labelUnitDist,\
+                    -5280.0, 5280.0)
+            else:
+                self.yend = self.defaulValue_yend
+
+            if not hasattr(self, "defaultValue_dy"):
+                self.dy = USER_INPUT.DATA_VALUE(\
+                    "dy: y spatial increment (%s)" % self.labelUnitDist,\
+                    0.1, 5280.0)
+            else:
+                self.dy = self.defaulValue_dy
+    # end userInput
+
+    def defineInputDataList(self):
+        self.inputList = []
+
+        if not hasattr(self, "defaultValueHi"):
+            self.inputList.append(BaseField(\
+                "Hi: incident wave height (%s)" % (self.labelUnitDist), 0.1, 200.0))
+        if not hasattr(self, "defaultValueT"):
+            self.inputList.append(BaseField(\
+                "T: water period (sec)", 1.0, 1000.0))
+        if not hasattr(self, "defaultValue_d"):
+            self.inputList.append(BaseField(\
+                "d: water depth (%s)" % (self.labelUnitDist), 0.01, 5000.0))
+        if not hasattr(self, "defaultValue_alpha"):
+            self.inputList.append(BaseField(\
+                "alpha: wave angle (deg)", 0.0, 180.0))
+        if not hasattr(self, "defaultValue_wedgang"):
+            self.inputList.append(BaseField(\
+                "wedgang: wedge angle (deg)", 0.0, 180.0))
+
+        if self.mode == 0:
+            if not hasattr(self, "defaultValue_xcor"):
+                self.inputList.append(BaseField(\
+                    "xcor: x-coordinate (%s)" %\
+                    (self.labelUnitDist), -5280.0, 5280.0))
+            if not hasattr(self, "defaultValue_ycor"):
+                self.inputList.append(BaseField(\
+                    "ycor: y-coordinate (%s)" %\
+                    (self.labelUnitDist), -5280.0, 5280.0))
+    # end defineInputDataList
+
+    def fileOutputRequestInit(self):
+        if self.mode == 0:
+            fileSuffix = "single_point"
+        else:
+            fileSuffix = "uniform_grid"
+
+        self.fileOutputRequestMain(\
+            defaultFilename = "refdiff_vert_wedge_%s" % fileSuffix)
+
+    def getCalcValues(self, caseInputList):
+        currIndex = 0
+
+        if hasattr(self, "defaultValueHi"):
+            Hi = self.defaultValueHi
+        else:
+            Hi = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValueT"):
+            T = self.defaultValueT
+        else:
+            T = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValue_d"):
+            d = self.defaultValue_d
+        else:
+            d = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValue_alpha"):
+            alpha = self.defaultValue_alpha
+        else:
+            alpha = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValue_wedgang"):
+            wedgang = self.defaultValue_wedgang
+        else:
+            wedgang = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if self.mode == 0:
+            if hasattr(self, "defaultValue_xcor"):
+                xcor = self.defaultValue_xcor
+            else:
+                xcor = caseInputList[currIndex]
+                currIndex = currIndex + 1
+
+            if hasattr(self, "defaultValue_ycor"):
+                ycor = self.defaultValue_ycor
+            else:
+                ycor = caseInputList[currIndex]
+        else:
+            xcor = None
+            ycor = None
+
+        return Hi, T, d, alpha, wedgang, xcor, ycor
+    # end getCalcValues
+
+    def performCalculations(self, caseInputList, caseIndex = 0):
+        Hi, T, d, alpha, wedgang, xcor, ycor =\
+            self.getCalcValues(caseInputList)
+        dataDict = {"Hi": Hi, "T": T, "d": d,\
+            "alpha": alpha, "wedgang": wedgang}
+
+        if self.mode == 0:
+            dataDict["xcor"] = xcor
+            dataDict["ycor"] = ycor
+        else:
+            dataDict["x0"] = self.x0
+            dataDict["xend"] = self.xend
+            dataDict["dx"] = self.dx
+            dataDict["y0"] = self.y0
+            dataDict["yend"] = self.yend
+            dataDict["dy"] = self.dy
+
         # Single Point Case
-        xcor = -33
-        ycor = 10
+        if self.mode == 0:
+            L, k = WAVELEN(d, T, 50, self.g)
 
-        L, k = WAVELEN(d, T, 50, g)
+            steep, maxstp = ERRSTP(Hi, d, L)
+            if not (steep < maxstp):
+                print("Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f" % (maxstp, steep))
+                return
 
-        steep, maxstp = ERRSTP(Hi, d, L)
-        assert(steep < maxstp), ('Error: Input wave unstable (Max: %0.4f,  [H/L]  =  #0.4f)' % (maxstp, steep))
+            Hb = ERRWAVBRK1(d, 0.78)
+            if not (Hi < Hb):
+                print("Error: Input wave broken (Hb = %6.2f %s" % (Hb, self.labelUnitDist))
+                return
 
-        Hb = ERRWAVBRK1(d, 0.78)
-        assert(Hi < Hb), ('Error: Input wave broken (Hb  =  %6.2f m)' % Hb)
-        # TODO
-        phi, beta, H, error = DRWEDG(xcor, ycor, Hi, alpha, wedgang, L)
-        assert(error~ = 1, 'Error: (x, y) location inside structure.')
+            phi, beta, H, error = DRWEDG(xcor, ycor, Hi, alpha, wedgang, L)
+            if error == 1:
+                print("Error: (x,y) location inside structure.")
+                return
 
-        fprintf('#s \t\t\t #6.2f \t \n', 'Wavelength', L)
-        fprintf('#s \t #6.2f \n', 'Mod factor (phi)', phi)
-        fprintf('#s \t\t\t #6.2f \t #s \n', 'Wave phase', beta, 'rad')
-        fprintf('#s \t #6.2f \t \n', 'Mod wave height', H)
+            print("Wavelength\t\t%6.2f\t%s" % (L, self.labelUnitDist))
+            print("Mod factor (phi)\t%6.2f" % phi)
+            print("Wave phase\t\t%6.2f\trad" % beta)
+            print("Mod wave height\t\t%6.2f\t%s" % (H, self.labelUnitDist))
 
-    elseif mode == 1
-        #Uniform Grid Case
-        x0 = -800
-        xend = 100
-        dx = 100
-        y0 = -450
-        yend = 150
-        dy = 50
+            dataDict["L"] = L
+            dataDict["phi"] = phi
+            dataDict["beta"] = beta
+            dataDict["H"] = H
+        else:
+            xcors = []
+            nxpt = int((self.xend - self.x0 + self.dx)/self.dx)
+            [xcors.append(self.x0 + i*self.dx) for i in range(nxpt)]
 
-        nxpt = floor((xend-x0+dx)/dx)
+            ycors = []
+            nypt = int((self.yend - self.y0 + self.dy)/self.dy)
+            [ycors.append(self.y0 + (nypt - i - 1)*self.dy) \
+                for i in range(nypt)]
 
-        for i = 1:nxpt
-            xcors(i) = (x0+(i-1)*dx)
-        end
+            L, k = WAVELEN(d, T, 50, self.g)
 
-        nypt = floor((yend-y0+dy)/dy)
+            steep, maxstp = ERRSTP(Hi, d, L)
+            if not (steep < maxstp):
+                print("Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f" % (maxstp, steep))
+                return
 
-        for i = 1:nypt
-            ycors(i, 1) = (y0+(i-1)*dy)
-        end
+            Hb = ERRWAVBRK(T, d, 0.0, 0.78, 0)
+            if not (Hi < Hb):
+                print("error: Input wave broken (Hb = %6.2f %s" % (Hb, self.labelUnitDist))
+                return
 
-        ycors = ycors(end:-1:1)
+            phi = []
+            beta = []
+            H = []
 
-        [L, k] = WAVELEN(d, T, 50, g)
+            for i in range(nypt):
+                phi.append([])
+                beta.append([])
+                H.append([])
 
-        [steep, maxstp] = ERRSTP(Hi, d, L)
-        assert(steep<maxstp, 'Error: Input wave unstable (Max: #0.4f,  [H/L]  =  #0.4f)', maxstp, steep')
+                for j in range(nxpt):
+                    xx = xcors[j]
+                    yy = ycors[i]
 
-        [Hb] = ERRWAVBRK(T, d, 0, 0.78, 0)
-        assert(Hi<Hb, 'Error: Input wave broken (Hb  =  #6.2f m)', Hb)
+                    valPhi, valBeta, valH, error = DRWEDG(xx, yy, Hi, alpha, wedgang, L)
 
-        for i = 1:nypt
-            for j = 1:nxpt
-                xx = xcors(1, j)
-                yy = ycors(i, 1)
-                [phi(i, j), beta(i, j), H(i, j), error] = DRWEDG(xx, yy, Hi, alpha, wedgang, L)
-                assert(error~ = 1, 'Error: (x, y) location inside structure.')
-            end
-        end
+                    phi[i].append(valPhi)
+                    beta[i].append(valBeta)
+                    H[i].append(valH)
 
-        fprintf('#s \t\t\t #6.2f \t \n', 'Wavelength', L)
-        fprintf('#s \n', 'Modification Factors:')
-        phi = cat(2, ycors, phi)
-        xcors = [999, xcors]
-        phi = cat(1, xcors, phi)
-        disp(phi)
+                    if error == 1:
+                        print("Error: (x,y) location inside structure.")
+                        return
+                # end for loop
+            # end for loop
 
-        fprintf('#s \n', 'Modified Wave Heights:')
-        H = cat(2, ycors, H)
-        H = cat(1, xcors, H)
-        disp(H)
+            print("Wavelength\t\t%6.2f %s" % (L, self.labelUnitDist))
 
-        fprintf('#s \n', 'Phase Angles (rad):')
-        beta = cat(2, ycors, beta)
-        beta = cat(1, xcors, beta)
-        disp(beta)
-    end
+            print("Modification factors:")
+            printMsg = ""
+            for i in range(len(xcors)):
+                printMsg += ("\t%6.2f" % xcors[i])
+            print(printMsg)
+
+            for i in range(len(phi)):
+                printMsg = "%6.2f" % ycors[i]
+
+                for j in range(len(phi[0])):
+                    printMsg += ("\t%6.2f" % phi[i][j])
+                print(printMsg)
+
+
+            print("\nModified Wave Heights:")
+            printMsg = ""
+            for i in range(len(xcors)):
+                printMsg += "\t%6.2f" % xcors[i]
+            print(printMsg)
+
+            for i in range(len(H)):
+                printMsg = "%6.2f" % ycors[i]
+
+                for j in range(len(H[0])):
+                    printMsg += "\t%6.2f" % H[i][j]
+                print(printMsg)
+
+            print("\nPhase Angles (rad):")
+            printMsg = ""
+            for i in range(len(xcors)):
+                printMsg += "\t%6.2f" % xcors[i]
+            print(printMsg)
+
+            for i in range(len(beta)):
+                printMsg = "%6.2f" % ycors[i]
+
+                for j in range(len(beta[0])):
+                    printMsg += "\t%6.2f" % beta[i][j]
+                print(printMsg)
+
+            dataDict["L"] = L
+            dataDict["xcors"] = xcors
+            dataDict["ycors"] = ycors
+            dataDict["phi"] = phi
+            dataDict["beta"] = beta
+            dataDict["H"] = H
+        # end if
+
+        self.fileOutputWriteMain(dataDict, caseIndex)
+    # end performCalculations
+
+    def fileOutputWriteData(self, dataDict):
+
+        if self.mode == 0:
+            self.fileRef.write("Input\n")
+            self.fileRef.write("Hi                  %6.2f %s\n" % (dataDict["Hi"], self.labelUnitDist))
+            self.fileRef.write("T                   %6.2f s\n" % dataDict["T"])
+            self.fileRef.write("d                   %6.2f %s\n" % (dataDict["d"], self.labelUnitDist))
+            self.fileRef.write("alpha               %6.2f deg\n" % dataDict["alpha"])
+            self.fileRef.write("wedgang             %6.2f deg\n" % dataDict["wedgang"])
+            self.fileRef.write("xcor                %6.2f %s\n" % (dataDict["xcor"], self.labelUnitDist))
+            self.fileRef.write("ycor                %6.2f %s\n" % (dataDict["ycor"], self.labelUnitDist))
+
+            self.fileRef.write("\nWavelength          %6.2f %s\n" % (dataDict["L"], self.labelUnitDist))
+            self.fileRef.write("Mod factor (phi)    %6.2f\n" % dataDict["phi"])
+            self.fileRef.write("Wave phase          %6.2f rad\n" % dataDict["beta"])
+            self.fileRef.write("Mod wave height     %6.2f %s\n" % (dataDict["H"], self.labelUnitDist))
+        else:
+            self.fileRef.write("Incident Wave Height\t=\t%-6.2f\t%s\tWave Period\t=\t%-6.2f\tsec\n" %\
+                (dataDict["Hi"], self.labelUnitDist, dataDict["T"]))
+            self.fileRef.write("Water Depth\t\t=\t%-6.2f\t%s\tWavelength\t=\t%-6.2f\t%s\n" %\
+                (dataDict["d"], self.labelUnitDist, dataDict["L"], self.labelUnitDist))
+            self.fileRef.write("Wave Angle\t\t=\t%-6.2f\tdeg\tWedge Angle\t=\t%-6.2f\tdeg\n\n" % (dataDict["alpha"], dataDict["wedgang"]))
+
+            # phi table
+            self.fileRef.write("**** Modification Factors:\n")
+            self.fileRef.write("              x=  ")
+            for xcor in dataDict["xcors"]:
+                self.fileRef.write("  %8.2f" % xcor)
+            self.fileRef.write("\n--------------------------------------------------------------------\n")
+
+            for i in range(len(dataDict["phi"])):
+                self.fileRef.write("y=      %8.2f  " % dataDict["ycors"][i])
+
+                for j in range(len(dataDict["phi"][0])):
+                    self.fileRef.write("  %8.2f" % dataDict["phi"][i][j])
+
+                self.fileRef.write("\n")
+            self.fileRef.write("--------------------------------------------------------------------\n")
+
+            self.fileRef.write("              x=  ")
+            for xcor in dataDict["xcors"]:
+                self.fileRef.write("  %8.2f" % xcor)
+            self.fileRef.write("\n--------------------------------------------------------------------\n")
+            # end phi table
+
+            self.fileRef.write("\n\n")
+
+            # H table
+            self.fileRef.write("**** Modified Wave Heights (%s):\n" % self.labelUnitDist)
+
+            self.fileRef.write("              x=  ")
+            for xcor in dataDict["xcors"]:
+                self.fileRef.write("  %8.2f" % xcor)
+            self.fileRef.write("\n--------------------------------------------------------------------\n")
+
+            for i in range(len(dataDict["H"])):
+                self.fileRef.write("y=      %8.2f  " % dataDict["ycors"][i])
+
+                for j in range(len(dataDict["H"][0])):
+                    self.fileRef.write("  %8.2f" % dataDict["H"][i][j])
+
+                self.fileRef.write("\n")
+            self.fileRef.write("--------------------------------------------------------------------\n")
+
+            self.fileRef.write("              x=  ")
+            for xcor in dataDict["xcors"]:
+                self.fileRef.write("  %8.2f" % xcor)
+            self.fileRef.write("\n--------------------------------------------------------------------\n")
+            # end H table
+
+            self.fileRef.write("\n\n")
+
+            # beta table
+            self.fileRef.write("**** Phase Angles (rad):\n")
+
+            self.fileRef.write("              x=  ")
+            for xcor in dataDict["xcors"]:
+                self.fileRef.write("  %8.2f" % xcor)
+            self.fileRef.write("\n--------------------------------------------------------------------\n")
+
+            for i in range(len(dataDict["beta"])):
+                self.fileRef.write("y=      %8.2f  " % dataDict["ycors"][i])
+
+                for j in range(len(dataDict["beta"][0])):
+                    self.fileRef.write("  %8.2f" % dataDict["beta"][i][j])
+
+                self.fileRef.write("\n")
+            self.fileRef.write("--------------------------------------------------------------------\n")
+
+            self.fileRef.write("              x=  ")
+            for xcor in dataDict["xcors"]:
+                self.fileRef.write("  %8.2f" % xcor)
+            self.fileRef.write("\n--------------------------------------------------------------------\n")
+            # end beta table
+    # end fileOutputWriteData
+
+	
+driver = RefdiffVertWedge()
