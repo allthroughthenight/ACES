@@ -76,25 +76,46 @@ class RefdiffVertWedge(BaseDriver):
             self.defaultValue_wedgang = wedgang
         if mode != None:
             self.isSingleCase = True
-            self.defaultValue_d = d
-        if d != None:
+            self.defaultValue_mode = mode
+        if xcor != None:
             self.isSingleCase = True
-            self.defaultValue_d = d
-        if d != None:
+            self.defaultValue_xcor = xcor
+        if ycor != None:
             self.isSingleCase = True
-            self.defaultValue_d = d
+            self.defaultValue_ycor = ycor
+        if x0 != None:
+            self.isSingleCase = True
+            self.defaultValue_x0 = x0
+        if xend != None:
+            self.isSingleCase = True
+            self.defaultValue_xend = xend
+        if dx != None:
+            self.isSingleCase = True
+            self.defaultValue_dx = dx
+        if y0 != None:
+            self.isSingleCase = True
+            self.defaultValue_y0 = y0
+        if yend != None:
+            self.isSingleCase = True
+            self.defaultValue_yend = yend
+        if dy != None:
+            self.isSingleCase = True
+            self.defaultValue_dy = dy
 
         super(RefdiffVertWedge, self).__init__()
     # end __init__
 
     def userInput(self):
-        self.mode = USER_INPUT.FINITE_CHOICE(\
-            "Mode 1 Single Case or Mode 2 Grid Case (1 or 2): ",\
-            ["1", "2"])
-        if self.mode == "1":
-            self.mode = 0
+        if not hasattr(self, "defaultValue_mode"):
+            self.mode = USER_INPUT.FINITE_CHOICE(\
+                "Mode 1 Single Case or Mode 2 Grid Case (1 or 2): ",\
+                ["1", "2"])
+            if self.mode == "1":
+                self.mode = 0
+            else:
+                self.mode = 1
         else:
-            self.mode = 1
+            self.mode = self.defaultValue_mode
 
         super(RefdiffVertWedge, self).userInput()
 
@@ -104,42 +125,42 @@ class RefdiffVertWedge(BaseDriver):
                     "x0: x start coordinate (%s)" % self.labelUnitDist,\
                     -5280.0, 5280.0)
             else:
-                self.x0 = self.defaulValue_x0
+                self.x0 = self.defaultValue_x0
 
             if not hasattr(self, "defaultValue_xend"):
                 self.xend = USER_INPUT.DATA_VALUE(\
                     "xend: x end coordinate (%s)" % self.labelUnitDist,\
                     -5280.0, 5280.0)
             else:
-                self.xend = self.defaulValue_xend
+                self.xend = self.defaultValue_xend
 
             if not hasattr(self, "defaultValue_dx"):
                 self.dx = USER_INPUT.DATA_VALUE(\
                     "dx: x spatial increment (%s)" % self.labelUnitDist,\
                     0.1, 5280.0)
             else:
-                self.dx = self.defaulValue_dx
+                self.dx = self.defaultValue_dx
 
             if not hasattr(self, "defaultValue_y0"):
                 self.y0 = USER_INPUT.DATA_VALUE(\
                     "y0: y start coordinate (%s)" % self.labelUnitDist,\
                     -5280.0, 5280.0)
             else:
-                self.y0 = self.defaulValue_y0
+                self.y0 = self.defaultValue_y0
 
             if not hasattr(self, "defaultValue_yend"):
                 self.yend = USER_INPUT.DATA_VALUE(\
                     "yend: y end coordinate (%s)" % self.labelUnitDist,\
                     -5280.0, 5280.0)
             else:
-                self.yend = self.defaulValue_yend
+                self.yend = self.defaultValue_yend
 
             if not hasattr(self, "defaultValue_dy"):
                 self.dy = USER_INPUT.DATA_VALUE(\
                     "dy: y spatial increment (%s)" % self.labelUnitDist,\
                     0.1, 5280.0)
             else:
-                self.dy = self.defaulValue_dy
+                self.dy = self.defaultValue_dy
     # end userInput
 
     def defineInputDataList(self):
@@ -473,5 +494,5 @@ class RefdiffVertWedge(BaseDriver):
             # end beta table
     # end fileOutputWriteData
 
-	
+
 driver = RefdiffVertWedge()
