@@ -1,5 +1,6 @@
 import sys
 import math
+import matplotlib.pyplot as pyplot
 sys.path.append('../functions')
 
 from base_driver import BaseDriver
@@ -190,6 +191,10 @@ class IrrWaveTrans(BaseDriver):
             "SBrms": SBrms, "Sw": Sw, "HoLo": HoLo, "Kr": Kr,\
             "dHo": dHo, "dLo": dLo}
         self.fileOutputWriteMain(dataDict, caseIndex)
+
+        if self.isSingleCase:
+            self.plotDict = {"Hxo": Hxo, "cdfo": cdfo,\
+                "Hx": Hx, "cdfx": cdfx, "d": d}
     # end performCalculations
 
     def fileOutputWriteData(self, dataDict):
@@ -226,5 +231,54 @@ class IrrWaveTrans(BaseDriver):
         self.fileRef.write("d/Lo\t%-6.4f\t%-6.4f\n" % (dataDict["dLo"][1], dataDict["dLo"][0]))
     # end fileOutputWriteData
 
+    def hasPlot(self):
+        return True
+
+    def performPlot(self):
+        m2cm = 100.0
+
+        plot1Hxo = [i / m2cm for i in self.plotDict["Hxo"]]
+        pyplot.figure(1, figsize = self.plotConfigDict["figSize"],\
+            dpi = self.plotConfigDict["dpi"])
+        pyplot.plot(plot1Hxo, self.plotDict["cdfo"])
+        pyplot.title("Deep Water", fontsize = self.plotConfigDict["titleFontSize"])
+        pyplot.xlabel("H [%s]" % self.labelUnitDist,\
+            fontsize = self.plotConfigDict["axisLabelFontSize"])
+        pyplot.ylabel("CDF",\
+            fontsize = self.plotConfigDict["axisLabelFontSize"])
+
+        plot2Hx = [i / m2cm for i in self.plotDict["Hx"]]
+        pyplot.figure(2, figsize = self.plotConfigDict["figSize"],\
+            dpi = self.plotConfigDict["dpi"])
+        pyplot.plot(plot2Hx, self.plotDict["cdfx"])
+        pyplot.title("Subject Depth",\
+            fontsize = self.plotConfigDict["titleFontSize"])
+        pyplot.xlabel("H [%s]" % self.labelUnitDist,\
+            fontsize = self.plotConfigDict["axisLabelFontSize"])
+        pyplot.ylabel("CDF2",\
+            fontsize = self.plotConfigDict["axisLabelFontSize"])
+
+        pyplot.show()
+
+        self.plotDict["plot1Hxo"] = plot1Hxo
+        self.plotDict["plot2Hx"] = plot2Hx
+        self.fileOutputPlotWriteData()
+    # end performPlot
+
+    def fileOutputPlotWriteData(self):
+        m2cm = 100.0
+
+        self.fileRef.write("Wave Height versus Cumulative Probability\nDistribution of Exceedance\n\n")
+
+        self.fileRef.write("Deep Water\tWater Depth = %-6.2f %s\n" %\
+            (self.plotDict["d"]/m2cm, self.labelUnitDist))
+        self.fileRef.write("H (%s)\tCDF\tH(%s)\tCDF2\n" %\
+            (self.labelUnitDist, self.labelUnitDist))
+
+        for i in range(len(self.plotDict["plot1Hxo"])):
+            self.fileRef.write("%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f\n" %\
+                (self.plotDict["plot1Hxo"][i], self.plotDict["cdfo"][i],\
+                self.plotDict["plot2Hx"][i], self.plotDict["cdfx"][i]))
+    # end fileOutputPlotWriteData
 
 driver = IrrWaveTrans()

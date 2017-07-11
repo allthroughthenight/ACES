@@ -18,6 +18,20 @@ class BaseDriver(object):
         # Close file if applicable
         if self.fileOutputData.saveOutput:
             self.fileRef.close()
+
+        # Plotting logic
+        if self.isSingleCase and self.hasPlot():
+            self.plotConfigDict = {"figSize": (8, 6), "dpi": 160,\
+                "titleFontSize": 20, "axisLabelFontSize": 18}
+
+            if self.fileOutputData.saveOutput:
+                self.fileOutputPlotInit()
+
+            self.performPlot()
+
+            if self.fileOutputData.saveOutput:
+                self.fileRef.close()
+        # end plotting if
     # end __init__
 
     def userInput(self):
@@ -40,8 +54,11 @@ class BaseDriver(object):
             self.dataOutputList = USER_INPUT.MULTI_MODE(self.inputList)
     # end userInput
 
+    def getFilePath(self):
+        return "output/"
+    # end getFilePath
+
     def fileOutputRequestMain(self, defaultFilename = None, requestDesc = False):
-        filePath = "output/"
         if defaultFilename == None:
             requestFilename = True
         else:
@@ -50,13 +67,17 @@ class BaseDriver(object):
         self.fileOutputData = USER_INPUT.FILE_OUTPUT(requestFilename, requestDesc)
 
         if self.fileOutputData.saveOutput:
-            if requestFilename:
-                self.fileOutputData.filename = filePath +\
-                    self.fileOutputData.filename + ".txt"
-            else:
-                self.fileOutputData.filename = filePath + defaultFilename + ".txt"
+            # if requestFilename:
+            #     self.fileOutputData.filename = self.getFilePath() +\
+            #         self.fileOutputData.filename + ".txt"
+            # else:
+            #     self.fileOutputData.filename =\
+            #         self.getFilePath() + defaultFilename + ".txt"
+            if not requestFilename:
+                self.fileOutputData.filename = defaultFilename
 
-            self.fileRef = open(self.fileOutputData.filename, "w")
+            self.fileRef = open(self.getFilePath() +\
+                self.fileOutputData.filename + ".txt", "w")
 
             if requestDesc:
                 self.fileRef.write("%s\n\n" % self.fileOutputData.fileDesc)
@@ -74,6 +95,11 @@ class BaseDriver(object):
         # end file output if
     # end fileOutputWriteBase
 
+    def fileOutputPlotInit(self):
+        self.fileRef = open(self.getFilePath() +\
+            self.fileOutputData.filename + "_plot.txt", "w")
+    #end
+
     # Override Methods ###################################################
     # Must be overridden by subclass
     def defineInputDataList(self):
@@ -86,5 +112,14 @@ class BaseDriver(object):
         pass
 
     def fileOutputWriteData(self, dataDict):
+        pass
+
+    def hasPlot(self):
+        return False;
+
+    def performPlot(self):
+        pass
+
+    def fileOutputPlotWriteData(self):
         pass
 # end base_driver

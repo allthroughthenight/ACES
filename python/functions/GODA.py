@@ -22,6 +22,15 @@ def GODA(Ho, dloc, Ts, S, direc, g):
     theta2dout = [0.0, 0.0]
     etaout = [0.0, 0.0]
 
+    # Ht1 = [0.0 for loopIndex in range(int(is1)*150)]
+    # Ht2 = [0.0 for loopIndex in range(int(is1)*150)]
+    # cdf = [0.0 for loopIndex in range(int(is1)*150)]
+    # cdf2 = [0.0 for loopIndex in range(int(is1)*150)]
+    Ht1 = []
+    Ht2 = []
+    cdf = []
+    cdf2 = []
+
     deg2rad = math.pi / 180
     Csave = 0
     itest = 0
@@ -250,6 +259,7 @@ def GODA(Ho, dloc, Ts, S, direc, g):
                 else:
                     i1 = H1 / delh
                     i2 = H2 / delh
+
                     # renamed is to is1
                     is1 = i2 - i1
                     if is1 == 0:
@@ -258,11 +268,6 @@ def GODA(Ho, dloc, Ts, S, direc, g):
                     elif is1 > 0:
                         if is1 < 1:
                             is1 = 1
-
-                        Ht1 = [0.0 for loopIndex in range(int(is1)*150)]
-                        Ht2 = [0.0 for loopIndex in range(int(is1)*150)]
-                        cdf = [0.0 for loopIndex in range(int(is1)*150)]
-                        cdf2 = [0.0 for loopIndex in range(int(is1)*150)]
 
                         for it in range(int(is1)):
                             Ht = delh * (i1 + it)
@@ -277,13 +282,29 @@ def GODA(Ho, dloc, Ts, S, direc, g):
                                 H1 = H2
                             else:
                                 if jpn == 1:
-                                    ijk = ijk + 1
+                                    if len(Ht1) < ijk + 1:
+                                        for loopIndex in range(len(Ht1), ijk + 1):
+                                            Ht1.append(0.0)
                                     Ht1[ijk] = Ht
+
+                                    if len(cdf) < ijk + 1:
+                                        for loopIndex in range(len(cdf), ijk + 1):
+                                            cdf.append(0.0)
                                     cdf[ijk] = cump
+
+                                    ijk = ijk + 1
                                 else:
-                                    ikj = ikj + 1
+                                    if len(Ht2) < ikj + 1:
+                                        for loopIndex in range(len(Ht2), ikj + 1):
+                                            Ht2.append(0.0)
                                     Ht2[ikj] = Ht
+
+                                    if len(cdf2) < ikj + 1:
+                                        for loopIndex in range(len(cdf2), ikj + 1):
+                                            cdf2.append(0.0)
                                     cdf2[ikj] = cump
+
+                                    ikj = ikj + 1
                         cump1 = cump2
                         H1 = H2
             zm1 = z
@@ -293,4 +314,8 @@ def GODA(Ho, dloc, Ts, S, direc, g):
             ym1 = y
         # end if
 
+    Ht1 = Ht1[1:]
+    Ht2 = Ht2[1:]
+    cdf = cdf[1:]
+    cdf2 = cdf2[1:]
     return Ksout, Krout, Hmaxout, Hrmsout, Hmeanout, Hsigout, H10out, H02out, SBout, HoLo, dLoout, dHoout, xsave, theta2dout, etaout, Ht1, cdf, Ht2, cdf2
