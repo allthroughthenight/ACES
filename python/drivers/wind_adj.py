@@ -1,274 +1,458 @@
 import sys
 import math
+import numpy as np
 sys.path.append('../functions')
 
 from base_driver import BaseDriver
 from helper_objects import BaseField
 import USER_INPUT
-from ERRSTP import ERRSTP
-from ERRWAVBRK1 import ERRWAVBRK1
-from WAVELEN import WAVELEN
+from WADJ import WADJ
+from WGFET import WGFET
 
-class ext_Hs_analysis(BaseDriver):
-    def __init__(self, Nt = None, K = None, d = None, hsCount = None, Hs = None):
-        if Nt != None:
+## ACES Update to python
+#-------------------------------------------------------------
+# Driver for Windspeed Adjustment and Wave Growth (page 1-1 of ACES User's
+# Guide). Provide estimates for wave growth over open-water and restricted
+# fetches in deep and shallow water.
+
+# Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
+# Date Created: April 28, 2011
+# Date Modified:
+
+# Requires the following functions:
+# ERRWAVBRK1
+# WADJ
+# WAGEOS
+# WAPBL
+# WAPSI
+# WASBL
+# WASHR
+# WGDL
+# WGFD
+# WGFET
+# WGFL
+# WGRO
+
+# MAIN VARIABLE LIST:
+#   INPUT
+#   zobs: elevation of observed winds [m]
+#   uobs: observed wind speed [m/s]
+#   dtemp: air-sea temperature difference [deg C]
+#   duro: duration of observed wind [hr]
+#   durf: duration of final wind [hr]
+#   lat: latitude of wind observation [deg]
+#   windobs: wind observation type
+#   fetchopt: wind fetch options
+#   wgtyp: open water wave growth equation options
+
+#   OPEN-WATER VARIABLES
+#   F: length of wind fetch [m]
+#   d: average depth of fetch (only for shallow water equations) [m]
+
+#   RESTRICTED VARIABLES
+#   wdir: wind direction [deg]
+#   dang: radial angle increment [deg]
+#   ang1: direction of first radial fetch [deg]
+#   angs: fetch length [m]
+
+#   OUTPUT
+#   ue: equivalent neutral wind speed [m/s]
+#   ua: adjusted wind speed [m/s]
+#   Hmo: wave height [m]
+#   Tp: peak wave period [s]
+#   wg: type of wave-growth
+#   theta: wave direction with respect to N [deg]
+
+#   OTHERS
+#-------------------------------------------------------------
+
+class WindAdj(BaseDriver):
+    def __init__(self, windobs = None, wgtyp = None, useKnots = None,\
+        zobs = None, Uobs = None, dtemp = None, duro = None, durf = None,\
+        lat = None, F = None, d = None, wdir = None, dang = None,\
+        ang1 = None, manualOrFile = None, Nfet = None, angs = None):
+        if windobs != None:
             self.isSingleCase = True
-            self.defaultValueNt = Nt
-        if K != None:
+            self.defaultValue_windobs = windobs
+        if wgtyp != None:
             self.isSingleCase = True
-            self.defaultValueK = K
+            self.defaultValue_wgtyp = wgtyp
+        if useKnots != None:
+            self.isSingleCase = True
+            self.defaultValue_useKnots = useKnots
+        if zobs != None:
+            self.isSingleCase = True
+            self.defaultValue_zobs = zobs
+        if Uobs != None:
+            self.isSingleCase = True
+            self.defaultValueUobs = Uobs
+        if dtemp != None:
+            self.isSingleCase = True
+            self.defaultValue_dtemp = dtemp
+        if duro != None:
+            self.isSingleCase = True
+            self.defaultValue_duro = duro
+        if durf != None:
+            self.isSingleCase = True
+            self.defaultValue_durf = durf
+        if lat != None:
+            self.isSingleCase = True
+            self.defaultValue_lat = lat
+        if F != None:
+            self.isSingleCase = True
+            self.defaultValueF = F
         if d != None:
             self.isSingleCase = True
             self.defaultValue_d = d
-        if hsCount != None:
+        if wdir != None:
             self.isSingleCase = True
-            self.defaultValuehsCount = hsCount
-        if Hs != None:
+            self.defaultValue_wdir = wdir
+        if dang != None:
             self.isSingleCase = True
-            self.defaultValueHs = Hs
+            self.defaultValue_dang = dang
+        if ang1 != None:
+            self.isSingleCase = True
+            self.defaultValue_ang1 = ang1
+        if manualOrFile != None:
+            self.isSingleCase = True
+            self.defaultValue_manualOrFile = manualOrFile
+        if Nfet != None:
+            self.isSingleCase = True
+            self.defaultValue_useKnots = useKnots
+        if angs != None:
+            self.isSingleCase = True
+            self.defaultValue_useKnots = useKnots
 
-        super(ext_Hs_analysis, self).__init__()
-
-        self.performPlot()
+        super(WindAdj, self).__init__()
     # end __init__
 
+    def userInput(self):
+        self.windObsList = ["Overwater (shipboard)",\
+            "Overwater (not shipboard)",\
+            "Shore (windward - offshore to onshore)",\
+            "Shore (leeward - onshore to offshore)",\
+            "Over land",\
+            "Geostrophic wind"]
+
+        if not hasattr(self, "defaultValue_windobs"):
+            windObsMsg = "Wind observation types:\n"
+            for i in range(len(self.windObsList)):
+                windObsMsg += "[%d] %s\n" % ((i + 1), self.windObsList[i])
+            windObsMsg += "Select option: "
+
+            self.windobs = USER_INPUT.FINITE_CHOICE(\
+                windObsMsg, ["1", "2", "3", "4", "5", "6"])
+            self.windobs = int(self.windobs)
+        else:
+            self.windobs = self.defaultValue_windobs
+
+        self.wgtypList = ["Open Water - Deep",\
+            "Open Water - Shallow",\
+            "Restricted - Deep",\
+            "Restricted - Shallow"]
+
+        if not hasattr(self, "defaultValue_wgtyp"):
+            wgtypMsg = "Wind fetch and wave growth options:\n"
+            for i in range(len(self.wgtypList)):
+                wgtypMsg += "[%d] %s\n" % ((i + 1), self.wgtypList[i])
+            wgtypMsg += "Select option: "
+
+            self.wgtyp = USER_INPUT.FINITE_CHOICE(\
+                wgtypMsg, ["1", "2", "3", "4"])
+            self.wgtyp = int(self.wgtyp)
+        else:
+            self.wgtyp = self.defaultValue_wgtyp
+
+        self.isWaterOpen = self.wgtyp == 1 or self.wgtyp == 2
+        self.isWaterShallow = self.wgtyp == 2 or self.wgtyp == 4
+
+        super(WindAdj, self).userInput()
+
+        if not self.isWaterOpen:
+            if not hasattr(self, "defaultValue_dang"):
+                self.dang = USER_INPUT.DATA_VALUE(\
+                    "dang: radial angle increment [deg]", 1.0, 180.0)
+            else:
+                self.dang = self.defaultValue_dang
+
+            if not hasattr(self, "defaultValue_ang1"):
+                self.ang1 = USER_INPUT.DATA_VALUE(\
+                    "ang1: direction of first radial fetch [deg]",\
+                    0.0, 360.0)
+            else:
+                self.ang1 = self.defaultValue_ang1
+
+            if not hasattr(self, "defaultValue_manualOrFile"):
+                manualOrFile = USER_INPUT.FINITE_CHOICE(\
+                    "Would you like to enter fetch length data " +\
+                    "manually or load from a file?\n" +\
+                    "[M] for manual entry or [F] for file loading: ",
+                    ["M", "m", "F", "f"])
+
+                if manualOrFile == "M" or manualOrFile == "m":
+                    self.Nfet = USER_INPUT.DATA_VALUE(\
+                        "Nfet: number of radial fetches", 2, 360)
+                    self.Nfet = int(self.Nfet)
+
+                    self.angs = []
+                    for i in range(self.Nfet):
+                        self.angs.append(USER_INPUT.DATA_VALUE(\
+                            "angs: fetch length [%s] #%d" %\
+                            (self.labelUnitDistLrg, i), 0.0, 9999.0))
+                else:
+                    accepted = False
+                    while not accepted:
+                        filename = USER_INPUT.FILE_NAME()
+
+                        fileRef = open(filename)
+
+                        fileData = fileRef.read()
+
+                        self.angs = []
+                        for dataLine in fileData.split("\n"):
+                            if len(dataLine) > 0:
+                                self.angs.append(float(dataLine))
+                        self.Nfet = len(self.angs)
+
+                        fileRef.close()
+
+                        if self.Nfet >= 2 and self.Nfet <= 360:
+                            accepted = True
+                        else:
+                            print("File must have between 2 and 360 fetch lengths.")
+                    # end while
+    # end userInput
+
     def defineInputDataList(self):
+        if self.isMetric:
+            self.labelSpeed = "m/s"
+            self.labelUnitDistLrg = "km"
+        else:
+            self.labelSpeed = "mph"
+            self.labelUnitDistLrg = "mi"
+
+        if not hasattr(self, "defaultValue_useKnots"):
+            self.useKnots = USER_INPUT.FINITE_CHOICE(\
+                "Speed options:\n[M] %s\n[K] knots\nSelect option: " %\
+                self.labelSpeed,\
+                ["M", "m", "K", "k"])
+        else:
+            self.useKnots = self.defaultValue_useKnots
+        if self.useKnots == "K" or self.useKnots == "k":
+            self.labelSpeedFinal = "knots"
+            self.useKnots = True
+        else:
+            self.labelSpeedFinal = self.labelSpeed
+            self.useKnots = False
+
         self.inputList = []
 
-        if not hasattr(self, "defaultValueNt"):
-            self.inputList.append(BaseField("Enter Nt: estimated total number of events: ",  0.0, 10000.0))
+        if not hasattr(self, "defaultValue_zobs"):
+            self.inputList.append(BaseField(\
+                "zobs: elevation of observed winds [%s]" % (self.labelUnitDist),\
+                1.0, 5000.0))
+        if not hasattr(self, "defaultValueUobs"):
+            self.inputList.append(BaseField(\
+                "uobs: observed wind speed [%s]" % self.labelSpeedFinal,\
+                0.1, 200.0))
+        if not hasattr(self, "defaultValue_dtemp"):
+            self.inputList.append(BaseField(\
+                "dtemp: air-sea temperature difference [deg C]",\
+                -100.0, 100.0))
+        if not hasattr(self, "defaultValue_duro"):
+            self.inputList.append(BaseField(\
+                "duro: duration of observed wind [hr]", 0.1, 86400.0))
+        if not hasattr(self, "defaultValue_durf"):
+            self.inputList.append(BaseField(\
+                "durf: duration of final wind [hr]", 0.1, 86400.0))
+        if not hasattr(self, "defaultValue_lat"):
+            self.inputList.append(BaseField(\
+                "lat: latitude of wind observation [deg]", 0.0, 180.0))
 
-        if not hasattr(self, "defaultValueK"):
-            self.inputList.append(BaseField("Enter K: length of the record in years: ", 0.0, 999.9))
+        if self.isWaterOpen and not hasattr(self, "defaultValueF"):
+            self.inputList.append(BaseField(\
+                "F: length of wind fetch [%s]" % self.labelUnitDistLrg,
+                0.0, 9999.0))
 
-        if not hasattr(self, "defaultValue_d"):
-            self.inputList.append(BaseField("Enter d: water depth [%s]" % (self.labelUnitDist), 0.0, 1000.0))
+        if self.isWaterShallow and not hasattr(self, "defaultValue_d"):
+            self.inputList.append(BaseField(\
+                "d: average depth of fetch [%s]" % self.labelUnitDist,
+                0.1, 10000.0))
 
-        if not hasattr(self, "defaultValuehsCount"):
-            self.inputList.append(BaseField("Enter the number of significant wave heights: ", 1, 200))
-
-        for x in hsCount:
-            self.inputList.append(BaseField("Enter significant wvae height #%s: "% x, 0.0, 100.0))
+        if not self.isWaterOpen and not hasattr(self, "defaultValue_wdir"):
+            self.inputList.append(BaseField(\
+                "wdir: wind direction [deg]", 0.0, 360.0))
     # end defineInputDataList
 
     def fileOutputRequestInit(self):
-        self.fileOutputRequestMain(defaultFilename = "ext_Hs_analysis")
+        self.fileOutputRequestMain(defaultFilename = "wind_adj")
 
-    def getCalcValues(self):
+    def getCalcValues(self, caseInputList):
         currIndex = 0
 
-        if hasattr(self, "defaultValueNt"):
-            Nt = self.defaultValueNt
+        if hasattr(self, "defaultValue_zobs"):
+            zobs = self.defaultValue_zobs
         else:
-            Nt = self.dataOutputList[currIndex]
+            zobs = caseInputList[currIndex]
             currIndex = currIndex + 1
 
-        if hasattr(self, "defaultValueK"):
-            K = self.defaultValueK
+        if hasattr(self, "defaultValueUobs"):
+            Uobs = self.defaultValueUobs
         else:
-            K = self.dataOutputList[currIndex]
+            Uobs = caseInputList[currIndex]
             currIndex = currIndex + 1
 
-        if hasattr(self, "defaultValue_d"):
-            d = self.defaultValue_d
+        if hasattr(self, "defaultValue_dtemp"):
+            dtemp = self.defaultValue_dtemp
         else:
-            d = self.dataOutputList[currIndex]
+            dtemp = caseInputList[currIndex]
             currIndex = currIndex + 1
 
-        if hasattr(self, "defaultValuehsCount"):
-            hsCount = self.defaultValuehsCount
+        if hasattr(self, "defaultValue_duro"):
+            duro = self.defaultValue_duro
         else:
-            hsCount = self.dataOutputList[currIndex]
+            duro = caseInputList[currIndex]
             currIndex = currIndex + 1
 
-        return Nt, K, d, hsCount
+        if hasattr(self, "defaultValue_durf"):
+            durf = self.defaultValue_durf
+        else:
+            durf = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValue_lat"):
+            lat = self.defaultValue_lat
+        else:
+            lat = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if self.isWaterOpen:
+            if hasattr(self, "defaultValueF"):
+                F = self.defaultValueF
+            else:
+                F = caseInputList[currIndex]
+                currIndex = currIndex + 1
+        else:
+            F = None
+
+        if self.isWaterShallow:
+            if hasattr(self, "defaultValue_d"):
+                d = self.defaultValue_d
+            else:
+                d = caseInputList[currIndex]
+                currIndex = currIndex + 1
+        else:
+            d = 0.0
+
+        if not self.isWaterOpen:
+            if hasattr(self, "defaultValue_wdir"):
+                wdir = self.defaultValue_wdir
+            else:
+                wdir = caseInputList[currIndex]
+                currIndex = currIndex + 1
+        else:
+            wdir = None
+
+        if not self.isWaterOpen:
+            dang = self.dang
+            ang1 = self.ang1
+            Nfet = self.Nfet
+            angs = self.angs
+        else:
+            dang = None
+            ang1 = None
+            Nfet = None
+            angs = None
+
+        return zobs, Uobs, dtemp, duro, durf, lat, F, d, wdir,\
+            dang, ang1, Nfet, angs
     # end getCalcValues
 
-#######
-    def performCalculations(self):
-        Hmo, Tp, d = self.getCalcValues()
-        # Hmo = self.dataOutputList[0]
-        # Tp = self.dataOutputList[1]
-        # d = self.dataOutputList[2]
+    def performCalculations(self, caseInputList, caseIndex = 0):
+        zobs, Uobs, dtemp, duro, durf, lat, F, d, wdir,\
+            dang, ang1, Nfet, angs = self.getCalcValues(caseInputList)
 
-        Htype = []
-        Htype.append(0.50) #Hmed;
-        Htype.append(0.66) #H1/3 (1-1/3);
-        Htype.append(0.90) #H1/10 (1-1/10);
-        Htype.append(0.99) #H1/100 (1-1/100);
+        # Constant for convertions
+        ft2m = 0.3048
+        mph2mps = 0.44704
+        hr2s = 3600.0
+        min2s = 60.0
+        deg2rad = math.pi/180.0
+        mi2m = 1609.344
+        km2m = 0.001
+        F2C = 5.0/9.0
+        knots2mps = 0.5144
 
-        Hb = ERRWAVBRK1(d, 0.9)
-        if Hmo >= Hb:
-            print("Error: Input wave broken (Hb = %6.2f %s)" % (Hb, self.labelUnitDist))
-            return
-
-        L, k = WAVELEN(d, Tp, 50, self.g)
-        steep, maxstp = ERRSTP(Hmo, d, L)
-        if steep >= maxstp:
-            print("Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)" %(maxstp, steep))
-            return
-
-        dterm = d/(self.g*Tp**2)
-        k = 0
-        sum1 = 0
-
-        if dterm > 0.01:
-            print("Input conditions indicate Rayleigh distribution")
-            Hb = math.sqrt(5)*Hmo
-            Hinc = Hb/10000
-            sigma = Hmo/4
-            Hrms = 2*math.sqrt(2)*sigma
-
-            H = [0]
-            p = [0]
-            index = [0, 0, 0, 0]
-            for i in range(2, 10002):
-                # Rayleigh distribution
-                H.append(Hinc * (i - 1))
-                term1 = math.exp(-(H[i - 1]/Hrms)**2)
-                term2 = (2 * H[i - 1])/Hrms**2
-                p.append(term1 * term2)
-
-                sum1 = sum1 + (p[i - 1]*Hinc)
-                if k < 4 and sum1 > Htype[k]:
-                    index[k] = i
-                    k = k + 1
-
-            Hout = []
-            for k in range(1, 4):
-                sum2 = 0
-                Hstart = H[index[k]]
-                Hinc = (Hb - Hstart)/10000
-                pprv = p[index[k]]
-                Hprv = Hstart
-
-                for i in range(2, 10001):
-                    Hnxt = Hstart + Hinc*(i - 1)
-                    term1 = exp(-(Hnxt/Hrms)**2)
-                    term2 = (2 * Hnxt)/Hrms**2
-                    pnxt = term1 * term2
-                    darea = 0.5*(pprv + pnxt)*Hinc # area of a trapezoid
-                    sum2 = sum2 + (Hinc/2.0 + Hprv)*darea
-                    pprv = pnxt
-                    Hprv = Hnxt
-                Hout.append(sum2 / (1 - Htype[k])) # computing centroid (areasum = 1-Htype)
+        if not self.isMetric:
+            conversionDist = ft2m
+            conversionDistLrg = mi2m
         else:
-            Hb = d
-            Hinc = Hb / 100
-            print("Input conditions indicate Beta-Rayleigh distribution")
-            a1 = 0.00089
-            b1 = 0.834
-            a2 = 0.000098
-            b2 = 1.208
+            conversionDist = 1.0
+            conversionDistLrg = km2m
 
-            d1 = a1*dterm**(-b1)
-            if d1 > 35.0:
-                print("Error: d/gT^2 approaching infinity")
+        if self.useKnots:
+            conversionSpeed = knots2mps
+        elif not self.isMetric:
+            conversionSpeed = mph2mps
+        else:
+            conversionSpeed = 1.0
+
+        if self.isWaterOpen:
+            phi = 0.0
+        else:
+            F, phi, theta = WGFET(ang1, dang, wdir, angs)
+
+        if np.isclose(lat, 0.0):
+            print("Error: Latitude must be a non-zero value.")
+            return
+
+        # Check WDIR vs Fetch data. WDIR must meet this criterion:
+        # ang1 -45 degrees <= WDIR <= anglast + 45 degrees
+        if not self.isWaterOpen:
+            if not (ang1 - 45 <= wdir):
+                print("Error: wdir must be at least 45 degrees less than the first fetch angle.")
                 return
-            Hrms = (1/math.sqrt(2))*math.exp(d1)*Hmo # root-mean-square wave height
+            if not (wdir <= (ang1 + (Nfet - 1)*dang)):
+                print("Error: wdir must be at most 45 degrees more than the final fetch angle.")
+                return
 
-            d2 = a2 * dterm**(-b2)
-            if d2 > 35.0:
-                print("Error: d/gT^2 approaching infinity")
+        ue = WADJ(Uobs*conversionSpeed,\
+            zobs*conversionDist,\
+            dtemp,\
+            F*conversionDistLrg,\
+            duro*hr2s,\
+            durf*hr2s,\
+            lat*deg2rad,\
+            self.windobs)
+        # print(ue)
 
-            Hrmsq = (1/math.sqrt(2))*math.exp(d2)*Hmo**2 # root-mean-quad wave height
-
-            # Computing alpha and beta
-            K1 = (Hrms / Hb)**2
-            K2 = (Hrmsq**2) / (Hb**4)
-
-            alpha = (K1*(K2 - K1))/(K1**2 - K2)
-            beta = ((1 - K1)*(K2 - K1))/(K1**2 - K2)
-
-            term1 = (2*math.gamma(alpha + beta))/(math.gamma(alpha)*math.gamma(beta))
-
-            H = []
-            p = []
-            index = [0, 0, 0, 0]
-            for i in range(101):
-                # Beta-Rayleigh distribution
-                H.append(Hinc*i)
-                term2 = (H[i]**(2*alpha - 1))/(Hb**(2*alpha))
-                term3 = (1 - (H[i]/Hb)**2)**(beta - 1)
-                p.append(term1 * term2 * term3)
-
-                sum1 = sum1 + (p[i]*Hinc)
-                if k < 4 and sum1 > Htype[k]:
-                    index[k] = i
-                    k = k + 1
-
-            Hout = []
-            for k in range(1, 4):
-                sum2 = 0
-                Hstart = H[index[k]]
-                Hinc = (Hb - Hstart)/20
-                pprv = p[index[k]]
-                Hprv = Hstart
-
-                for i in range(1, 20):
-                    Hnxt = Hstart + Hinc*i
-                    term2 = (Hnxt**(2*alpha - 1))/(Hb**(2*alpha))
-                    term3 = (1 - (Hnxt/Hb)**2)**(beta - 1)
-                    pnxt = term1*term2*term3
-                    darea = 0.5*(pprv + pnxt)*Hinc # area of a trapezoid
-                    sum2 = sum2 + (Hinc/2.0 + Hprv)*darea
-                    pprv = pnxt
-                    Hprv = Hnxt
-
-                Hout.append(sum2 / (1 - Htype[k])) # computing centroid (areasum = 1-Htype)
-
-        Hmed = H[index[0]]
-
-        print("Wave heights")
-        print("Hrms\t\t%6.2f %s" % (Hrms, self.labelUnitDist))
-        print("Hmed\t\t%6.2f %s" % (Hmed, self.labelUnitDist))
-        print("H(1/3)\t\t%6.2f %s" % (Hout[0], self.labelUnitDist))
-        print("H(1/10)\t\t%6.2f %s" % (Hout[1], self.labelUnitDist))
-        print("H(1/100)\t%6.2f %s" % (Hout[2], self.labelUnitDist))
-
-        dataDict = {"Hmo": Hmo, "Tp": Tp, "d": d,\
-            "Hrms": Hrms, "Hmed": Hmed, "Hout": Hout }
-        self.fileOutputWriteMain(dataDict)
-
+        dataDict = {"zobs": zobs, "Uobs": Uobs, "dtemp": dtemp,\
+            "duro": duro, "durf": durf, "lat": lat, "F": F,\
+            "d": d, "wdir": wdir, "dang": dang, "ang1": ang1}
+        self.fileOutputWriteMain(dataDict, caseIndex)
     # end performCalculations
 
     def fileOutputWriteData(self, dataDict):
         self.fileRef.write("Input\n")
-        self.fileRef.write("Hmo       %8.2f %s\n" % (dataDict["Hmo"], self.labelUnitDist))
-        self.fileRef.write("Tp        %8.2f s\n" % (dataDict["Tp"]))
-        self.fileRef.write("d         %8.2f %s\n\n" % (dataDict["d"], self.labelUnitDist))
+        self.fileRef.write("zobs\t%6.2f %s\n" % (dataDict["zobs"], self.labelUnitDist))
+        self.fileRef.write("uobs\t%6.2f %s\n" % (dataDict["Uobs"], self.labelSpeedFinal))
+        self.fileRef.write("dtemp\t%6.2f deg\n" % dataDict["dtemp"])
+        self.fileRef.write("duro\t%6.2f hr\n" % dataDict["duro"])
+        self.fileRef.write("durf\t%6.2f hr\n" % dataDict["durf"])
+        self.fileRef.write("lat\t%6.2f deg\n" % dataDict["lat"])
 
-        self.fileRef.write("Wave heights\n")
-        self.fileRef.write("Hrms      %8.2f %s\n" % (dataDict["Hrms"], self.labelUnitDist))
-        self.fileRef.write("Hmed      %8.2f %s\n" % (dataDict["Hmed"], self.labelUnitDist))
-        self.fileRef.write("H(1/3)    %8.2f %s\n" % (dataDict["Hout"][0], self.labelUnitDist))
-        self.fileRef.write("H(1/10)   %8.2f %s\n" % (dataDict["Hout"][1], self.labelUnitDist))
-        self.fileRef.write("H(1/100)  %8.2f %s\n" % (dataDict["Hout"][2], self.labelUnitDist))
-    # end fileOutputWrite
+        if self.isWaterOpen:
+            self.fileRef.write("F\t%6.2f %s\n" % (dataDict["F"], self.labelUnitDistLrg))
 
-    def performPlot(self):
-        pass
-# if single_case
-#     table=cat(2,H',p');
+        if self.isWaterShallow:
+            self.fileRef.write("d\t%6.2f %s\n" % (dataDict["d"], self.labelUnitDist))
 
-#     plot(Hout(2),0,'ks',Hout(3),0,'ro',Hout(4),0,'bd',Hrms,0,'g*',Hmed,0,'m^',table(:,1),table(:,2));
-#     legend('H_{1/3}','H_{1/10}','H_{1/100}','H_{rms}','H_{med}')
-#     xlabel(['H [' self.labelUnitDist ']'])
-#     ylabel('Probability density p(H)')
+        if not self.isWaterOpen:
+            self.fileRef.write("wdir\t%6.2f deg\n" % dataDict["wdir"])
 
-#     if fileOutputData{1}
-#         fId = fopen('output/beta_rayleigh_plot.txt', 'wt');
-
-#         fprintf(fId, 'Counter\tWave height\tProbability density\n');
-
-#         for loopIndex = 1:size(table, 1)
-#             fprintf(fId, '%d\t%-6.5f\t\t%-6.5f\n', loopIndex, table(loopIndex, 1), table(loopIndex, 2));
-#         end
-
-#         fclose(fId);
-#     end
-# end
-    # end performPlot
+        self.fileRef.write("\nOutput\n")
+    # end fileOutputWriteData
 
 
-driver = ext_Hs_analysis()
+driver = WindAdj(zobs = 30.0, Uobs = 45.0, dtemp = -3.0, duro = 5.0,\
+    durf = 5.0, lat = 47.0, wdir = 125.0, dang = 12.0, ang1 = 0.0)

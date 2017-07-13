@@ -1,4 +1,7 @@
 import math
+import cmath
+import numpy as np
+import scipy.special as sp
 
 # Calculates wave amplification factor,  phase angle,  and amplified wave
 # height for the combined diffraction and reflection of monochromatic
@@ -23,16 +26,16 @@ import math
 def DRWEDG(x, y, Hi, waveA, wedgeA, L):
 
     error = 0
-    twopi = 2 * math.pi
-    deg2rad = math.pi / 180
+    twopi = 2.0 * math.pi
+    deg2rad = math.pi / 180.0
 
     r = math.sqrt(x**2 + y**2) #convert to polar coordinates
 
-    if x == 0 and y == 0:
-        theta = 0
+    if np.isclose(x, 0.0) and np.isclose(y, 0.0):
+        theta = 0.0
     else:
         theta = math.atan2(y, x)
-        if theta < 0:
+        if theta < 0.0:
             theta = twopi + theta
 
     #check to see if (x, y) is located within the structure
@@ -46,51 +49,49 @@ def DRWEDG(x, y, Hi, waveA, wedgeA, L):
         return phi, beta, H, error
 
     #solve for velocity potential function at (r, theta)
-    kr = (2 * math.pi / L) * r
-    nu = (360 - wedgeA) / 180
-    # TODO
-    # [J0] = besselj(0, kr)
+    kr = (2.0 * math.pi / L) * r
+    nu = (360.0 - wedgeA) / 180.0
+    
+    J0 = sp.jv(0, kr)
 
-    n = 1
-    order(n) = n / nu
-    Jnu(n) = besselj(order, kr)
-    tolr = 10**-8
+    n = 0
+    order = []
+    Jnu = []
+    order.append((n + 1) / nu)
+    Jnu.append(sp.jv(order, kr))
+    tolr = 10.0**-8
     count = 0
 
-    while count<9
+    while count < 9:
         n = n + 1
-        order(n) = n / nu
-        Jnu(n) = besselj(order(n), kr)
-        if Jnu(n)<tolr
+        order.append((n + 1) / nu)
+        Jnu.append(sp.jv(order[n], kr))
+        if Jnu[n] < tolr:
             count = count + 1
-        else
+        else:
             count = 0
-        end
-    end
 
     wa = waveA * deg2rad
 
-    i = math.sqrt(-1)
-    for j = 1:length(Jnu)
-        F(j) = (exp(i * order(j) * pi / 2)) * Jnu(j) * cos(order(j) * wa) * cos(order(j) * theta)
-    end
+    F = []
+    for j in range(len(Jnu)):
+        F.append((cmath.exp(1j * order[j] * math.pi / 2.0)) *\
+            Jnu[j] * math.cos(order[j] * wa) * math.cos(order[j] * theta))
     F = sum(F)
-    Fpot = (2 / nu) * (J0 + 2 * F)
+    Fpot = (2.0 / nu) * (J0 + 2.0 * F)
 
     #determine modulus
-    fr = real(Fpot)
-    fi = imag(Fpot)
+    fr = Fpot.real
+    fi = Fpot.imag
     phi = math.sqrt(fr**2 + fi**2) #modulus
-    if wa<tolr
-        phi = phi / 2
-    end
+    if wa < tolr:
+        phi = phi / 2.0
 
     #determine phase angle
-    if phi<tolr
+    if phi < tolr:
         beta = 0 #phase difference
-    else
-        beta = atan2(fi, fr)
-    end
+    else:
+        beta = math.atan2(fi, fr)
 
     H = Hi * phi #modified wave height
 

@@ -20,12 +20,12 @@ import math
 
 def LWTTWM(cg, h, H, L, reldep, rho, g, k):
 
-    E = (1 / 8) * rho * g * (H**2)
+    E = (1.0 / 8.0) * rho * g * (H**2)
     P = E * cg
     Ur = (H * (L**2)) / (h**3)
 
     if reldep < 0.5:
-        setdown = (k * H**2) / (8 * math.sinh(2 * k * h))
+        setdown = (k * H**2) / (8.0 * math.sinh(2 * k * h))
     else:
         setdown = 0
 
