@@ -433,9 +433,34 @@ class WindAdj(BaseDriver):
             ue,\
             self.wgtyp)
 
+        if not self.isWaterOpen:
+            print("Wind fetch\t\t\t%-6.2f %s" %\
+                (F, self.labelUnitDistLrg))
+            print("Wind Direction\t\t\t%-6.2f deg" % wdir)
+
+        print("Equiv. wind speed\t\t%-6.2f %s" %\
+            (ue/conversionSpeed, self.labelSpeedFinal))
+        print("Adjus. wind speed\t\t%-6.2f %s" %\
+            (ua/conversionSpeed, self.labelSpeedFinal))
+
+        if not self.isWaterOpen:
+            print("Mean wave direction\t\t%-6.2f deg" % theta)
+
+        print("Wave height\t\t\t%-6.2f %s" %\
+            (Hmo/conversionDist, self.labelUnitDist))
+        print("Wave period\t\t\t%-6.2f s" % Tp)
+
+        print("Wave growth: %s" % wgmsg)
+
         dataDict = {"zobs": zobs, "Uobs": Uobs, "dtemp": dtemp,\
             "duro": duro, "durf": durf, "lat": lat, "F": F,\
-            "d": d, "wdir": wdir, "dang": dang, "ang1": ang1}
+            "d": d, "wdir": wdir, "dang": dang, "ang1": ang1,\
+            "ue": ue, "ua": ua, "Hmo": Hmo, "Tp": Tp,\
+            "wgmsg": wgmsg, "conversionDist": conversionDist,\
+            "conversionDistLrg": conversionDistLrg,\
+            "conversionSpeed": conversionSpeed}
+        if not self.isWaterOpen:
+            dataDict["theta"] = theta
         self.fileOutputWriteMain(dataDict, caseIndex)
     # end performCalculations
 
@@ -458,8 +483,28 @@ class WindAdj(BaseDriver):
             self.fileRef.write("wdir\t%6.2f deg\n" % dataDict["wdir"])
 
         self.fileRef.write("\nOutput\n")
+
+        if not self.isWaterOpen:
+            self.fileRef.write("Wind fetch\t\t\t%-6.2f %s\n" %\
+                (dataDict["F"], self.labelUnitDistLrg))
+            self.fileRef.write("Wind Direction\t\t\t%-6.2f deg\n" %\
+                dataDict["wdir"])
+
+        self.fileRef.write("Equiv. wind speed\t\t%-6.2f %s\n" %\
+            (dataDict["ue"]/dataDict["conversionSpeed"], self.labelSpeedFinal))
+        self.fileRef.write("Adjus. wind speed\t\t%-6.2f %s\n" %\
+            (dataDict["ua"]/dataDict["conversionSpeed"], self.labelSpeedFinal))
+
+        if not self.isWaterOpen:
+            self.fileRef.write("Mean wave direction\t\t%-6.2f deg\n" %\
+                dataDict["theta"])
+
+        self.fileRef.write("Wave height\t\t\t%-6.2f %s\n" %\
+            (dataDict["Hmo"]/dataDict["conversionDist"], self.labelUnitDist))
+        self.fileRef.write("Wave period\t\t\t%-6.2f s\n" % dataDict["Tp"])
+
+        self.fileRef.write("Wave growth: %s\n" % dataDict["wgmsg"])
     # end fileOutputWriteData
 
 
-driver = WindAdj(zobs = 30.0, Uobs = 45.0, dtemp = -3.0, duro = 5.0,\
-    durf = 5.0, lat = 47.0, wdir = 125.0, dang = 12.0, ang1 = 0.0)
+driver = WindAdj()

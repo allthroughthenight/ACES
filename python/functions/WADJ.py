@@ -1,6 +1,8 @@
 import math
 import numpy as np
 
+from WAGEOS import WAGEOS
+from WAPBL import WAPBL
 from WASBL import WASBL
 
 # Perform wind adjustments
