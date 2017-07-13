@@ -8,6 +8,7 @@ from helper_objects import BaseField
 import USER_INPUT
 from WADJ import WADJ
 from WGFET import WGFET
+from WGRO import WGRO
 
 ## ACES Update to python
 #-------------------------------------------------------------
@@ -424,7 +425,13 @@ class WindAdj(BaseDriver):
             durf*hr2s,\
             lat*deg2rad,\
             self.windobs)
-        # print(ue)
+
+        ua, Hmo, Tp, wgmsg = WGRO(d*conversionDist,\
+            F*conversionDistLrg,\
+            phi,
+            durf*hr2s,\
+            ue,\
+            self.wgtyp)
 
         dataDict = {"zobs": zobs, "Uobs": Uobs, "dtemp": dtemp,\
             "duro": duro, "durf": durf, "lat": lat, "F": F,\
