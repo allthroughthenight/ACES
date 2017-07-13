@@ -1,10 +1,12 @@
 import sys
 import math
+import numpy as np
 sys.path.append('../functions')
 
 from base_driver import BaseDriver
 from helper_objects import BaseField
 import USER_INPUT
+from WADJ import WADJ
 from WGFET import WGFET
 
 ## ACES Update to python
@@ -238,8 +240,10 @@ class WindAdj(BaseDriver):
             self.useKnots = self.defaultValue_useKnots
         if self.useKnots == "K" or self.useKnots == "k":
             self.labelSpeedFinal = "knots"
+            self.useKnots = True
         else:
             self.labelSpeedFinal = self.labelSpeed
+            self.useKnots = False
 
         self.inputList = []
 
@@ -398,6 +402,30 @@ class WindAdj(BaseDriver):
         else:
             F, phi, theta = WGFET(ang1, dang, wdir, angs)
 
+        if np.isclose(lat, 0.0):
+            print("Error: Latitude must be a non-zero value.")
+            return
+
+        # Check WDIR vs Fetch data. WDIR must meet this criterion:
+        # ang1 -45 degrees <= WDIR <= anglast + 45 degrees
+        if not self.isWaterOpen:
+            if not (ang1 - 45 <= wdir):
+                print("Error: wdir must be at least 45 degrees less than the first fetch angle.")
+                return
+            if not (wdir <= (ang1 + (Nfet - 1)*dang)):
+                print("Error: wdir must be at most 45 degrees more than the final fetch angle.")
+                return
+
+        ue = WADJ(Uobs*conversionSpeed,\
+            zobs*conversionDist,\
+            dtemp,\
+            F*conversionDistLrg,\
+            duro*hr2s,\
+            durf*hr2s,\
+            lat*deg2rad,\
+            self.windobs)
+        # print(ue)
+
         dataDict = {"zobs": zobs, "Uobs": Uobs, "dtemp": dtemp,\
             "duro": duro, "durf": durf, "lat": lat, "F": F,\
             "d": d, "wdir": wdir, "dang": dang, "ang1": ang1}
@@ -426,4 +454,5 @@ class WindAdj(BaseDriver):
     # end fileOutputWriteData
 
 
-driver = WindAdj()
+driver = WindAdj(zobs = 30.0, Uobs = 45.0, dtemp = -3.0, duro = 5.0,\
+    durf = 5.0, lat = 47.0, wdir = 125.0, dang = 12.0, ang1 = 0.0)
