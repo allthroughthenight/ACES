@@ -11,9 +11,9 @@ import math
 #   dayj: Julian day of the year
 
 def DAYOYR(yr, month, day):
-    daysinmonth=[0,31,5 9,90,120,151,181,212,243,273,304,334]
-    if (yr%4)==0 #checking for leap year to add 1 day
+    daysinmonth=[0,31,5,9,90,120,151,181,212,243,273,304,334]
+    if (yr%4)==0: #checking for leap year to add 1 day
         leapyr=1
         daysinmonth[3:12] = daysinmonth[3:12]+leapyr
-    dayj = daysinmonth[month]+day
+    dayj = int(daysinmonth[int(month)])+day
     return dayj

@@ -1,10 +1,12 @@
 import math
 
+from ANG360 import ANG360
+
 def ORBIT(yr,dayj,hr):
 
-    pi180=pi/180
+    pi180=math.pi/180
 
-    x=floor((yr-1901)/4)
+    x=math.floor((yr-1901)/4)
     dday=dayj+x-1 # adding in multiple leap years
     dyr=yr-1900
 
@@ -24,7 +26,7 @@ def ORBIT(yr,dayj,hr):
     dp=pepoch+40.66246584*dyr+0.111404016*dday+0.004641834*hr
     dp=ANG360(dp)
 
-    I=acos(0.9136949-0.0356926*cos(N))
+    I=math.acos(0.9136949-0.0356926*math.cos(N))
     dI=ANG360(I/pi180)
 
     Nu=math.asin(0.0897056*math.sin(N)/math.sin(I))
@@ -50,9 +52,9 @@ def ORBIT(yr,dayj,hr):
     # sepoch=211.744 for Jan 1, 2000
     ds=sepoch+129.38482032*dyr+13.176396768*dday+0.549016532*hr
     ds=ANG360(ds)
-    nup=math.atan(math.sin(Nu)/(cos(Nu)+0.334766/math.sin(2*I)))
+    nup=math.atan(math.sin(Nu)/(math.cos(Nu)+0.334766/math.sin(2*I)))
     dnup=nup/pi180
-    nup2=math.atan(math.sin(2.*Nu)/(cos(2.*Nu)+0.0726184/math.sin(I)^2))/2
+    nup2=math.atan(math.sin(2.*Nu)/(math.cos(2.*Nu)+0.0726184/int(math.sin(I))^2))/2
     dnup2=nup2/pi180
 
     return dh,dI,dN,dNu,dnup,dnup2,dp,dp1,dpc,ds,dxi

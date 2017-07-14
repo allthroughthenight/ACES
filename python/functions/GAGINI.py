@@ -1,5 +1,8 @@
 import math
 
+from DAYOYR import DAYOYR
+from NFACS import NFACS
+
 # Initialize gage-specific information relevant to harmonic constituents
 
 #   INPUT
@@ -39,9 +42,11 @@ def GAGINI(ngag,yr,month,day,hr,tlhrs,glong,epoch,acst,pcst):
 
         if (glong[x] % 15)>7.5:
             s=s+15
+        alpha = 0
 
         for z in len(eqcst):
             sum=eqcst[z]+acst[z]*(s/15)
-            alpha(z,ngag)=sum-pcst(z)*glong(ngag)-epoch(z,ngag)
+            #alpha(z,ngag)=sum-pcst(z)*glong(ngag)-epoch(z,ngag)
+            alpha=sum-pcst(z)*glong(ngag)-epoch(z,ngag)
 
     return alpha,fndcst
