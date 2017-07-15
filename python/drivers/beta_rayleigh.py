@@ -258,26 +258,26 @@ class BetaRayleigh(BaseDriver):
 
     def performPlot(self):
         pass
-# if single_case
-#     table=cat(2,H',p');
+    # if single_case
+    #     table=cat(2,H',p');
 
-#     plot(Hout(2),0,'ks',Hout(3),0,'ro',Hout(4),0,'bd',Hrms,0,'g*',Hmed,0,'m^',table(:,1),table(:,2));
-#     legend('H_{1/3}','H_{1/10}','H_{1/100}','H_{rms}','H_{med}')
-#     xlabel(['H [' self.labelUnitDist ']'])
-#     ylabel('Probability density p(H)')
+    #     plot(Hout(2),0,'ks',Hout(3),0,'ro',Hout(4),0,'bd',Hrms,0,'g*',Hmed,0,'m^',table(:,1),table(:,2));
+    #     legend('H_{1/3}','H_{1/10}','H_{1/100}','H_{rms}','H_{med}')
+    #     xlabel(['H [' self.labelUnitDist ']'])
+    #     ylabel('Probability density p(H)')
 
-#     if fileOutputData{1}
-#         fId = fopen('output/beta_rayleigh_plot.txt', 'wt');
+    #     if fileOutputData{1}
+    #         fId = fopen('output/beta_rayleigh_plot.txt', 'wt');
 
-#         fprintf(fId, 'Counter\tWave height\tProbability density\n');
+    #         fprintf(fId, 'Counter\tWave height\tProbability density\n');
 
-#         for loopIndex = 1:size(table, 1)
-#             fprintf(fId, '%d\t%-6.5f\t\t%-6.5f\n', loopIndex, table(loopIndex, 1), table(loopIndex, 2));
-#         end
+    #         for loopIndex = 1:size(table, 1)
+    #             fprintf(fId, '%d\t%-6.5f\t\t%-6.5f\n', loopIndex, table(loopIndex, 1), table(loopIndex, 2));
+    #         end
 
-#         fclose(fId);
-#     end
-# end
+    #         fclose(fId);
+    #     end
+    # end
     # end performPlot
 
 
