@@ -1,13 +1,26 @@
-from helper_functions import *
+import numpy as np
+import matplotlib.pyplot as plt
+import sys
 import math
+sys.path.append('../functions')
 
-## ACES Update to MATLAB
+from base_driver import BaseDriver
+from helper_objects import BaseField
+import USER_INPUT
+from ANG360 import ANG360
+from GAGINI import GAGINI
+from GTERMS import GTERMS
+from NFACS import NFACS
+from ORBIT import ORBIT
+from TIDELV import TIDELV
+
+## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Constituent Tide Record Generation (page 1-4 in ACES User's Guide)
 # Provides a tide elevation record at a specific time and locale using
 # known amplitudes and epochs for individual harmonic constiuents
 
-# Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
+# Updated by: Mary Anderson, USACE-CyearL-Coastal Processes Branch
 # Date Transferred: April 11, 2011
 # Date Verified: May 30, 2012
 
@@ -49,46 +62,183 @@ import math
 #   pcst: number of tide cycles per day per constiuent
 #-------------------------------------------------------------
 
-def tide_generation():
-    Hs0 = 4.6
-    Tp = 9.50
-    cottheta = 13.0
-    g = 32.17
+class TideGeneration(BaseDriver):
+    def __init__(self, year = None, mon = None, day = None, hr = None,\
+        tlhrs = None, delt = None, gauge0 = None, glong = None):
+        self.isSingleCase = True
 
-    #Coefficients provided by Mase (1989)
-    amax = 2.32
-    bmax = 0.77
-    a2 = 1.86
-    b2 = 0.71
-    a110 = 1.70
-    b110 = 0.71
-    a13 = 1.38
-    b13 = 0.70
-    aavg = 0.88
-    bavg = 0.69
+        if year != None:
+            self.defaultValue_year = year
+        if mon != None:
+            self.defaultValuemon = mon
+        if day != None:
+            self.defaultValue_day = day
+        if hr != None:
+            self.defaultValue_hr = hr
+        if tlhrs != None:
+            self.defaultValuetlhrs = tlhrs
+        if delt != None:
+            self.defaultValue_delt = delt
+        if gauge0 != None:
+            self.defaultValue_gauge0 = gauge0
+        if glong != None:
+            self.defaultValue_glong = glong
 
-    # Meters to feet constant for conversion
-    m2ft=3.28084;
+        super(TideGeneration, self).__init__()
+    # end __init__
 
-    L0 = g * (Tp**2) / (2 * math.pi)
-    steep = Hs0 / L0
-    if steep >= 0.142:
-        print('Error: Input wave unstable (Max: 0.142,  [H / L]  =  %0.4f)' % steep)
-        return
+    def userInput(self):
+        super(TideGeneration, self).userInput()
 
-    tantheta = 1 / cottheta
-    I = tantheta / math.sqrt(Hs0 / L0)
+        accepted = False
+        while not accepted:
+            filenameTideConstituents = USER_INPUT.FILE_NAME()
+            fileRef = open(filenameTideConstituents)
 
-    Rmax = Hs0 * amax * (I**bmax)
-    R2 = Hs0 * a2 * (I**b2)
-    R110 = Hs0 * a110 * (I**b110)
-    R13 = Hs0 * a13 * (I**b13)
-    Ravg = Hs0 * aavg * (I**bavg)
+            fileData = fileRef.read()
+            fileRef.close()
 
-    print('%s \t %-6.2f \n' % ('Maximum runup', Rmax))
-    print('%s \t %-6.2f \n' % ('Runup exceeded by 2% of runup', R2))
-    print('%s \t %-6.2f \n' % ('Avg. of highest 1 / 10 runups', R110))
-    print('%s \t %-6.2f \n' % ('Avg. of highest 1 / 3 runups', R13))
-    print('%s \t %-6.2f \n' % ('Maximum runup', Ravg))
+            fileData = fileData.split("\n")
 
-tide_generation()
+            self.cst = []
+            self.amp = []
+            self.ep = []
+            for i in fileData:
+                lineData = i.split("\t")
+
+                if len(lineData) >= 1:
+                    self.cst.append(lineData[0])
+                if len(lineData) >= 2:
+                    self.amp.append(float(lineData[1]))
+                if len(lineData) >= 3:
+                    self.ep.append(float(lineData[2]))
+            # end for loop
+
+            if len(self.amp) == 0 or len(self.ep) == 0:
+                print("ERROR: Constituent Data Incomplete.")
+                print("Please correct the input file and try again.")
+            else:
+                accepted = True
+        # end while loop
+    # end userInput
+
+    def defineInputDataList(self):
+        self.inputList = []
+
+        if not hasattr(self, "defaultValue_year"):
+            self.inputList.append(BaseField(\
+                "year: year simulation starts (YYYY)", 1900, 2050))
+        if not hasattr(self, "defaultValuemon"):
+            self.inputList.append(BaseField(\
+                "mon: month simulation starts (MM)", 1, 12))
+        if not hasattr(self, "defaultValue_day"):
+            self.inputList.append(BaseField(\
+                "day: day simulation starts (DD)", 1, 31))
+        if not hasattr(self, "defaultValue_hr"):
+            self.inputList.append(BaseField(\
+                "hr: hour simulation starts (HH.H)", 0, 24))
+        if not hasattr(self, "defaultValuetlhrs"):
+            self.inputList.append(BaseField(\
+                "tlhrs: length of record (HH.H)", 0, 744))
+        if not hasattr(self, "defaultValue_delt"):
+            self.inputList.append(BaseField(\
+                "delt: output time interval (min)" , 1, 60))
+        if not hasattr(self, "defaultValue_gauge0"):
+            self.inputList.append(BaseField(\
+                "gauge0: mean water level height above datum", -100.0, 100.0))
+        if not hasattr(self, "defaultValue_glong"):
+            self.inputList.append(BaseField(\
+                "glong: gauge longitude (deg)", -180, 180))
+    # end defineInputDataList
+
+    def fileOutputRequestInit(self):
+        self.fileOutputRequestMain(defaultFilename = "tide_generation")
+
+    def getCalcValues(self, caseInputList):
+        currIndex = 0
+
+        if hasattr(self, "defaultValue_year"):
+            year = self.defaultValue_year
+        else:
+            year = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValuemon"):
+            mon = self.defaultValuemon
+        else:
+            mon = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValue_day"):
+            day = self.defaultValue_day
+        else:
+            day = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValue_hr"):
+            hr = self.defaultValue_hr
+        else:
+            hr = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValuetlhrs"):
+            tlhrs = self.defaultValuetlhrs
+        else:
+            tlhrs = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValue_delt"):
+            delt = self.defaultValue_delt
+        else:
+            delt = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValue_gauge0"):
+            gauge0 = self.defaultValue_gauge0
+        else:
+            gauge0 = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValue_glong"):
+            glong = self.defaultValue_glong
+        else:
+            glong = caseInputList[currIndex]
+
+        return year, mon, day, hr, tlhrs, delt, gauge0, glong
+    # end getCalcValues
+
+    def performCalculations(self, caseInputList, caseIndex = 0):
+        year, mon, day, hr, tlhrs, delt, gauge0, glong = self.getCalcValues(caseInputList)
+
+        delthr = delt/60.0
+
+        nogauge = len(glong)
+
+        acst = [28.9841042,30.0,28.4397295,15.0410686,57.9682084,\
+            13.9430356,86.9523127,44.0251729,60.0,57.4238337,28.5125831,\
+            90.0,27.9682084,27.8953548,16.1391017,29.4556253,15.0,\
+            14.4966939,15.5854433,0.5443747,0.0821373,0.0410686,\
+            1.0158958,1.0980331,13.4715145,13.3986609,29.9589333,\
+            30.0410667,12.8542862,14.9589314,31.0158958,43.4761563,\
+            29.5284789,42.9271398,30.0821373,115.9364169,58.9841042]
+
+        pcst = [2,2,2,1,4,1,6,3,4,4,2,6,2,2,1,2,1,1,1,0,0,0,0,0,1,1,2,2,1,1,2,3,2,3,2,8,4]
+        pcst = [float(i) for i in pcst]
+
+        ## Intialize gage-specific info relevant to harmonic constituents
+        alpha, fndcst = GAGINI(\
+            nogauge, year, mon, day, hr, tlhrs, glong, self.ep, acst, pcst)
+
+        ntid = int(tlhrs/delthr) + 1
+
+        tidelv = []
+        xtim = []
+        for i in range(ntid):
+            xtim.append(i*delthr)
+            tidelv.append(TIDELV(\
+                nogauge, xtim[i], self.amp, alpha, fndcst, acst))
+
+        ytide = [gauge0 + i for i in tidelv]
+    # end performCalculations
+
+driver = TideGeneration(1989, 1, 10, 10.0, 120.0, 15.0, 1.79, [70.62])

@@ -1,6 +1,7 @@
 import math
 
 from DAYOYR import DAYOYR
+from GTERMS import GTERMS
 from NFACS import NFACS
 
 # Initialize gage-specific information relevant to harmonic constituents
@@ -22,31 +23,29 @@ from NFACS import NFACS
 #   fndcst: node factors at middle of record
 
 def GAGINI(ngag,yr,month,day,hr,tlhrs,glong,epoch,acst,pcst):
-
     # determine Julian day at beginning of record
     dayj=DAYOYR(yr,month,day)
 
     # determine time (in hours) at middle of record
-    hrmid=hr+(tlhrs/2)
+    hrmid=hr+(tlhrs/2.0)
 
     #determine node factors at middle of record
-    fndcst=NFACS(yr,dayj,hrmid);
+    fndcst=NFACS(yr,dayj,hrmid)
 
     #determine greenwich equilibrium terms at beginnong of record
-    eqcst=GTERMS(yr,dayj,hr,dayj,hrmid);
+    eqcst=GTERMS(yr,dayj,hr,dayj,hrmid)
 
     #determine alpha values
-    for x in ngag:
-        y=math.floor(glong[x]/15);
+    alpha = [[0.0 for j in range(ngag)] for i in range(len(eqcst))]
+    for x in range(ngag):
+        y=math.floor(glong[x]/15.0)
         s=15*y
 
         if (glong[x] % 15)>7.5:
             s=s+15
-        alpha = 0
 
-        for z in len(eqcst):
-            sum=eqcst[z]+acst[z]*(s/15)
-            #alpha(z,ngag)=sum-pcst(z)*glong(ngag)-epoch(z,ngag)
-            alpha=sum-pcst(z)*glong(ngag)-epoch(z,ngag)
+        for z in range(len(eqcst)):
+            sum1=eqcst[z]+acst[z]*(s/15)
+            alpha[z][x]=sum1-pcst[z]*glong[x]-epoch[z]
 
     return alpha,fndcst

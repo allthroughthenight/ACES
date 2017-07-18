@@ -54,7 +54,7 @@ def ORBIT(yr,dayj,hr):
     ds=ANG360(ds)
     nup=math.atan(math.sin(Nu)/(math.cos(Nu)+0.334766/math.sin(2*I)))
     dnup=nup/pi180
-    nup2=math.atan(math.sin(2.*Nu)/(math.cos(2.*Nu)+0.0726184/int(math.sin(I))^2))/2
+    nup2=math.atan(math.sin(2*Nu)/(math.cos(2*Nu)+0.0726184/math.sin(I)**2))/2
     dnup2=nup2/pi180
 
     return dh,dI,dN,dNu,dnup,dnup2,dp,dp1,dpc,ds,dxi
