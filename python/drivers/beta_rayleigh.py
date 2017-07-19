@@ -98,9 +98,8 @@ class BetaRayleigh(BaseDriver):
 
     def performCalculations(self, caseInputList, caseIndex = 0):
         Hmo, Tp, d = self.getCalcValues(caseInputList)
-        # Hmo = self.dataOutputList[0]
-        # Tp = self.dataOutputList[1]
-        # d = self.dataOutputList[2]
+        self.errorMsg = None
+        dataDict = {"Hmo": Hmo, "Tp": Tp, "d": d}
 
         Htype = []
         Htype.append(0.50) #Hmed;
@@ -110,13 +109,21 @@ class BetaRayleigh(BaseDriver):
 
         Hb = ERRWAVBRK1(d, 0.9)
         if Hmo >= Hb:
-            print("Error: Input wave broken (Hb = %6.2f %s)" % (Hb, self.labelUnitDist))
+            self.errorMsg =\
+                "Error: Input wave broken (Hb = %6.2f %s)" % (Hb, self.labelUnitDist)
+
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         L, k = WAVELEN(d, Tp, 50, self.g)
         steep, maxstp = ERRSTP(Hmo, d, L)
         if steep >= maxstp:
-            print("Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)" %(maxstp, steep))
+            self.errorMsg =\
+                "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)" % (maxstp, steep)
+
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         dterm = d/(self.g*Tp**2)
@@ -174,13 +181,21 @@ class BetaRayleigh(BaseDriver):
 
             d1 = a1*dterm**(-b1)
             if d1 > 35.0:
-                print("Error: d/gT^2 approaching infinity")
+                self.errorMsg = "Error: d/gT^2 approaching infinity"
+
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
+
             Hrms = (1/math.sqrt(2))*math.exp(d1)*Hmo # root-mean-square wave height
 
             d2 = a2 * dterm**(-b2)
             if d2 > 35.0:
-                print("Error: d/gT^2 approaching infinity")
+                self.errorMsg = "Error: d/gT^2 approaching infinity"
+
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
+                return
 
             Hrmsq = (1/math.sqrt(2))*math.exp(d2)*Hmo**2 # root-mean-quad wave height
 
@@ -237,8 +252,9 @@ class BetaRayleigh(BaseDriver):
         print("H(1/10)\t\t%6.2f %s" % (Hout[1], self.labelUnitDist))
         print("H(1/100)\t%6.2f %s" % (Hout[2], self.labelUnitDist))
 
-        dataDict = {"Hmo": Hmo, "Tp": Tp, "d": d,\
-            "Hrms": Hrms, "Hmed": Hmed, "Hout": Hout }
+        dataDict["Hrms"] = Hrms
+        dataDict["Hmed"] = Hmed
+        dataDict["Hout"] = Hout
         self.fileOutputWriteMain(dataDict, caseIndex)
     # end performCalculations
 
@@ -248,36 +264,39 @@ class BetaRayleigh(BaseDriver):
         self.fileRef.write("Tp        %8.2f s\n" % (dataDict["Tp"]))
         self.fileRef.write("d         %8.2f %s\n\n" % (dataDict["d"], self.labelUnitDist))
 
-        self.fileRef.write("Wave heights\n")
-        self.fileRef.write("Hrms      %8.2f %s\n" % (dataDict["Hrms"], self.labelUnitDist))
-        self.fileRef.write("Hmed      %8.2f %s\n" % (dataDict["Hmed"], self.labelUnitDist))
-        self.fileRef.write("H(1/3)    %8.2f %s\n" % (dataDict["Hout"][0], self.labelUnitDist))
-        self.fileRef.write("H(1/10)   %8.2f %s\n" % (dataDict["Hout"][1], self.labelUnitDist))
-        self.fileRef.write("H(1/100)  %8.2f %s\n" % (dataDict["Hout"][2], self.labelUnitDist))
+        if self.errorMsg != None:
+            self.fileRef.write("%s\n" % self.errorMsg)
+        else:
+            self.fileRef.write("Wave heights\n")
+            self.fileRef.write("Hrms      %8.2f %s\n" % (dataDict["Hrms"], self.labelUnitDist))
+            self.fileRef.write("Hmed      %8.2f %s\n" % (dataDict["Hmed"], self.labelUnitDist))
+            self.fileRef.write("H(1/3)    %8.2f %s\n" % (dataDict["Hout"][0], self.labelUnitDist))
+            self.fileRef.write("H(1/10)   %8.2f %s\n" % (dataDict["Hout"][1], self.labelUnitDist))
+            self.fileRef.write("H(1/100)  %8.2f %s\n" % (dataDict["Hout"][2], self.labelUnitDist))
     # end fileOutputWrite
 
     def performPlot(self):
         pass
-    # if single_case
-    #     table=cat(2,H',p');
+# if single_case
+#     table=cat(2,H',p');
 
-    #     plot(Hout(2),0,'ks',Hout(3),0,'ro',Hout(4),0,'bd',Hrms,0,'g*',Hmed,0,'m^',table(:,1),table(:,2));
-    #     legend('H_{1/3}','H_{1/10}','H_{1/100}','H_{rms}','H_{med}')
-    #     xlabel(['H [' self.labelUnitDist ']'])
-    #     ylabel('Probability density p(H)')
+#     plot(Hout(2),0,'ks',Hout(3),0,'ro',Hout(4),0,'bd',Hrms,0,'g*',Hmed,0,'m^',table(:,1),table(:,2));
+#     legend('H_{1/3}','H_{1/10}','H_{1/100}','H_{rms}','H_{med}')
+#     xlabel(['H [' self.labelUnitDist ']'])
+#     ylabel('Probability density p(H)')
 
-    #     if fileOutputData{1}
-    #         fId = fopen('output/beta_rayleigh_plot.txt', 'wt');
+#     if fileOutputData{1}
+#         fId = fopen('output/beta_rayleigh_plot.txt', 'wt');
 
-    #         fprintf(fId, 'Counter\tWave height\tProbability density\n');
+#         fprintf(fId, 'Counter\tWave height\tProbability density\n');
 
-    #         for loopIndex = 1:size(table, 1)
-    #             fprintf(fId, '%d\t%-6.5f\t\t%-6.5f\n', loopIndex, table(loopIndex, 1), table(loopIndex, 2));
-    #         end
+#         for loopIndex = 1:size(table, 1)
+#             fprintf(fId, '%d\t%-6.5f\t\t%-6.5f\n', loopIndex, table(loopIndex, 1), table(loopIndex, 2));
+#         end
 
-    #         fclose(fId);
-    #     end
-    # end
+#         fclose(fId);
+#     end
+# end
     # end performPlot
 
 
