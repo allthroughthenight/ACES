@@ -7,10 +7,10 @@ accepted = false;
 while ~accepted
     response = input('Would you like to save the results to a file? (Y or N): ', 's');
     
-    if strcmp(response, 'Y')
+    if strcmp(response, 'Y') || strcmp(response, 'y')
         accepted = true;
         createOutputFile = true;
-    elseif strcmp(response, 'N')
+    elseif strcmp(response, 'N') || strcmp(response, 'n')
         accepted = true;
         createOutputFile = false;
     else

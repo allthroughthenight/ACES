@@ -8,10 +8,10 @@ single_case = '';
 while accepted == false
     single_case=input('Single or Multi-case? (s or m): ', 's');
     
-    if strcmp('s',single_case);
+    if strcmp('s',single_case) || strcmp('S',single_case)
         accepted = true;
         single_case=true;
-    elseif strcmp('m', single_case);
+    elseif strcmp('m', single_case) || strcmp('M', single_case)
         accepted = true;
         single_case=false;
     else

@@ -5,15 +5,15 @@ accepted = false;
 while ~accepted
     response = input('Enter File mode, Random mode or Increment mode (F, R or I): ', 's');
     
-    if strcmp('F', response)
+    if strcmp('F', response) || strcmp('f', response)
         accepted = true;
         
         multi_mode = 'F';
-    elseif strcmp('R', response)
+    elseif strcmp('R', response) || strcmp('r', response)
         accepted = true;
         
         multi_mode = 'R';
-    elseif strcmp('I', response)
+    elseif strcmp('I', response) || strcmp('i', response)
         accepted = true;
         
         multi_mode = 'I';
