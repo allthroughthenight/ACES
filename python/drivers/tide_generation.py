@@ -88,10 +88,77 @@ class TideGeneration(BaseDriver):
     # end __init__
 
     def userInput(self):
+        self.defineInputDataList()
+
+        if len(self.inputList) > 0:
+            self.manualOrFile = USER_INPUT.FINITE_CHOICE(\
+                "Enter data manually or load from file? (M or F): ",\
+                ["M", "m", "F", "f"])
+
+            if self.manualOrFile == "F" or self.manualOrFile == "f":
+                accepted = False
+
+                while not accepted:
+                    filenameData = USER_INPUT.FILE_NAME()
+
+                    fileRef = open(filenameData)
+
+                    fileDataTemp = fileRef.read().split("\n")
+                    fileData = []
+                    for i in fileDataTemp:
+                        if len(i) > 0:
+                            fileData.append(float(i))
+
+                    if len(fileData) >= len(self.inputList):
+                        accepted = True
+
+                        for i in range(len(fileData)):
+                            if i < len(self.inputList):
+                                inputIndex = i
+                            else:
+                                inputIndex = len(self.inputList) - 1
+
+                            if fileData[i] < self.inputList[inputIndex].min or\
+                                fileData[i] > self.inputList[inputIndex].max:
+                                accepted = False
+                                print("Value #%d out of range. Please check your value and try again." %\
+                                    (i + 1))
+                        # end for loop
+
+                        if accepted == True:
+                            glongList = []
+                            if not hasattr(self, "defaultValue_glong"):
+                                mainInputListLen = len(self.inputList) - 1
+                            else:
+                                mainInputListLen = len(self.inputList)
+
+                            self.dataOutputList = []
+
+                            for i in range(len(fileData)):
+                                # check if we need to add glong values
+                                # and are at that point
+                                if not hasattr(self, "defaultValue_glong") and\
+                                    i >= len(self.inputList) - 1:
+                                    glongList.append(fileData[i])
+                                # else, add normally
+                                else:
+                                    self.dataOutputList.append(fileData[i])
+                            # end for loop
+                                    
+                            self.dataOutputList.append(glongList)
+                        # end if
+                    else:
+                        print("%d values are required. Please check your file and try again." %\
+                            len(self.inputList))
+                # end while loop
+            # end if
+        # end if
+
         super(TideGeneration, self).userInput()
 
         accepted = False
         while not accepted:
+            print("\nConstituent Data Loading from file")
             filenameTideConstituents = USER_INPUT.FILE_NAME()
             fileRef = open(filenameTideConstituents)
 
@@ -121,6 +188,12 @@ class TideGeneration(BaseDriver):
                 accepted = True
         # end while loop
     # end userInput
+
+    def getSingleCaseInput(self):
+        if not hasattr(self, "manualOrFile") or\
+            (self.manualOrFile == "M" or self.manualOrFile == "m"):
+            super(TideGeneration, self).getSingleCaseInput()
+    # end getSingleCaseInput
 
     def defineInputDataList(self):
         self.inputList = []
@@ -152,7 +225,9 @@ class TideGeneration(BaseDriver):
     # end defineInputDataList
 
     def fileOutputRequestInit(self):
-        self.fileOutputRequestMain(defaultFilename = "tide_generation")
+        self.fileOutputRequestMain(\
+            defaultFilename = "tide_generation",\
+            requestDesc = True)
 
     def getCalcValues(self, caseInputList):
         currIndex = 0
@@ -202,9 +277,12 @@ class TideGeneration(BaseDriver):
         if hasattr(self, "defaultValue_glong"):
             glong = self.defaultValue_glong
         else:
-            glong = caseInputList[currIndex]
+            if isinstance(caseInputList[currIndex], list):
+                glong = caseInputList[currIndex]
+            else:
+                glong = [caseInputList[currIndex]]
 
-        return year, mon, day, hr, tlhrs, delt, gauge0, glong
+        return int(year), int(mon), int(day), hr, tlhrs, delt, gauge0, glong
     # end getCalcValues
 
     def performCalculations(self, caseInputList, caseIndex = 0):
@@ -239,6 +317,43 @@ class TideGeneration(BaseDriver):
                 nogauge, xtim[i], self.amp, alpha, fndcst, acst))
 
         ytide = [gauge0 + i for i in tidelv]
+
+        self.plotDict = {"xtim": xtim, "ytide": ytide}
     # end performCalculations
 
-driver = TideGeneration(1989, 1, 10, 10.0, 120.0, 15.0, 1.79, [70.62])
+    def hasPlot(self):
+        return True
+
+    def fileOutputPlotInit(self):
+        self.fileRef = open(self.getFilePath() +\
+            self.fileOutputData.filename + ".txt", "w")
+    # end fileOutputPlotInit
+
+    def performPlot(self):
+        plt.figure(1, figsize = self.plotConfigDict["figSize"],\
+            dpi = self.plotConfigDict["dpi"])
+        plt.plot(self.plotDict["xtim"], self.plotDict["ytide"])
+        plt.title("Tide Elevations [from constituents]", fontsize = self.plotConfigDict["titleFontSize"])
+        plt.xlabel("Time [hr]",\
+            fontsize = self.plotConfigDict["axisLabelFontSize"])
+        #output same units as amplitude, datum input
+        plt.ylabel("Elevation [%s]" % self.labelUnitDist,\
+            fontsize = self.plotConfigDict["axisLabelFontSize"])
+
+        plt.show()
+
+        self.fileOutputPlotWriteData()
+    # end performPlot
+
+    def fileOutputPlotWriteData(self):
+        self.fileRef.write("CONSTITUENT TIDE ELEVATION RECORD\n")
+        self.fileRef.write("%s\n" % self.fileOutputData.fileDesc)
+        self.fileRef.write("TIME\tELEVATION\n")
+
+        for i in range(len(self.plotDict["xtim"])):
+            self.fileRef.write("%-6.2f\t%-6.2f\n" %\
+                (self.plotDict["xtim"][i], self.plotDict["ytide"][i]))
+    # end fileOutputPlotWriteData
+
+
+driver = TideGeneration()

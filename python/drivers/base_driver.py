@@ -46,13 +46,17 @@ class BaseDriver(object):
         self.defineInputDataList()
 
         if self.isSingleCase:
-            self.dataOutputList = []
-            for field in self.inputList:
-                self.dataOutputList.append(USER_INPUT.DATA_VALUE(\
-                    field.desc, field.min, field.max))
+            self.getSingleCaseInput()
         else:
             self.dataOutputList = USER_INPUT.MULTI_MODE(self.inputList)
     # end userInput
+
+    def getSingleCaseInput(self):
+        self.dataOutputList = []
+        for field in self.inputList:
+            self.dataOutputList.append(USER_INPUT.DATA_VALUE(\
+                field.desc, field.min, field.max))
+    # end getSingleCaseInput
 
     def getFilePath(self):
         return "output/"
@@ -67,12 +71,6 @@ class BaseDriver(object):
         self.fileOutputData = USER_INPUT.FILE_OUTPUT(requestFilename, requestDesc)
 
         if self.fileOutputData.saveOutput:
-            # if requestFilename:
-            #     self.fileOutputData.filename = self.getFilePath() +\
-            #         self.fileOutputData.filename + ".txt"
-            # else:
-            #     self.fileOutputData.filename =\
-            #         self.getFilePath() + defaultFilename + ".txt"
             if not requestFilename:
                 self.fileOutputData.filename = defaultFilename
 
@@ -98,7 +96,7 @@ class BaseDriver(object):
     def fileOutputPlotInit(self):
         self.fileRef = open(self.getFilePath() +\
             self.fileOutputData.filename + "_plot.txt", "w")
-    #end
+    # end fileOutputPlotInit
 
     # Override Methods ###################################################
     # Must be overridden by subclass
@@ -114,8 +112,10 @@ class BaseDriver(object):
     def fileOutputWriteData(self, dataDict):
         pass
 
+    # Override to true to create a plot in an
+    # overridden "performPlot" method
     def hasPlot(self):
-        return False;
+        return False
 
     def performPlot(self):
         pass
