@@ -7,6 +7,8 @@ from helper_objects import BaseField
 import USER_INPUT
 from ERRWAVBRK1 import ERRWAVBRK1
 from WAVELEN import WAVELEN
+import numpy as np
+import matplotlib.pyplot as plt
 
 ## ACES Update to MATLAB
 #-------------------------------------------------------------
@@ -177,6 +179,38 @@ class LinearWaveTheory(BaseDriver):
         dudt = (H*2*math.pi**2/(T**2))*(math.cosh(k*tot)/math.sinh(k*d))*math.sin(theta)
         dwdt = (-H*2*math.pi**2/(T**2))*(math.sinh(k*tot)/math.sinh(k*d))*math.cos(theta)
         pres = -self.rho*self.g*z + self.rho*self.g*(H/2)*(math.cosh(k*tot)/math.cosh(k*d))*math.cos(theta)
+
+        # plotting waveform
+        plotxL = np.arange(-1, 1, 0.001)
+        plottheta = plotxL * np.pi * 2
+
+        ploteta = (H / 2) * np.cos(plottheta)
+        plotu = (H * np.pi / T) * (np.cosh(k * tot) / np.sinh(k * d)) * np.cos(plottheta)
+        plotw = (H * np.pi / T) * (np.sinh(k * tot) / np.sinh(k * d)) * np.sin(plottheta)
+
+        plt.subplot(3, 1, 1)
+        plt.plot(plotxL, ploteta, lw=2)
+        plt.ylabel('Elevation [%s]' % self.labelUnitDist)
+        plt.ylim(min(ploteta) - 1, max(ploteta) + 1)
+        plt.axhline(color = 'r', linestyle = '--')
+
+        # subplot
+        plt.subplot(3, 1, 2)
+        plt.plot(plotxL, plotu, lw=2)
+        plt.axhline(color = 'r', linestyle = '--')
+        plt.ylabel('Velocity, u [%s/s]' % self.labelUnitDist)
+        plt.ylim(min(plotu) - 1, max(plotu) + 1)
+
+        # subplot
+        plt.subplot(3, 1, 3)
+        plt.plot(plotxL, plotw, lw=2)
+        plt.axhline(color = 'r', linestyle = '--')
+        plt.ylabel('Velocity, w [%s/s]', self.labelUnitDist)
+        plt.ylim(min(plotw) - 1, max(plotw) + 1)
+
+        plt.tight_layout(pad=0.4)
+
+        plt.show()
 
         print("\t\t\t\t\tUnits")
         print("Wavelength\t\t\t%-6.2f\t%s" % (L, self.labelUnitDist))
