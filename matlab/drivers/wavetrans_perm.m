@@ -158,14 +158,14 @@ else
 end
 
 if ~metric
-    if strcmp(water,'S')
+    if strcmp(water,'S') || strcmp(water,'s')
         nu=14.643223710^(-06); %salt water
     else
         nu=0.0000141; %ft^2/s KINEMATIC VISCOSITY OF THE WATER AT 50 DEGREES FAHRENHEIT
  
     end
 else 
-    if strcmp(water,'S')
+    if strcmp(water,'S') || strcmp(water,'s')
        nu = 1.3604*10^(-06); % salt water
     else
        nu = 1.307*10^(-6); % m^2/s %fresh

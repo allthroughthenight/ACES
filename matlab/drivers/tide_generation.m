@@ -74,11 +74,6 @@ delt = outputDataList(6);
 gauge0 = outputDataList(7);
 glong = outputDataList(8);
 
-% constituent_data_use_default = USER_INPUT_FINITE_CHOICE(...
-%     ['Would you like to load the default Constituent Data or load your own from a file?\n'...
-%         'Press [D] for default or [F] for file: '],...
-%     {'D', 'd', 'F', 'f'});
-% strcmp(constituent_data_use_default, 'F') || strcmp(constituent_data_use_default, 'f')
 
 accepted = false;
 while ~accepted
@@ -101,11 +96,6 @@ cst=C{1};
 amp=C{2};
 ep=C{3};
 
-% MIGHT CHANGE IT AFTER CONFIRMATION
-m2ft = 3.28084;
-if metric
-    gauge0 = gauge0 * m2ft;
-end
 
 delthr=delt/60;
 

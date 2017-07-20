@@ -232,7 +232,7 @@ if ~is_water_open
             if length(fileData{1}) >= 2 && length(fileData{1}) <= 360
                 accepted = true;
             else
-                fprintf('File must have Nt, K, d, and between 1 and 200 storm heights.\n');
+                fprintf('File must have 2 to 360 fetch lengths.\n');
             end
         end
 
@@ -334,7 +334,7 @@ for loopIndex = 1:numCases
     [ua,Hmo,Tp,wgmsg]=WGRO(d*conversionDist,F*conversionDistLrg,phi,durf*hr2s,ue,wgtyp);
 
     if ~is_water_open
-        fprintf('%s \t\t\t\t %-6.2f %s\n','Wind fetch',F, labelUnitDistLrg);
+        fprintf('%s \t\t\t\t %-6.2f %s\n','Fetch length',F, labelUnitDistLrg);
         fprintf('%s \t\t\t %-6.2f deg\n', 'Wind Direction', wdir);
     end
     

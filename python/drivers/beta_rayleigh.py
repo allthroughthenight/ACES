@@ -9,6 +9,8 @@ from ERRSTP import ERRSTP
 from ERRWAVBRK1 import ERRWAVBRK1
 from WAVELEN import WAVELEN
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Beta-Rayleigh Distribution (page 1-2 of ACES User's Guide).
@@ -44,6 +46,8 @@ from WAVELEN import WAVELEN
 
 class BetaRayleigh(BaseDriver):
     def __init__(self, Hmo = None, Tp = None, d = None):
+        self.exporter = EXPORTER("output/exportBetaRayleigh.txt")
+
         if Hmo != None:
             self.isSingleCase = True
             self.defaultValueHmo = Hmo
@@ -55,6 +59,8 @@ class BetaRayleigh(BaseDriver):
             self.defaultValue_d = d
 
         super(BetaRayleigh, self).__init__()
+
+        self.exporter.close()
 
         self.performPlot()
     # end __init__
@@ -273,6 +279,14 @@ class BetaRayleigh(BaseDriver):
             self.fileRef.write("H(1/3)    %8.2f %s\n" % (dataDict["Hout"][0], self.labelUnitDist))
             self.fileRef.write("H(1/10)   %8.2f %s\n" % (dataDict["Hout"][1], self.labelUnitDist))
             self.fileRef.write("H(1/100)  %8.2f %s\n" % (dataDict["Hout"][2], self.labelUnitDist))
+
+        exportData = [dataDict["Hmo"], dataDict["Tp"], dataDict["d"]]
+        if self.errorMsg != None:
+            exportData.append("Error")
+        else:
+            exportData = exportData + [dataDict["Hrms"], dataDict["Hmed"],\
+                dataDict["Hout"][0], dataDict["Hout"][1], dataDict["Hout"][2]]
+        self.exporter.writeData(exportData)
     # end fileOutputWrite
 
     def performPlot(self):
