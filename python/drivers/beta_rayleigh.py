@@ -1,5 +1,6 @@
 import sys
 import math
+import matplotlib.pyplot as pyplot
 sys.path.append('../functions')
 
 from base_driver import BaseDriver
@@ -275,29 +276,17 @@ class BetaRayleigh(BaseDriver):
             self.fileRef.write("H(1/100)  %8.2f %s\n" % (dataDict["Hout"][2], self.labelUnitDist))
     # end fileOutputWrite
 
+    def hasPlot(self):
+        return True
+
     def performPlot(self):
-        pass
-# if single_case
-#     table=cat(2,H',p');
+        plottable=cat(2,H)
 
-#     plot(Hout(2),0,'ks',Hout(3),0,'ro',Hout(4),0,'bd',Hrms,0,'g*',Hmed,0,'m^',table(:,1),table(:,2));
-#     legend('H_{1/3}','H_{1/10}','H_{1/100}','H_{rms}','H_{med}')
-#     xlabel(['H [' self.labelUnitDist ']'])
-#     ylabel('Probability density p(H)')
+        plot(Hout(2),0,'ks',Hout(3),0,'ro',Hout(4),0,'bd',Hrms,0,'g*',Hmed,0,'m^',table.values(),table.values())
+        legend('H_{1/3}','H_{1/10}','H_{1/100}','H_{rms}','H_{med}')
 
-#     if fileOutputData{1}
-#         fId = fopen('output/beta_rayleigh_plot.txt', 'wt');
-
-#         fprintf(fId, 'Counter\tWave height\tProbability density\n');
-
-#         for loopIndex = 1:size(table, 1)
-#             fprintf(fId, '%d\t%-6.5f\t\t%-6.5f\n', loopIndex, table(loopIndex, 1), table(loopIndex, 2));
-#         end
-
-#         fclose(fId);
-#     end
-# end
+        xlabel(['H [' self.labelUnitDist ']'])
+        ylabel('Probability density p(H)')
     # end performPlot
-
 
 driver = BetaRayleigh()
