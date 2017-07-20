@@ -1,6 +1,7 @@
 import sys
 import math
 import numpy as np
+import matplotlib.pyplot as pyplot
 sys.path.append('../functions')
 
 from base_driver import BaseDriver
@@ -444,38 +445,14 @@ class ExtHsAnalysis(BaseDriver):
                     dataDict["Hsr"][dataDict["indexList"][loopIndex]][distIndex] + 1.28*dataDict["sigr"][dataDict["indexList"][loopIndex]][distIndex]))
     # end fileOutputWrite
 
-    def performPlot(self):
-        pass
-# for m=1:5
-#     figure(m)
-#     semilogx(ret,Hsr(:,m),':',rtp(:,m),Hs,ret,highbound(:,m),'r--',ret,lowbound(:,m),'r--')
-#     if m==1
-#         title('FT-I')
-#         ylabel('H_s')
-#         xlabel('Return period [yr]')
-#         legend('FT-I Distribution','Data','Confidence Bounds','Location','SouthEast')
-#     elseif m==2
-#         title('Weibull (k=0.75)')
-#         ylabel('H_s')
-#         xlabel('Return period [yr]')
-#         legend('Weibull (k=0.75)','Data','Confidence Bounds','Location','SouthEast')
-#     elseif m==3
-#         title('Weibull (k=1.00)')
-#         ylabel('H_s')
-#         xlabel('Return period [yr]')
-#         legend('Weibull (k=1.00)','Data','Confidence Bounds','Location','SouthEast')
-#     elseif m==4
-#         title('Weibull (k=1.40)')
-#         ylabel('H_s')
-#         xlabel('Return period [yr]')
-#         legend('Weibull (k=1.40)','Data','Confidence Bounds','Location','SouthEast')
-#     elseif m==5
-#         ylabel('H_s')
-#         title('Weibull (k=2.00)')
-#         xlabel('Return period [yr]')
-#         legend('Weibull (k=2.00)','Data','Confidence Bounds','Location','SouthEast')
-#     end
-# end
+    def hasPlot(self):
+        return True
 
+    def performPlot(self):
+        plot(Hout(2),0,'ks',Hout(3),0,'ro',Hout(4),0,'bd',Hrms,0,'g*',Hmed,0,'m^',table(:,1),table(:,2))
+        legend('H_{1/3}','H_{1/10}','H_{1/100}','H_{rms}','H_{med}')
+        pyplot.xlabel(['H [' self.labelUnitDist ']'])
+        pyplot.ylabel('Probability density p(H)')
+        pyplot.show()
 
 driver = ExtHsAnalysis()
