@@ -1,7 +1,7 @@
 import sys
 import math
 import numpy as np
-import matplotlib.pyplot as pyplot
+import matplotlib.pyplot as plt
 sys.path.append('../functions')
 
 from base_driver import BaseDriver
@@ -83,7 +83,7 @@ class ExtHsAnalysis(BaseDriver):
 
         if not hasattr(self, "defaultValue_option"):
             self.option = USER_INPUT.FINITE_CHOICE(\
-                "Confidence intervals:\n[1] 80%%\n[2] 85%%\n[3] 90%%\n[4] 95%%\n[5] 99%%\nSelect option: ",\
+                "Confidence intervals:\n[1] 80%\n[2] 85%\n[3] 90%\n[4] 95%\n[5] 99%\nSelect option: ",\
                 ["1", "2", "3", "4", "5"])
             self.option = int(self.option)
         else:
@@ -387,6 +387,9 @@ class ExtHsAnalysis(BaseDriver):
             "xxr": xxr, "conf": conf, "Hsr": Hsr, "sigr": sigr,\
             "printside": printside, "indexList": indexList}
         self.fileOutputWriteMain(dataDict)
+
+        self.plotDict = {"ret": ret, "Hsr": Hsr, "rtp": rtp,\
+            "highbound": highbound, "lowbound": lowbound}
     # end performCalculations
 
     def fileOutputWriteData(self, dataDict):
@@ -449,10 +452,52 @@ class ExtHsAnalysis(BaseDriver):
         return True
 
     def performPlot(self):
-        plot(Hout(2),0,'ks',Hout(3),0,'ro',Hout(4),0,'bd',Hrms,0,'g*',Hmed,0,'m^',table(:,1),table(:,2))
-        legend('H_{1/3}','H_{1/10}','H_{1/100}','H_{rms}','H_{med}')
-        pyplot.xlabel(['H [' self.labelUnitDist ']'])
-        pyplot.ylabel('Probability density p(H)')
-        pyplot.show()
+        for i in range(5):
+            plt.figure((i + 1), figsize = self.plotConfigDict["figSize"],\
+                dpi = self.plotConfigDict["dpi"])
+
+            plotDataHsr = [j[i] for j in self.plotDict["Hsr"]]
+            plotDataRtp = [j[i] for j in self.plotDict["rtp"]]
+            plotDataHighbound = [j[i] for j in self.plotDict["highbound"]]
+            plotDataLowbound = [j[i] for j in self.plotDict["lowbound"]]
+            plt.semilogx(\
+                self.plotDict["ret"], plotDataHsr, ":",\
+                plotDataRtp, self.Hs,\
+                self.plotDict["ret"], plotDataHighbound, "r--",\
+                self.plotDict["ret"], plotDataLowbound, "r--")
+
+            if i == 0:
+                plotTitle = "FT-I"
+                plotLegend = "FT-I Distribution"
+            elif i == 1:
+                plotTitle = "Weibull (k=0.75)"
+                plotLegend = "Weibull (k=0.75)"
+            elif i == 2:
+                plotTitle = "Weibull (k=1.00)"
+                plotLegend = "Weibull (k=1.00)"
+            elif i == 3:
+                plotTitle = "Weibull (k=1.40)"
+                plotLegend = "Weibull (k=1.40)"
+            elif i == 4:
+                plotTitle = "Weibull (k=2.00)"
+                plotLegend = "Weibull (k=2.00)"
+
+            plt.title(plotTitle,\
+                fontsize = self.plotConfigDict["titleFontSize"])
+            plt.xlabel("Return period [yr]",\
+                fontsize = self.plotConfigDict["axisLabelFontSize"])
+            plt.ylabel(r"H$_s$",\
+                fontsize = self.plotConfigDict["axisLabelFontSize"])
+            plt.legend([plotLegend, "Data", "Confidence Bounds",\
+                "Location", "SouthEast"])
+        # end for loop
+
+        plt.show()
+    # end performPlot
+
+    # Override to prevent creating additional output file
+    def fileOutputPlotInit(self):
+        pass
+
 
 driver = ExtHsAnalysis()

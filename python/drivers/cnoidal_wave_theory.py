@@ -1,6 +1,8 @@
 import sys
 import math
+import numpy as np
 import scipy.special as sp
+import matplotlib.pyplot as plt
 sys.path.append('../functions')
 
 from base_driver import BaseDriver
@@ -8,7 +10,7 @@ from helper_objects import BaseField
 import USER_INPUT
 from ERRWAVBRK1 import ERRWAVBRK1
 
-## ACES Update to MATLAB
+## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Cnoidal Wave Theory (page 2-2 in ACES User's Guide)
 # Yields first-order and second-order approximations for various wave
@@ -72,8 +74,6 @@ class CnoidalWaveTheory(BaseDriver):
             self.defaultValue_xL = xL
             
         super(CnoidalWaveTheory, self).__init__()
-
-        self.performPlot()
     # end __init__
 
     def userInput(self):
@@ -342,6 +342,19 @@ class CnoidalWaveTheory(BaseDriver):
             "L": L, "C": C, "E": E, "Ef": Ef, "Ur": Ur, "eta": eta,\
             "u": u, "w": w, "dudt": dudt, "dwdt": dwdt, "pres": pres}
         self.fileOutputWriteMain(dataDict, caseIndex)
+
+        if self.isSingleCase:
+            self.plotDict = {"K": K, "time": time, "T": T, "m": m,\
+                "d": d, "A0": A0, "A1": A1, "B00": B00,\
+                "B10": B10, \
+                "z": z, "L": L}
+
+            if self.O == 2:
+                self.plotDict["A2"] = A2
+                self.plotDict["B01"] = B01
+                self.plotDict["B20"] = B20
+                self.plotDict["B11"] = B11
+                self.plotDict["B21"] = B21
     # end performCalculations
 
     def F1(self, m, H, T, d):
@@ -390,9 +403,85 @@ class CnoidalWaveTheory(BaseDriver):
             (dataDict["pres"], self.labelUnitWt, self.labelUnitDist))
     # end fileOutputWriteData
 
+    def hasPlot(self):
+        return True
+
     def performPlot(self):
-        pass
+        #Plotting waveform
+        plotxL = list(np.arange(-1, 1.001, 0.001))
+        plottheta = [2*self.plotDict["K"]*\
+            (i - (self.plotDict["time"]/self.plotDict["T"])) for i in plotxL]
+        pSN, pCN, pDN, pPH = sp.ellipj(plottheta, self.plotDict["m"])
+        pCSD = pSN*pCN*pDN
+
+        if self.O == 1:
+            ploteta = self.plotDict["d"]*\
+                (self.plotDict["A0"] + self.plotDict["A1"]*pCN**2)
+            plotu = math.sqrt(self.g*self.plotDict["d"])*\
+                (self.plotDict["B00"] + self.plotDict["B10"]*pCN**2)
+            plotw = math.sqrt(self.g*self.plotDict["d"])*\
+                (4.0*self.plotDict["K"]*self.plotDict["d"]*pCSD/self.plotDict["L"])*\
+                ((self.plotDict["z"] + self.plotDict["d"])/self.plotDict["d"])*self.plotDict["B10"]
+        else:
+            ploteta = self.plotDict["d"]*(self.plotDict["A0"] +\
+                self.plotDict["A1"]*pCN**2 + self.plotDict["A2"]*pCN**4)
+            plotu = math.sqrt(self.g*self.plotDict["d"])*\
+                ((self.plotDict["B00"] + self.plotDict["B10"]*pCN**2 +\
+                self.plotDict["B20"]*pCN**4) -\
+                0.5*((self.plotDict["z"] + self.plotDict["d"]) / self.plotDict["d"])**2 *\
+                (self.plotDict["B01"] + self.plotDict["B11"]*pCN**2 + self.plotDict["B21"]*pCN**4))
+
+            pw1 = ((self.plotDict["z"] + self.plotDict["d"])/self.plotDict["d"])*\
+                (self.plotDict["B10"] + 2.0*self.plotDict["B20"]*pCN**2)
+            pw2 = (1.0/6.0)*(((self.plotDict["z"] + self.plotDict["d"])/self.plotDict["d"])**3)*\
+                (self.plotDict["B11"] + 2.0*self.plotDict["B21"]*pCN**2)
+            plotw = math.sqrt(self.g*self.plotDict["d"])*\
+                (4.0*self.plotDict["K"]*self.plotDict["d"]*pCSD/self.plotDict["L"])*(pw1 - pw2)
+        # end if
+
+        plt.figure(1, figsize=(8, 12), dpi=self.plotConfigDict["dpi"])
+
+        plt.subplot(3, 1, 1)
+        plt.plot(plotxL, ploteta)
+        plt.axhline(y=0.0, color="r", LineStyle="--")
+        plt.ylabel("Elevation [%s]" % self.labelUnitDist)
+
+        plt.subplot(3, 1, 2)
+        plt.plot(plotxL, plotu)
+        plt.axhline(y=0.0, color="r", LineStyle="--")
+        plt.ylabel("Velocity, u [%s/s]" % self.labelUnitDist)
+
+        plt.subplot(3, 1, 3)
+        plt.plot(plotxL, plotw)
+        plt.axhline(y=0.0, color="r", LineStyle="--")
+        plt.ylabel("Velocity, w [%s/s]" % self.labelUnitDist)
+        plt.xlabel("x/L")
+
+        plt.show()
+
+        self.plotDict["plotxL"] = plotxL
+        self.plotDict["ploteta"] = ploteta
+        self.plotDict["plotu"] = plotu
+        self.plotDict["plotw"] = plotw
+        self.fileOutputPlotWriteData()
     # end performPlot
+
+    def fileOutputPlotWriteData(self):
+        self.fileRef.write(\
+            "Partial Listing of Plot Output File 1 for %s\n\n" %\
+            self.fileOutputData.fileDesc)
+
+        self.fileRef.write(\
+            "X/L\tETA (%s)\tU(%s/sec)\tW (%s/sec)\n" %\
+            (self.labelUnitDist, self.labelUnitDist, self.labelUnitDist))
+
+        for i in range(len(self.plotDict["plotxL"])):
+            self.fileRef.write("%-6.3f\t%-6.3f\t\t%-6.3f\t\t%-6.3f\n" %\
+                (self.plotDict["plotxL"][i],\
+                self.plotDict["ploteta"][i],\
+                self.plotDict["plotu"][i],\
+                self.plotDict["plotw"][i]))
+    # fileOutputPlotWriteData
 
 
 driver = CnoidalWaveTheory()
