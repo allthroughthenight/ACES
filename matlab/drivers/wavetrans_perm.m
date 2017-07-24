@@ -188,30 +188,49 @@ for loopIndex = 1:numCases
         hlen = hlenList(loopIndex);
     end
     
+    errorMsg = '';
 
     [Hb]=ERRWAVBRK1(ds,0.78);
-    assert(H<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
-    
-    [Hbs]=ERRWAVBRK2(T,1/cottheta,ds); 
-    assert(H<Hbs,'Error: Input wave braking at toe of the structure (Hbs = %6.2f m)',Hbs)
-    
-    [L,k]=WAVELEN(ds,T,50,g);
+%     assert(H<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
+    if not(H<Hb)
+        errorMsg = sprintf('Error: Input wave broken (Hb = %6.2f m)',Hb);
+        disp(errorMsg);
+    else
+        [Hbs]=ERRWAVBRK2(T,1/cottheta,ds); 
+%         assert(H<Hbs,'Error: Input wave breaking at toe of the structure (Hbs = %6.2f m)',Hbs)
+        if not(H<Hbs)
+            errorMsg = sprintf('Error: Input wave breaking at toe of the structure (Hbs = %6.2f m)',Hbs);
+            disp(errorMsg);
+        else
+            [L,k]=WAVELEN(ds,T,50,g);
 
-    [steep,maxstp]=ERRSTP(H,ds,L);
-    assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+            [steep,maxstp]=ERRSTP(H,ds,L);
+%             assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+            if not(steep<maxstp)
+                errorMsg = sprintf('Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep');
+                disp(errorMsg);
+            else
+    %             assert(ds<hs,'Error: Method does not apply to submerged structures.')
+                if not(ds<hs)
+                    errorMsg = 'Error: Method does not apply to submerged structures.';
+                    disp(errorMsg);
+                else
+    %             assert(sum(th)==ds,'Error: Water depth must equal sum of all layer thicknesses.')
+                    if not(sum(th)==ds)
+                        errorMsg = 'Error: Water depth must equal sum of all layer thicknesses.';
+                        disp(errorMsg);
+                    else
+                        [KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,ds,hs,b,NL,th,hlen,NM,d50,por,cottheta,nu,g);
 
-    assert(ds<hs,'Error: Method does not apply to submerged structures.')
-
-    assert(sum(th)==ds,'Error: Water depth must equal sum of all layer thicknesses.')
-
-    [KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,ds,hs,b,NL,th,hlen,NM,d50,por,cottheta,nu,g);
-
-    fprintf('%s \t\t\t %-6.3f \n','Reflection coefficient, Kr', Kr)
-    fprintf('%s \n','Wave transmission coefficient')
-    fprintf('%s \t %-6.3f \n','Wave Transmission (Through), KTt', KTt)
-    fprintf('%s  %-6.3f \n','Wave Transmission (Overtopping), KTo', Kto)
-    fprintf('%s \t\t %-6.3f \n','Wave Transmission (Total), KT', KT)
-    fprintf('%s \t\t %-6.2f \n','Transmitted wave height, Ht', Ht)
-
-
+                        fprintf('%s \t\t\t %-6.3f \n','Reflection coefficient, Kr', Kr)
+                        fprintf('%s \n','Wave transmission coefficient')
+                        fprintf('%s \t %-6.3f \n','Wave Transmission (Through), KTt', KTt)
+                        fprintf('%s  %-6.3f \n','Wave Transmission (Overtopping), KTo', Kto)
+                        fprintf('%s \t\t %-6.3f \n','Wave Transmission (Total), KT', KT)
+                        fprintf('%s \t\t %-6.2f \n','Transmitted wave height, Ht', Ht)
+                    end
+                end
+            end
+        end
+    end
 end

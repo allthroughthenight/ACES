@@ -151,66 +151,76 @@ for loopIndex = 1:numCases
                 b2=1.208;
 
                 d1=a1*dterm^(-b1);
-                assert(d1<=35.0,'Error: d/gT^2 approaching infinity')
-%                 if not(d1<=35.0)
-%                 else
-                Hrms=(1/sqrt(2))*exp(d1)*Hmo; %root-mean-square wave height
+%                 assert(d1<=35.0,'Error: d/gT^2 approaching infinity')
+                if not(d1<=35.0)
+                    errorMsg = 'Error: d/gT^2 approaching infinity';
+                    disp(errorMsg);
+                else
+                    Hrms=(1/sqrt(2))*exp(d1)*Hmo; %root-mean-square wave height
 
-                d2=a2*dterm^(-b2);
-                assert(d2<=35.0,'Error: d/gT^2 approaching infinity')
+                    d2=a2*dterm^(-b2);
+%                     assert(d2<=35.0,'Error: d/gT^2 approaching infinity')
+                    if not(d2<=35.0)
+                        errorMsg = 'Error: d/gT^2 approaching infinity';
+                        disp(errorMsg);
+                    else
+                        Hrmsq=(1/sqrt(2))*exp(d2)*Hmo^2; %root-mean-quad wave heigth
 
-                Hrmsq=(1/sqrt(2))*exp(d2)*Hmo^2; %root-mean-quad wave heigth
+                        %Computing alpha and beta
+                        K1=(Hrms/Hb)^2;
+                        K2=(Hrmsq^2)/(Hb^4);
 
-                %Computing alpha and beta
-                K1=(Hrms/Hb)^2;
-                K2=(Hrmsq^2)/(Hb^4);
+                        alpha=(K1*(K2-K1))/(K1^2-K2);
+                        beta=((1-K1)*(K2-K1))/(K1^2-K2);
 
-                alpha=(K1*(K2-K1))/(K1^2-K2);
-                beta=((1-K1)*(K2-K1))/(K1^2-K2);
+                        term1=(2*gamma(alpha+beta))/(gamma(alpha)*gamma(beta));
 
-                term1=(2*gamma(alpha+beta))/(gamma(alpha)*gamma(beta));
+                        for i=1:101
+                            %Beta-Rayleigh distribution
+                            H(i)=Hinc*(i-1);
+                            term2=(H(i)^(2*alpha-1))/(Hb^(2*alpha));
+                            term3=(1-(H(i)/Hb)^2)^(beta-1);
+                            p(i)=term1*term2*term3;
 
-                for i=1:101
-                    %Beta-Rayleigh distribution
-                    H(i)=Hinc*(i-1);
-                    term2=(H(i)^(2*alpha-1))/(Hb^(2*alpha));
-                    term3=(1-(H(i)/Hb)^2)^(beta-1);
-                    p(i)=term1*term2*term3;
+                            sum1=sum1+(p(i)*Hinc);
+                            if k<5 && sum1>Htype(k)
+                                index(k)=i;
+                                k=k+1;
+                            end
+                        end
 
-                    sum1=sum1+(p(i)*Hinc);
-                    if k<5 && sum1>Htype(k)
-                        index(k)=i;
-                        k=k+1;
+                        for k=2:4
+                            sum2=0;
+                            Hstart=H(index(k));
+                            Hinc=(Hb-Hstart)/20;
+                            pprv=p(index(k));
+                            Hprv=Hstart;
+                            for i=2:20
+                                Hnxt=Hstart+Hinc*(i-1);
+                                term2=(Hnxt^(2*alpha-1))/(Hb^(2*alpha));
+                                term3=(1-(Hnxt/Hb)^2)^(beta-1);
+                                pnxt=term1*term2*term3;
+                                darea=0.5*(pprv+pnxt)*Hinc; %area of a trapezoid
+                                sum2=sum2+(Hinc/2.0+Hprv)*darea;
+                                pprv=pnxt;
+                                Hprv=Hnxt;
+                            end
+                            Hout(k)=sum2/(1-Htype(k)); %computing centroid (areasum = 1-Htype)
+                        end
                     end
-                end
-
-                for k=2:4
-                    sum2=0;
-                    Hstart=H(index(k));
-                    Hinc=(Hb-Hstart)/20;
-                    pprv=p(index(k));
-                    Hprv=Hstart;
-                    for i=2:20
-                        Hnxt=Hstart+Hinc*(i-1);
-                        term2=(Hnxt^(2*alpha-1))/(Hb^(2*alpha));
-                        term3=(1-(Hnxt/Hb)^2)^(beta-1);
-                        pnxt=term1*term2*term3;
-                        darea=0.5*(pprv+pnxt)*Hinc; %area of a trapezoid
-                        sum2=sum2+(Hinc/2.0+Hprv)*darea;
-                        pprv=pnxt;
-                        Hprv=Hnxt;
-                    end
-                    Hout(k)=sum2/(1-Htype(k)); %computing centroid (areasum = 1-Htype)
                 end
             end
-            Hmed=H(index(1));
+            
+            if length(errorMsg) == 0
+                Hmed=H(index(1));
 
-            fprintf('\n %s \n','Wave heights')
-            fprintf('\t %s \t\t %-6.2f %s \n','Hrms',Hrms,labelUnitDist)
-            fprintf('\t %s \t\t %-6.2f %s \n','Hmed',Hmed,labelUnitDist)
-            fprintf('\t %s \t %-6.2f %s \n','H(1/3)',Hout(2),labelUnitDist)
-            fprintf('\t %s \t %-6.2f %s \n','H(1/10)',Hout(3),labelUnitDist)
-            fprintf('\t %s \t %-6.2f %s \n','H(1/100)',Hout(4),labelUnitDist)
+                fprintf('\n %s \n','Wave heights')
+                fprintf('\t %s \t\t %-6.2f %s \n','Hrms',Hrms,labelUnitDist)
+                fprintf('\t %s \t\t %-6.2f %s \n','Hmed',Hmed,labelUnitDist)
+                fprintf('\t %s \t %-6.2f %s \n','H(1/3)',Hout(2),labelUnitDist)
+                fprintf('\t %s \t %-6.2f %s \n','H(1/10)',Hout(3),labelUnitDist)
+                fprintf('\t %s \t %-6.2f %s \n','H(1/100)',Hout(4),labelUnitDist)
+            end
         end
     end
     

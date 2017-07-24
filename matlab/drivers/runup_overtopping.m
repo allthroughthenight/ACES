@@ -193,36 +193,57 @@ for loopIndex = 1:numCases
         end
     end
     
+    errorMsg = '';
+    
     m=1/cotphi;
 
-    assert(ds<hs,'Error: Method does not apply to submerged structures.')
-
-    [Hbs]=ERRWAVBRK2(T,m,ds);
-    assert(H<Hbs,'Error: Wave broken at structure (Hbs = %6.2f %s)',Hbs,labelUnitDist)
-
-    [c,c0,cg,cg0,k,L,L0,reldep]=LWTGEN(ds,T,g);
-
-    [steep,maxstp]=ERRSTP(H,ds,L);
-    assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
-
-    [alpha0,H0]=LWTDWS(0,c,cg,c0,H);
-
-    relht0=ds/H0;
-    steep0=H0/(g*T^2);
-
-    if cottheta==0
-        assert(option~=1 && option~=5 && option~=7,'Error: Vertical wall cannot have rough slope.')
-        theta=0.5*pi;
-        ssp=1000;
+%     assert(ds<hs,'Error: Method does not apply to submerged structures.')
+    if not(ds<hs)
+        errorMsg = 'Error: Method does not apply to submerged structures.';
+        disp(errorMsg);
     else
-        theta=atan(1/cottheta);
-        ssp=(1/cottheta)/sqrt(H/L0);
-    end
+        [Hbs]=ERRWAVBRK2(T,m,ds);
+%         assert(H<Hbs,'Error: Wave broken at structure (Hbs = %6.2f %s)',Hbs,labelUnitDist)
+        if not (H<Hbs)
+            errorMsg = sprintf('Error: Wave broken at structure (Hbs = %6.2f %s)',Hbs,labelUnitDist);
+            disp(errorMsg);
+        else
+            [c,c0,cg,cg0,k,L,L0,reldep]=LWTGEN(ds,T,g);
 
-    fprintf('%s \n','Deepwater')
-    fprintf('\t %s \t\t\t\t %-6.3f %s \n','Wave height, Hs0',H0,labelUnitDist)
-    fprintf('\t %s \t\t %-6.3f \n','Relative height, ds/H0',relht0)
-    fprintf('\t %s \t %-6.6f \n\n','Wave steepness, Hs0/(gT^2)',steep0)
+            [steep,maxstp]=ERRSTP(H,ds,L);
+%             assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+            if not(steep<maxstp)
+                errorMsg = sprintf('Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep');
+                disp(errorMsg);
+            else
+                [alpha0,H0]=LWTDWS(0,c,cg,c0,H);
+
+                relht0=ds/H0;
+                steep0=H0/(g*T^2);
+
+                if cottheta==0
+%                     assert(option~=1 && option~=5 && option~=7,'Error: Vertical wall cannot have rough slope.')
+                    if not(option~=1 && option~=5 && option~=7)
+                        errorMsg = 'Error: Vertical wall cannot have rough slope.';
+                        disp(errorMsg);
+                    else
+                        theta=0.5*pi;
+                        ssp=1000;
+                    end
+                else
+                    theta=atan(1/cottheta);
+                    ssp=(1/cottheta)/sqrt(H/L0);
+                end
+
+                if length(errorMsg) == 0
+                    fprintf('%s \n','Deepwater')
+                    fprintf('\t %s \t\t\t\t %-6.3f %s \n','Wave height, Hs0',H0,labelUnitDist)
+                    fprintf('\t %s \t\t %-6.3f \n','Relative height, ds/H0',relht0)
+                    fprintf('\t %s \t %-6.6f \n\n','Wave steepness, Hs0/(gT^2)',steep0)
+                end
+            end
+        end
+    end
 
     if fileOutputData{1}
         if ~single_case
@@ -261,81 +282,87 @@ for loopIndex = 1:numCases
             fprintf(fId, 'R\t\t%6.4f %s\n', R, labelUnitDist);
         end
         
-        fprintf(fId, '\n%s \n','Deepwater');
-        fprintf(fId, '\t %s \t\t %6.3f %s \n','Wave height, Hs0',H0,labelUnitDist);
-        fprintf(fId, '\t %s \t %6.3f \n','Relative height, ds/H0',relht0);
-        fprintf(fId, '\t %s \t %6.6f \n\n','Wave steepness, Hs0/(gT^2)',steep0);
+        if length(errorMsg) > 0
+            fprintf(fId, '\n%s\n\n', errorMsg);
+        else
+            fprintf(fId, '\n%s \n','Deepwater');
+            fprintf(fId, '\t %s \t\t %6.3f %s \n','Wave height, Hs0',H0,labelUnitDist);
+            fprintf(fId, '\t %s \t %6.3f \n','Relative height, ds/H0',relht0);
+            fprintf(fId, '\t %s \t %6.6f \n\n','Wave steepness, Hs0/(gT^2)',steep0);
+        end
     end
     
-    freeb=hs-ds;
+    if length(errorMsg) == 0
+        freeb=hs-ds;
 
-    if option==1
-        [R]=RUNUPR(H,ssp,a,b);
-        fprintf('%s \t %-6.3f %s \n\n','Runup',R,labelUnitDist)
-        
-        if fileOutputData{1}
-            fprintf(fId, '%s \t %6.3f %s \n\n','Runup',R,labelUnitDist);
-        end
-    elseif option==2
-        [R]=RUNUPS(H,L,ds,theta,ssp);
-        fprintf('%s \t %-6.3f %s \n\n','Runup',R,labelUnitDist)
-        
-        if fileOutputData{1}
-            fprintf(fId, '%s \t %6.3f %s \n\n','Runup',R,labelUnitDist);
-        end
-    elseif option==3   
-        [Q]=QOVERT(H0,freeb,R,Qstar0,alpha,theta,U,g);
-        fprintf('%s \t %-6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist)
-        
-        if fileOutputData{1}
-            fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
-        end
-    elseif option==4
-        [Q]=QOVERT(H0,freeb,R,Qstar0,alpha,theta,U,g);
-        fprintf('%s \t %-6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist)
-        
-        if fileOutputData{1}
-            fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
-        end
-    elseif option==5
-        [R]=RUNUPR(H,ssp,a,b);
-        [Q]=QOVERT(H0,freeb,R,Qstar0,alpha,theta,U,g);
-        fprintf('%s \t %-6.3f %s \n','Runup',R,labelUnitDist)
-        fprintf('%s \t %-6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist)
-        
-        if fileOutputData{1}
-            fprintf(fId, '%s \t %6.3f %s \n','Runup',R,labelUnitDist);
-            fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
-        end
-    elseif option==6
-        [R]=RUNUPS(H,L,ds,theta,ssp);
-        [Q]=QOVERT(H0,freeb,R,Qstar0,alpha,theta,U,g);
-        fprintf('%s \t %-6.3f %s \n','Runup',R,labelUnitDist)
-        fprintf('%s \t %-6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist)
-        
-        if fileOutputData{1}
-            fprintf(fId, '%s \t %6.3f %s \n','Runup',R,labelUnitDist);
-            fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
-        end
-    elseif option==7
-        [R]=RUNUPR(H,ssp,a,b);
-        [Q]=QOVERT_IRR(H0,freeb,R,Qstar0,alpha,theta,U,g);
-        fprintf('%s \t %-6.3f %s \n','Runup',R,labelUnitDist)
-        fprintf('%s \t %-6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist)
-        
-        if fileOutputData{1}
-            fprintf(fId, '%s \t %6.3f %s \n','Runup',R,labelUnitDist);
-            fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
-        end
-    elseif option==8
-        [R]=RUNUPS(H,L,ds,theta,ssp);
-        [Q]=QOVERT_IRR(H0,freeb,R,Qstar0,alpha,theta,U,g);
-        fprintf('%s \t %-6.3f %s \n','Runup',R,labelUnitDist)
-        fprintf('%s \t %-6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist)
-        
-        if fileOutputData{1}
-            fprintf(fId, '%s \t %6.3f %s \n','Runup',R,labelUnitDist);
-            fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
+        if option==1
+            [R]=RUNUPR(H,ssp,a,b);
+            fprintf('%s \t %-6.3f %s \n\n','Runup',R,labelUnitDist)
+
+            if fileOutputData{1}
+                fprintf(fId, '%s \t %6.3f %s \n\n','Runup',R,labelUnitDist);
+            end
+        elseif option==2
+            [R]=RUNUPS(H,L,ds,theta,ssp);
+            fprintf('%s \t %-6.3f %s \n\n','Runup',R,labelUnitDist)
+
+            if fileOutputData{1}
+                fprintf(fId, '%s \t %6.3f %s \n\n','Runup',R,labelUnitDist);
+            end
+        elseif option==3   
+            [Q]=QOVERT(H0,freeb,R,Qstar0,alpha,theta,U,g);
+            fprintf('%s \t %-6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist)
+
+            if fileOutputData{1}
+                fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
+            end
+        elseif option==4
+            [Q]=QOVERT(H0,freeb,R,Qstar0,alpha,theta,U,g);
+            fprintf('%s \t %-6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist)
+
+            if fileOutputData{1}
+                fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
+            end
+        elseif option==5
+            [R]=RUNUPR(H,ssp,a,b);
+            [Q]=QOVERT(H0,freeb,R,Qstar0,alpha,theta,U,g);
+            fprintf('%s \t %-6.3f %s \n','Runup',R,labelUnitDist)
+            fprintf('%s \t %-6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist)
+
+            if fileOutputData{1}
+                fprintf(fId, '%s \t %6.3f %s \n','Runup',R,labelUnitDist);
+                fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
+            end
+        elseif option==6
+            [R]=RUNUPS(H,L,ds,theta,ssp);
+            [Q]=QOVERT(H0,freeb,R,Qstar0,alpha,theta,U,g);
+            fprintf('%s \t %-6.3f %s \n','Runup',R,labelUnitDist)
+            fprintf('%s \t %-6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist)
+
+            if fileOutputData{1}
+                fprintf(fId, '%s \t %6.3f %s \n','Runup',R,labelUnitDist);
+                fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
+            end
+        elseif option==7
+            [R]=RUNUPR(H,ssp,a,b);
+            [Q]=QOVERT_IRR(H0,freeb,R,Qstar0,alpha,theta,U,g);
+            fprintf('%s \t %-6.3f %s \n','Runup',R,labelUnitDist)
+            fprintf('%s \t %-6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist)
+
+            if fileOutputData{1}
+                fprintf(fId, '%s \t %6.3f %s \n','Runup',R,labelUnitDist);
+                fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
+            end
+        elseif option==8
+            [R]=RUNUPS(H,L,ds,theta,ssp);
+            [Q]=QOVERT_IRR(H0,freeb,R,Qstar0,alpha,theta,U,g);
+            fprintf('%s \t %-6.3f %s \n','Runup',R,labelUnitDist)
+            fprintf('%s \t %-6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist)
+
+            if fileOutputData{1}
+                fprintf(fId, '%s \t %6.3f %s \n','Runup',R,labelUnitDist);
+                fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
+            end
         end
     end
     

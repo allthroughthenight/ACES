@@ -214,50 +214,76 @@ for loopIndex = 1:numCases
         end
     end
     
+    errorMsg = '';
+    
     m=1/cotphi;
 
     if option~=2
-        assert(ds<hs,'Error: Method does not apply to submerged structures.')
+%         assert(ds<hs,'Error: Method does not apply to submerged structures.')
+        if not(ds<hs)
+            errorMsg = 'Error: Method does not apply to submerged structures.';
+            disp(errorMsg);
+        end
     end
 
-    [c,c0,cg,cg0,k,L,L0,reldep]=LWTGEN(ds,T,g);
+    if length(errorMsg) == 0
+        [c,c0,cg,cg0,k,L,L0,reldep]=LWTGEN(ds,T,g);
 
-    [Hbs]=ERRWAVBRK2(T,m,ds);
-    assert(H<Hbs,'Error: Wave broken at structure (Hbs = %6.2f m)',Hbs)
+        [Hbs]=ERRWAVBRK2(T,m,ds);
+%         assert(H<Hbs,'Error: Wave broken at structure (Hbs = %6.2f m)',Hbs)
+        if not(H<Hbs)
+            errorMsg = sprintf('Error: Wave broken at structure (Hbs = %6.2f m)',Hbs);
+            disp(errorMsg);
+        else
+            [steep,maxstp]=ERRSTP(H,ds,L);
+%             assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+            if not(steep<maxstp)
+                errorMsg = sprintf('Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep');
+                disp(errorMsg);
+            else
+                if cottheta==0
+%                     assert(option==2,'Error: A cotangent of zero indicates a vertical wall.')
+                    if not(option==2)
+                        errorMsg = 'Error: A cotangent of zero indicates a vertical wall.';
+                        disp(errorMsg);
+                    else
+                        reldep=ds/L;
 
-    [steep,maxstp]=ERRSTP(H,ds,L);
-    assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+%                         assert(reldep>0.14 && reldep<0.5, 'Error: d/L conditions exceeded - 0.14<=(d/L)<=0.5')
+                        if not(reldep>0.14)
+                            errorMsg = 'Error: d/L conditions exceeded - 0.14<=(d/L)<=0.5';
+                            disp(errorMsg);
+                        end
+                    end
+                else
+                    theta=atan(1/cottheta);
+                    ssp=(1/cottheta)/sqrt(H/L0);
+                end
 
-    if cottheta==0
-        assert(option==2,'Error: A cotangent of zero indicates a vertical wall.')
+                if length(errorMsg) == 0
+                    if option==3
+                %         a=0.956;
+                %         b=0.398;
+                        [R]=RUNUPR(H,ssp,a,b);
+                        fprintf('%s \t\t\t\t\t\t %-6.3f \n','Runup',R)
+                    elseif option==4
+                        [R]=RUNUPS(H,L,ds,theta,ssp);
+                        fprintf('%s \t\t\t\t\t\t %-6.3f \n','Runup',R)
+                    end
 
-        reldep=ds/L;
+                    freeb=hs-ds;
 
-        assert(reldep>0.14 && reldep<0.5, 'Error: d/L conditions exceeded - 0.14<=(d/L)<=0.5')
-    else
-        theta=atan(1/cottheta);
-        ssp=(1/cottheta)/sqrt(H/L0);
-    end
-
-    if option==3
-%         a=0.956;
-%         b=0.398;
-        [R]=RUNUPR(H,ssp,a,b);
-        fprintf('%s \t\t\t\t\t\t %-6.3f \n','Runup',R)
-    elseif option==4
-        [R]=RUNUPS(H,L,ds,theta,ssp);
-        fprintf('%s \t\t\t\t\t\t %-6.3f \n','Runup',R)
-    end
-
-    freeb=hs-ds;
-
-    if option~=2
-        [Ht]=HTP(B,hs,R,H,freeb);
-        fprintf('%s \t %-6.3f \n','Transmitted wave height',Ht)
-    else
-        dl=ds-hB;
-        [Ht]=VERTKT(H,freeb,B,ds,dl);
-        fprintf('%s \t %-6.3f \n','Transmitted wave height',Ht)
+                    if option~=2
+                        [Ht]=HTP(B,hs,R,H,freeb);
+                        fprintf('%s \t %-6.3f \n','Transmitted wave height',Ht)
+                    else
+                        dl=ds-hB;
+                        [Ht]=VERTKT(H,freeb,B,ds,dl);
+                        fprintf('%s \t %-6.3f \n','Transmitted wave height',Ht)
+                    end
+                end
+            end
+        end
     end
     
     if fileOutputData{1}
@@ -277,28 +303,32 @@ for loopIndex = 1:numCases
         if option == 1
             fprintf(fId, 'R\t\t%6.2f %s\n', R, labelUnitDist);
         end
-        
+
         if option == 2
             fprintf(fId, 'hB\t\t%6.2f %s\n', hB, labelUnitDist);
         end
-        
+
         if option == 3
             fprintf(fId, 'a\t\t%6.3f\n', a);
             fprintf(fId, 'b\t\t%6.3f\n', b);
         end
-        
-        fprintf(fId, '\n');
-        
-        if option==3
-            fprintf(fId, '%s \t\t\t\t %6.3f \n','Runup',R);
-        elseif option==4
-            fprintf(fId, '%s \t\t\t\t %6.3f \n','Runup',R);
-        end
 
-        if option~=2
-            fprintf(fId, '%s \t %-6.3f \n','Transmitted wave height',Ht);
+        fprintf(fId, '\n');
+
+        if length(errorMsg) > 0
+            fprintf(fId, '%s\n', errorMsg);
         else
-            fprintf(fId, '%s \t %-6.3f \n','Transmitted wave height',Ht);
+            if option==3
+                fprintf(fId, '%s \t\t\t\t %6.3f \n','Runup',R);
+            elseif option==4
+                fprintf(fId, '%s \t\t\t\t %6.3f \n','Runup',R);
+            end
+
+            if option~=2
+                fprintf(fId, '%s \t %-6.3f \n','Transmitted wave height',Ht);
+            else
+                fprintf(fId, '%s \t %-6.3f \n','Transmitted wave height',Ht);
+            end
         end
         
         if loopIndex < numCases

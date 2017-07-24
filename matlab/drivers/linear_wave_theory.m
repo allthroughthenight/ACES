@@ -99,80 +99,104 @@ for loopIndex = 1:numCases
         xL = xLList(loopIndex);
     end
     
+    errorMsg = '';
+    
     [L,k]=WAVELEN(d,T,nIteration,g);
 
     theta=xL*twopi; %theta=(kx-wt) where arbitrarily t=0 and k=2*pi/L
 
     % Check for monochromatic wave breaking (depth limited - no slope)
     [Hb]=ERRWAVBRK1(d,0.78);
-    assert(H<Hb,'Error: Input wave broken (Hb = %6.2f %s)',Hb,labelUnitDist)
+%     assert(H<Hb,'Error: Input wave broken (Hb = %6.2f %s)',Hb,labelUnitDist)
+    if not(H<Hb)
+        errorMsg = sprintf('Error: Input wave broken (Hb = %6.2f %s)',Hb,labelUnitDist);
+        disp(errorMsg);
+    else
+        % Check to make sure vertical coordinate is within waveform
+        eta=(H/2)*cos(theta);
+%         assert(z<eta && (z+d)>0,'Error: Point outside waveform.')
+        if not(z<eta)
+            errorMsg = 'Error: Point outside waveform.';
+            disp(errorMsg);
+        end
+    end
 
-    % Check to make sure vertical coordinate is within waveform
-    eta=(H/2)*cos(theta);
-    assert(z<eta && (z+d)>0,'Error: Point outside waveform.')
+    if length(errorMsg) == 0
+        % Main Computations
+        arg=(2*k*d/(sinh(2*k*d)));
+        tot=d+z;
 
-    % Main Computations
-    arg=(2*k*d/(sinh(2*k*d)));
-    tot=d+z;
+        C=L/T;
+        Cg=0.5*(1+arg)*C;
+        E=(1/8)*rho*g*(H^2);
+        Ef=E*Cg;
+        Ur=L^2*H/(d^3);
+        px=(-H/2)*(cosh(k*tot)/sinh(k*d))*sin(theta);
+        py=(H/2)*(sinh(k*tot)/sinh(k*d))*cos(theta);
+        u=(H*pi/T)*(cosh(k*tot)/sinh(k*d))*cos(theta);
+        w=(H*pi/T)*(sinh(k*tot)/sinh(k*d))*sin(theta);
+        dudt=(H*2*pi^2/(T^2))*(cosh(k*tot)/sinh(k*d))*sin(theta);
+        dwdt=(-H*2*pi^2/(T^2))*(sinh(k*tot)/sinh(k*d))*cos(theta);
+        pres=-rho*g*z+rho*g*(H/2)*(cosh(k*tot)/cosh(k*d))*cos(theta);
 
-    C=L/T;
-    Cg=0.5*(1+arg)*C;
-    E=(1/8)*rho*g*(H^2);
-    Ef=E*Cg;
-    Ur=L^2*H/(d^3);
-    px=(-H/2)*(cosh(k*tot)/sinh(k*d))*sin(theta);
-    py=(H/2)*(sinh(k*tot)/sinh(k*d))*cos(theta);
-    u=(H*pi/T)*(cosh(k*tot)/sinh(k*d))*cos(theta);
-    w=(H*pi/T)*(sinh(k*tot)/sinh(k*d))*sin(theta);
-    dudt=(H*2*pi^2/(T^2))*(cosh(k*tot)/sinh(k*d))*sin(theta);
-    dwdt=(-H*2*pi^2/(T^2))*(sinh(k*tot)/sinh(k*d))*cos(theta);
-    pres=-rho*g*z+rho*g*(H/2)*(cosh(k*tot)/cosh(k*d))*cos(theta);
-
-    fprintf('\t\t\t\t\t\t\t\t %s \n','Units');
-    fprintf('%s \t\t\t %-6.2f \t %s \n','Wavelength',L,labelUnitDist);
-    fprintf('%s \t\t\t %-6.2f \t %s/s \n','Celerity',C,labelUnitDist);
-    fprintf('%s \t\t %-6.2f \t %s/s \n','Group speed',Cg,labelUnitDist);
-    fprintf('%s \t\t %-8.2f \t %s-%s/%s^2 \n','Energy density',E,labelUnitWt,labelUnitDist,labelUnitDist);
-    fprintf('%s \t\t %-8.2f \t %s-%s/%s-s \n','Energy flux',Ef,labelUnitWt,labelUnitDist,labelUnitDist);
-    fprintf('%s \t\t %-6.2f \n','Ursell number',Ur);
-    fprintf('%s \t\t\t %-6.2f \t %s \n','Water Surface Elevation',eta,labelUnitDist);
-    fprintf('%s \t %-6.2f \t %s \n','Horz. displacement',px,labelUnitDist);
-    fprintf('%s \t %-6.2f \t %s \n','Vert. displacement',py,labelUnitDist);
-    fprintf('%s \t\t %-6.2f \t %s/s \n','Horz. velocity',u,labelUnitDist);
-    fprintf('%s \t\t %-6.2f \t %s/s \n','Vert. velocity',w,labelUnitDist);
-    fprintf('%s \t %-6.2f \t %s/s^2 \n','Horz. acceleration',dudt,labelUnitDist);
-    fprintf('%s \t %-6.2f \t %s/s^2 \n','Vert. acceleration',dwdt,labelUnitDist);
-    fprintf('%s \t\t\t %-8.2f \t %s/%s^2 \n','Pressure',pres,labelUnitWt,labelUnitDist);
+        fprintf('\t\t\t\t\t\t\t\t %s \n','Units');
+        fprintf('%s \t\t\t %-6.2f \t %s \n','Wavelength',L,labelUnitDist);
+        fprintf('%s \t\t\t %-6.2f \t %s/s \n','Celerity',C,labelUnitDist);
+        fprintf('%s \t\t %-6.2f \t %s/s \n','Group speed',Cg,labelUnitDist);
+        fprintf('%s \t\t %-8.2f \t %s-%s/%s^2 \n','Energy density',E,labelUnitWt,labelUnitDist,labelUnitDist);
+        fprintf('%s \t\t %-8.2f \t %s-%s/%s-s \n','Energy flux',Ef,labelUnitWt,labelUnitDist,labelUnitDist);
+        fprintf('%s \t\t %-6.2f \n','Ursell number',Ur);
+        fprintf('%s \t\t\t %-6.2f \t %s \n','Water Surface Elevation',eta,labelUnitDist);
+        fprintf('%s \t %-6.2f \t %s \n','Horz. displacement',px,labelUnitDist);
+        fprintf('%s \t %-6.2f \t %s \n','Vert. displacement',py,labelUnitDist);
+        fprintf('%s \t\t %-6.2f \t %s/s \n','Horz. velocity',u,labelUnitDist);
+        fprintf('%s \t\t %-6.2f \t %s/s \n','Vert. velocity',w,labelUnitDist);
+        fprintf('%s \t %-6.2f \t %s/s^2 \n','Horz. acceleration',dudt,labelUnitDist);
+        fprintf('%s \t %-6.2f \t %s/s^2 \n','Vert. acceleration',dwdt,labelUnitDist);
+        fprintf('%s \t\t\t %-8.2f \t %s/%s^2 \n','Pressure',pres,labelUnitWt,labelUnitDist);
+    end
 
     if fileOutputData{1}
         if ~single_case
             fprintf(fId, 'Case #%d\n\n', loopIndex);
         end
         
-        fprintf(fId, 'Linear Wave Theory Summary\n\n');
+        fprintf(fId, 'Input\n');
+        fprintf(fId, 'Wave heights\t\t\t%8.2f %s\n', H, labelUnitDist);
+        fprintf(fId, 'Wave period\t\t\t%8.2f s\n', T);
+        fprintf(fId, 'Water depth\t\t\t%8.2f %s\n', d, labelUnitDist);
+        fprintf(fId, 'Vertical coordinate\t\t%8.2f %s\n', z, labelUnitDist);
+        fprintf(fId, 'Horizontal coordinate as\t%8.2f (x/L)\n', xL);
+        fprintf(fId, 'fraction of wavelength\n\n');
         
-        fprintf(fId, 'Item\t\t\tValue\t\t%s \n','Units');
-        fprintf(fId, '%s\t\t%8.2f\t%s\n','Wavelength',L,labelUnitDist);
-        fprintf(fId, '%s\t\t%8.2f\t%s/s\n','Celerity',C,labelUnitDist);
-        fprintf(fId, '%s\t\t%8.2f\t%s/s\n','Group speed',Cg,labelUnitDist);
-        fprintf(fId, '%s\t\t%8.2f\t%s-%s/%s^2\n','Energy density',E,labelUnitWt,labelUnitDist,labelUnitDist);
-        fprintf(fId, '%s\t\t%8.2f\t%s-%s/%s-s\n','Energy flux',Ef,labelUnitWt,labelUnitDist,labelUnitDist);
-        fprintf(fId, '%s\t\t%8.2f\n','Ursell number',Ur);
-        fprintf(fId, '%s\t\t%8.2f\t%s\n','Elevation',eta,labelUnitDist);
-        fprintf(fId, '%s\t%8.2f\t%s\n','Horz. displacement',px,labelUnitDist);
-        fprintf(fId, '%s\t%8.2f\t%s\n','Vert. displacement',py,labelUnitDist);
-        fprintf(fId, '%s\t\t%8.2f\t%s/s\n','Horz. velocity',u,labelUnitDist);
-        fprintf(fId, '%s\t\t%8.2f\t%s/s\n','Vert. velocity',w,labelUnitDist);
-        fprintf(fId, '%s\t%8.2f\t%s/s^2\n','Horz. acceleration',dudt,labelUnitDist);
-        fprintf(fId, '%s\t%8.2f\t%s/s^2\n','Vert. acceleration',dwdt,labelUnitDist);
-        fprintf(fId, '%s\t\t%8.2f\t%s/%s^2\n','Pressure',pres,labelUnitWt,labelUnitDist);
+        if length(errorMsg) > 0
+            fprintf(fId, '%s\n', errorMsg);
+        else
+            fprintf(fId, 'Linear Wave Theory Summary\n\n');
+
+            fprintf(fId, 'Item\t\t\tValue\t\t%s \n','Units');
+            fprintf(fId, '%s\t\t%8.2f\t%s\n','Wavelength',L,labelUnitDist);
+            fprintf(fId, '%s\t\t%8.2f\t%s/s\n','Celerity',C,labelUnitDist);
+            fprintf(fId, '%s\t\t%8.2f\t%s/s\n','Group speed',Cg,labelUnitDist);
+            fprintf(fId, '%s\t\t%8.2f\t%s-%s/%s^2\n','Energy density',E,labelUnitWt,labelUnitDist,labelUnitDist);
+            fprintf(fId, '%s\t\t%8.2f\t%s-%s/%s-s\n','Energy flux',Ef,labelUnitWt,labelUnitDist,labelUnitDist);
+            fprintf(fId, '%s\t\t%8.2f\n','Ursell number',Ur);
+            fprintf(fId, '%s\t\t%8.2f\t%s\n','Elevation',eta,labelUnitDist);
+            fprintf(fId, '%s\t%8.2f\t%s\n','Horz. displacement',px,labelUnitDist);
+            fprintf(fId, '%s\t%8.2f\t%s\n','Vert. displacement',py,labelUnitDist);
+            fprintf(fId, '%s\t\t%8.2f\t%s/s\n','Horz. velocity',u,labelUnitDist);
+            fprintf(fId, '%s\t\t%8.2f\t%s/s\n','Vert. velocity',w,labelUnitDist);
+            fprintf(fId, '%s\t%8.2f\t%s/s^2\n','Horz. acceleration',dudt,labelUnitDist);
+            fprintf(fId, '%s\t%8.2f\t%s/s^2\n','Vert. acceleration',dwdt,labelUnitDist);
+            fprintf(fId, '%s\t\t%8.2f\t%s/%s^2\n','Pressure',pres,labelUnitWt,labelUnitDist);
+        end
         
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
     end
     
-    if single_case
+    if single_case && length(errorMsg) == 0
         %Plotting waveform
         plotxL=(-1:0.001:1);
         plottheta=plotxL*twopi;

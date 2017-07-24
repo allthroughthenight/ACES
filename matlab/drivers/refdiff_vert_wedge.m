@@ -157,34 +157,40 @@ for loopIndex = 1:numCases
         end
     end
     
-    assert(wedgang>=0 && wedgang<=180,'Error: Range is 0.0 to 180.0')
+    errorMsg = '';
+    
+%     assert(wedgang>=0 && wedgang<=180,'Error: Range is 0.0 to 180.0')
+    if not(wedgang>=0 && wedgang<=180)
+        errorMsg = 'Error: Range is 0.0 to 180.0';
+        disp(errorMsg);
+    end
 
     if fileOutputData{1}
         if ~single_case
             fprintf(fId, 'Case #%d\n\n', loopIndex);
         end
         
-        fprintf(fId, 'Input\n');
-        fprintf(fId, 'Hi                  %6.2f %s\n', Hi, labelUnitDist);
-        fprintf(fId, 'T                   %6.2f s\n', T);
-        fprintf(fId, 'd                   %6.2f %s\n', d, labelUnitDist);
-        fprintf(fId, 'alpha               %6.2f deg\n', alpha);
-        fprintf(fId, 'wedgang             %6.2f deg\n', wedgang);
-
-        % Single Point
-        if mode == 0
-            fprintf(fId, 'xcor                %6.2f %s\n', xcor, labelUnitDist);
-            fprintf(fId, 'ycor                %6.2f %s\n', ycor, labelUnitDist);
-        else
-            fprintf(fId, 'x0                  %6.2f %s\n', x0, labelUnitDist);
-            fprintf(fId, 'xend                %6.2f %s\n', xend, labelUnitDist);
-            fprintf(fId, 'dx                  %6.2f %s\n', dx, labelUnitDist);
-            fprintf(fId, 'y0                  %6.2f %s\n', y0, labelUnitDist);
-            fprintf(fId, 'yend                %6.2f %s\n', yend, labelUnitDist);
-            fprintf(fId, 'dy                  %6.2f %s\n', dy, labelUnitDist);
-        end
-
-        fprintf(fId, '\n');
+%         fprintf(fId, 'Input\n');
+%         fprintf(fId, 'Hi                  %6.2f %s\n', Hi, labelUnitDist);
+%         fprintf(fId, 'T                   %6.2f s\n', T);
+%         fprintf(fId, 'd                   %6.2f %s\n', d, labelUnitDist);
+%         fprintf(fId, 'alpha               %6.2f deg\n', alpha);
+%         fprintf(fId, 'wedgang             %6.2f deg\n', wedgang);
+% 
+%         % Single Point
+%         if mode == 0
+%             fprintf(fId, 'xcor                %6.2f %s\n', xcor, labelUnitDist);
+%             fprintf(fId, 'ycor                %6.2f %s\n', ycor, labelUnitDist);
+%         else
+%             fprintf(fId, 'x0                  %6.2f %s\n', x0, labelUnitDist);
+%             fprintf(fId, 'xend                %6.2f %s\n', xend, labelUnitDist);
+%             fprintf(fId, 'dx                  %6.2f %s\n', dx, labelUnitDist);
+%             fprintf(fId, 'y0                  %6.2f %s\n', y0, labelUnitDist);
+%             fprintf(fId, 'yend                %6.2f %s\n', yend, labelUnitDist);
+%             fprintf(fId, 'dy                  %6.2f %s\n', dy, labelUnitDist);
+%         end
+% 
+%         fprintf(fId, '\n');
     end
     
     % Single Point Case
@@ -192,24 +198,40 @@ for loopIndex = 1:numCases
         [L,k]=WAVELEN(d,T,50,g);
 
         [steep,maxstp]=ERRSTP(Hi,d,L);
-        assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
-
-        [Hb]=ERRWAVBRK1(d,0.78);
-        assert(Hi<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
-
-        [phi,beta,H,error]=DRWEDG(xcor,ycor,Hi,alpha,wedgang,L);
-        assert(error~=1,'Error: (x,y) location inside structure.')
-
-        fprintf('%s \t\t\t %6.2f \t %s \n','Wavelength',L,labelUnitDist);
-        fprintf('%s \t %6.2f \n','Mod factor (phi)',phi);
-        fprintf('%s \t\t\t %6.2f \t %s \n','Wave phase',beta,'rad');
-        fprintf('%s \t %6.2f \t %s \n','Mod wave height',H,labelUnitDist);
+%         assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+        if not(steep<maxstp)
+            errorMsg = sprintf('Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep');
+            disp(errorMsg);
+        else
+            [Hb]=ERRWAVBRK1(d,0.78);
+%             assert(Hi<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
+            if not(Hi<Hb)
+                errorMsg = sprintf('Error: Input wave broken (Hb = %6.2f m)',Hb);
+                disp(errorMsg);
+            else
+                [phi,beta,H,error]=DRWEDG(xcor,ycor,Hi,alpha,wedgang,L);
+%                 assert(error~=1,'Error: (x,y) location inside structure.')
+                if error == 1
+                    errorMsg = 'Error: (x,y) location inside structure.';
+                    disp(errorMsg);
+                else
+                    fprintf('%s \t\t\t %6.2f \t %s \n','Wavelength',L,labelUnitDist);
+                    fprintf('%s \t %6.2f \n','Mod factor (phi)',phi);
+                    fprintf('%s \t\t\t %6.2f \t %s \n','Wave phase',beta,'rad');
+                    fprintf('%s \t %6.2f \t %s \n','Mod wave height',H,labelUnitDist);
+                end
+            end
+        end
         
         if fileOutputData{1}
-            fprintf(fId, '%s          %6.2f %s\n','Wavelength',L,labelUnitDist);
-            fprintf(fId, '%s    %6.2f\n','Mod factor (phi)',phi);
-            fprintf(fId, '%s          %6.2f %s\n','Wave phase',beta,'rad');
-            fprintf(fId, '%s     %6.2f %s\n','Mod wave height',H,labelUnitDist);
+            if length(errorMsg) > 0
+                fprintf(fId, '%s\n', errorMsg);
+            else
+                fprintf(fId, '%s          %6.2f %s\n','Wavelength',L,labelUnitDist);
+                fprintf(fId, '%s    %6.2f\n','Mod factor (phi)',phi);
+                fprintf(fId, '%s          %6.2f %s\n','Wave phase',beta,'rad');
+                fprintf(fId, '%s     %6.2f %s\n','Mod wave height',H,labelUnitDist);
+            end
         end
 
     %Uniform Grid Case
@@ -233,39 +255,54 @@ for loopIndex = 1:numCases
         [L,k]=WAVELEN(d,T,50,g);
 
         [steep,maxstp]=ERRSTP(Hi,d,L);
-        assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+%         assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+        if not(steep<maxstp)
+            errorMsg = sprintf('Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep');
+            disp(errorMsg);
+        else
+            [Hb]=ERRWAVBRK(T,d,0,0.78,0);
+%             assert(Hi<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
+            if not(Hi<Hb)
+                errorMsg = sprintf('Error: Input wave broken (Hb = %6.2f m)',Hb);
+                disp(errorMsg);
+            else
+                phi = [];
+                beta = [];
+                H = [];
+                for i=1:nypt
+                    for j=1:nxpt
+                        xx=xcors(1,j);
+                        yy=ycors(i,1);
+                        [phi(i,j),beta(i,j),H(i,j),error]=DRWEDG(xx,yy,Hi,alpha,wedgang,L);
+%                         assert(error~=1,'Error: (x,y) location inside structure.')
+                        if error == 1
+                            errorMsg = 'Error: (x,y) location inside structure.';
+                            disp(errorMsg);
+                            break;
+                        end
+                    end
+                end
 
-        [Hb]=ERRWAVBRK(T,d,0,0.78,0);
-        assert(Hi<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
+                if length(errorMsg) == 0
+                    fprintf('%s \t\t\t %6.2f \t %s \n','Wavelength',L,labelUnitDist);
+                    fprintf('%s \n','Modification Factors:')
+                    phi=cat(2,ycors,phi);
+                    xcors=[999,xcors];
+                    phi=cat(1,xcors,phi);
+                    disp(phi)
 
-        phi = [];
-        beta = [];
-        H = [];
-        for i=1:nypt
-            for j=1:nxpt
-                xx=xcors(1,j);
-                yy=ycors(i,1);
-                [phi(i,j),beta(i,j),H(i,j),error]=DRWEDG(xx,yy,Hi,alpha,wedgang,L);
-                assert(error~=1,'Error: (x,y) location inside structure.')
+                    fprintf('%s \n','Modified Wave Heights:');
+                    H=cat(2,ycors,H);
+                    H=cat(1,xcors,H);
+                    disp(H)
+
+                    fprintf('%s \n','Phase Angles (rad):');
+                    beta=cat(2,ycors,beta);
+                    beta=cat(1,xcors,beta);
+                    disp(beta)
+                end
             end
         end
-
-        fprintf('%s \t\t\t %6.2f \t %s \n','Wavelength',L,labelUnitDist);
-        fprintf('%s \n','Modification Factors:')
-        phi=cat(2,ycors,phi);
-        xcors=[999,xcors];
-        phi=cat(1,xcors,phi);
-        disp(phi)
-
-        fprintf('%s \n','Modified Wave Heights:');
-        H=cat(2,ycors,H);
-        H=cat(1,xcors,H);
-        disp(H)
-
-        fprintf('%s \n','Phase Angles (rad):');
-        beta=cat(2,ycors,beta);
-        beta=cat(1,xcors,beta);
-        disp(beta)
         
         if fileOutputData{1}
             fprintf(fId, 'Combined Reflection and Diffraction by a Vertical Wedge\n\n');
@@ -273,89 +310,93 @@ for loopIndex = 1:numCases
             fprintf(fId, 'Incident Wave Height\t=\t%-6.2f\t%s\tWave Period\t=\t%-6.2f\tsec\n', Hi, labelUnitDist, T);
             fprintf(fId, 'Water Depth\t\t=\t%-6.2f\t%s\tWavelength\t=\t%-6.2f\t%s\n', d, labelUnitDist, 0, labelUnitDist);
             fprintf(fId, 'Wave Angle\t\t=\t%-6.2f\tdeg\tWedge Angle\t=\t%-6.2f\tdeg\n\n', alpha, wedgang);
+            
+            if length(errorMsg) > 0
+                fprintf(fId, '%s\n', errorMsg);
+            else
+                % phi table
+                fprintf(fId, '**** Modification Factors:\n');
+                fprintf(fId, '              x=  ');
+                for loopIndex2 = 2:length(xcors)
+                    fprintf(fId, '  %8.2f', xcors(loopIndex2));
+                end
+                fprintf(fId, '\n--------------------------------------------------------------------\n');
 
-            % phi table
-            fprintf(fId, '**** Modification Factors:\n');
-            fprintf(fId, '              x=  ');
-            for loopIndex2 = 2:length(xcors)
-                fprintf(fId, '  %8.2f', xcors(loopIndex2));
-            end
-            fprintf(fId, '\n--------------------------------------------------------------------\n');
-            
-            for rowIndex = 2:size(phi, 1)
-                fprintf(fId, 'y=      %8.2f  ', phi(rowIndex, 1));
-                
-                for colIndex = 2:size(phi, 2)
-                    fprintf(fId, '  %8.2f', phi(rowIndex, colIndex));
+                for rowIndex = 2:size(phi, 1)
+                    fprintf(fId, 'y=      %8.2f  ', phi(rowIndex, 1));
+
+                    for colIndex = 2:size(phi, 2)
+                        fprintf(fId, '  %8.2f', phi(rowIndex, colIndex));
+                    end
+
+                    fprintf(fId, '\n');
                 end
-                
+                fprintf(fId, '--------------------------------------------------------------------\n');
+
+                fprintf(fId, '              x=  ');
+                for loopIndex2 = 2:length(xcors)
+                    fprintf(fId, '  %8.2f', xcors(loopIndex2));
+                end
+                % end phi table
+
+                fprintf(fId, '\n\n');
+
+                % H table
+                fprintf(fId, '**** Modified Wave Heights (%s):\n', labelUnitDist);
+
+                fprintf(fId, '              x=  ');
+                for loopIndex2 = 2:length(xcors)
+                    fprintf(fId, '  %8.2f', xcors(loopIndex2));
+                end
+                fprintf(fId, '\n--------------------------------------------------------------------\n');
+
+                for rowIndex = 2:size(H, 1)
+                    fprintf(fId, 'y=      %8.2f  ', H(rowIndex, 1));
+
+                    for colIndex = 2:size(H, 2)
+                        fprintf(fId, '  %8.2f', H(rowIndex, colIndex));
+                    end
+
+                    fprintf(fId, '\n');
+                end
+                fprintf(fId, '--------------------------------------------------------------------\n');
+
+                fprintf(fId, '              x=  ');
+                for loopIndex2 = 2:length(xcors)
+                    fprintf(fId, '  %8.2f', xcors(loopIndex2));
+                end
+                % end H table
+
+                fprintf(fId, '\n\n');
+
+                % beta table
+                fprintf(fId, '**** Phase Angles (rad):\n');
+
+                fprintf(fId, '              x=  ');
+                for loopIndex2 = 2:length(xcors)
+                    fprintf(fId, '  %8.2f', xcors(loopIndex2));
+                end
+                fprintf(fId, '\n--------------------------------------------------------------------\n');
+
+                for rowIndex = 2:size(beta, 1)
+                    fprintf(fId, 'y=      %8.2f  ', beta(rowIndex, 1));
+
+                    for colIndex = 2:size(beta, 2)
+                        fprintf(fId, '  %8.2f', beta(rowIndex, colIndex));
+                    end
+
+                    fprintf(fId, '\n');
+                end
+                fprintf(fId, '--------------------------------------------------------------------\n');
+
+                fprintf(fId, '              x=  ');
+                for loopIndex2 = 2:length(xcors)
+                    fprintf(fId, '  %8.2f', xcors(loopIndex2));
+                end
+                % end beta table
+
                 fprintf(fId, '\n');
             end
-            fprintf(fId, '--------------------------------------------------------------------\n');
-            
-            fprintf(fId, '              x=  ');
-            for loopIndex2 = 2:length(xcors)
-                fprintf(fId, '  %8.2f', xcors(loopIndex2));
-            end
-            % end phi table
-            
-            fprintf(fId, '\n\n');
-            
-            % H table
-            fprintf(fId, '**** Modified Wave Heights (%s):\n', labelUnitDist);
-            
-            fprintf(fId, '              x=  ');
-            for loopIndex2 = 2:length(xcors)
-                fprintf(fId, '  %8.2f', xcors(loopIndex2));
-            end
-            fprintf(fId, '\n--------------------------------------------------------------------\n');
-            
-            for rowIndex = 2:size(H, 1)
-                fprintf(fId, 'y=      %8.2f  ', H(rowIndex, 1));
-                
-                for colIndex = 2:size(H, 2)
-                    fprintf(fId, '  %8.2f', H(rowIndex, colIndex));
-                end
-                
-                fprintf(fId, '\n');
-            end
-            fprintf(fId, '--------------------------------------------------------------------\n');
-            
-            fprintf(fId, '              x=  ');
-            for loopIndex2 = 2:length(xcors)
-                fprintf(fId, '  %8.2f', xcors(loopIndex2));
-            end
-            % end H table
-            
-            fprintf(fId, '\n\n');
-            
-            % beta table
-            fprintf(fId, '**** Phase Angles (rad):\n');
-            
-            fprintf(fId, '              x=  ');
-            for loopIndex2 = 2:length(xcors)
-                fprintf(fId, '  %8.2f', xcors(loopIndex2));
-            end
-            fprintf(fId, '\n--------------------------------------------------------------------\n');
-            
-            for rowIndex = 2:size(beta, 1)
-                fprintf(fId, 'y=      %8.2f  ', beta(rowIndex, 1));
-                
-                for colIndex = 2:size(beta, 2)
-                    fprintf(fId, '  %8.2f', beta(rowIndex, colIndex));
-                end
-                
-                fprintf(fId, '\n');
-            end
-            fprintf(fId, '--------------------------------------------------------------------\n');
-            
-            fprintf(fId, '              x=  ');
-            for loopIndex2 = 2:length(xcors)
-                fprintf(fId, '  %8.2f', xcors(loopIndex2));
-            end
-            % end beta table
-            
-            fprintf(fId, '\n');
         end
     end
     
@@ -369,11 +410,11 @@ end
 if fileOutputData{1}
     fclose(fId);
 
-    if single_case && mode == 1
+    if single_case && mode == 1 && length(errorMsg) == 0
         fId = fopen(['output\refdiff_vert_wedge_' outputAppend '_plot.txt'], 'wt');
 
         fprintf(fId, 'Combined Reflection and Diffraction by a Vertical Wedge\n');
-        fprintf(fId, 'Wedge Angle: %-8.2f\tInciden Wave Angle: %-8.2f\n\n',...
+        fprintf(fId, 'Wedge Angle: %-8.2f\tIncident Wave Angle: %-8.2f\n\n',...
             wedgang, alpha);
 
         fprintf(fId, '      %s        %s      %s              rad\n',...

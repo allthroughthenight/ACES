@@ -84,24 +84,30 @@ for loopIndex = 1:numCases
         cottheta = cotthetaList(loopIndex);
     end
     
+    errorMsg = '';
+    
     L0=g*(Tp^2)/(2*pi);
     steep=Hs0/L0;
-    assert(steep<0.142,'Error: Input wave unstable (Max: 0.142, [H/L] = %0.4f)',steep')
+%     assert(steep<0.142,'Error: Input wave unstable (Max: 0.142, [H/L] = %0.4f)',steep')
+    if not(steep<0.142)
+        errorMsg = sprintf('Error: Input wave unstable (Max: 0.142, [H/L] = %0.4f)',steep');
+        disp(errorMsg);
+    else
+        tantheta=1/cottheta;
+        I=tantheta/sqrt(Hs0/L0);
 
-    tantheta=1/cottheta;
-    I=tantheta/sqrt(Hs0/L0);
+        Rmax=Hs0*amax*(I^bmax);
+        R2=Hs0*a2*(I^b2);
+        R110=Hs0*a110*(I^b110);
+        R13=Hs0*a13*(I^b13);
+        Ravg=Hs0*aavg*(I^bavg);
 
-    Rmax=Hs0*amax*(I^bmax);
-    R2=Hs0*a2*(I^b2);
-    R110=Hs0*a110*(I^b110);
-    R13=Hs0*a13*(I^b13);
-    Ravg=Hs0*aavg*(I^bavg);
-
-    fprintf('%s \t\t\t\t\t %-6.2f %s \n','Maximum runup',Rmax,labelUnitDist)
-    fprintf('%s \t %-6.2f %s \n','Runup exceeded by 2% of runup',R2,labelUnitDist)
-    fprintf('%s \t %-6.2f %s \n','Avg. of highest 1/10 runups',R110,labelUnitDist)
-    fprintf('%s \t\t %-6.2f %s \n','Avg. of highest 1/3 runups',R13,labelUnitDist)
-    fprintf('%s \t\t\t\t\t %-6.2f %s \n','Maximum runup',Ravg,labelUnitDist)
+        fprintf('%s \t\t\t\t\t %-6.2f %s \n','Maximum runup',Rmax,labelUnitDist)
+        fprintf('%s \t %-6.2f %s \n','Runup exceeded by 2% of runup',R2,labelUnitDist)
+        fprintf('%s \t %-6.2f %s \n','Avg. of highest 1/10 runups',R110,labelUnitDist)
+        fprintf('%s \t\t %-6.2f %s \n','Avg. of highest 1/3 runups',R13,labelUnitDist)
+        fprintf('%s \t\t\t\t\t %-6.2f %s \n','Maximum runup',Ravg,labelUnitDist)
+    end
 
     if fileOutputData{1}
         if ~single_case
@@ -113,11 +119,15 @@ for loopIndex = 1:numCases
         fprintf(fId, 'Tp\t\t%6.2f s\n', Tp);
         fprintf(fId, 'cottheta\t%6.2f\n\n', cottheta);
         
-        fprintf(fId, '%s \t\t\t %6.2f %s \n','Maximum runup',Rmax,labelUnitDist);
-        fprintf(fId, '%s \t %6.2f %s \n','Runup exceeded by 2% of runup',R2,labelUnitDist);
-        fprintf(fId, '%s \t %6.2f %s \n','Avg. of highest 1/10 runups',R110,labelUnitDist);
-        fprintf(fId, '%s \t %6.2f %s \n','Avg. of highest 1/3 runups',R13,labelUnitDist);
-        fprintf(fId, '%s \t\t\t %6.2f %s \n','Maximum runup',Ravg,labelUnitDist);
+        if length(errorMsg) > 0
+            fprintf(fId, '%s', errorMsg);
+        else
+            fprintf(fId, '%s \t\t\t %6.2f %s \n','Maximum runup',Rmax,labelUnitDist);
+            fprintf(fId, '%s \t %6.2f %s \n','Runup exceeded by 2% of runup',R2,labelUnitDist);
+            fprintf(fId, '%s \t %6.2f %s \n','Avg. of highest 1/10 runups',R110,labelUnitDist);
+            fprintf(fId, '%s \t %6.2f %s \n','Avg. of highest 1/3 runups',R13,labelUnitDist);
+            fprintf(fId, '%s \t\t\t %6.2f %s \n','Maximum runup',Ravg,labelUnitDist);
+        end
         
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');

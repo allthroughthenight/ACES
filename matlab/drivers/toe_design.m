@@ -110,42 +110,56 @@ for loopIndex = 1:numCases
         unitwt = unitwtList(loopIndex);
     end
     
+    errorMsg = '';
+    
     specgrav=unitwt/H20weight;
 
     dl=ds-ht;
     m=1/cotphi;
 
-    assert(ds/(T^2)>0.0037424,'Error: Limiting value detected...Hbs cannot be solved.')
+%     assert(ds/(T^2)>0.0037424,'Error: Limiting value detected...Hbs cannot be solved.')
+    if not(ds/(T^2)>0.0037424)
+        errorMsg = 'Error: Limiting value detected...Hbs cannot be solved.';
+        disp(errorMsg);
+    else
+        [Hbs]=ERRWAVBRK2(T,m,ds);
+%         assert(H<Hbs,'Error: Wave broken at structure (Hbs = %6.2f m)',Hbs)
+        if not(H<Hbs)
+            errorMsg = sprintf('Error: Wave broken at structure (Hbs = %6.2f m)',Hbs);
+            disp(errorMsg);
+        else
+            [L,k]=WAVELEN(dl,T,50,g);
 
-    [Hbs]=ERRWAVBRK2(T,m,ds);
-    assert(H<Hbs,'Error: Wave broken at structure (Hbs = %6.2f m)',Hbs)
+            [steep,maxstp]=ERRSTP(H,dl,L);
+%             assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+            if not(steep<maxstp)
+                errorMsg = sprintf('Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep');
+                disp(errorMsg);
+            else
+                b1=de*Kp;
+                b2=2*H;
+                b3=0.4*ds;
+                b=cat(1,b1,b2,b3);
+                b=max(b);
 
-    [L,k]=WAVELEN(dl,T,50,g);
+                arg1=(4*pi*dl/L);
+                kappa=(arg1/sinh(arg1))*((sin(2*pi*b/L))^2);
+                arg2=((1-kappa)/(kappa^(1/3)))*(dl/H);
+                Ns=1.3*arg2+1.8*exp(-1.5*(1-kappa)*arg2);
 
-    [steep,maxstp]=ERRSTP(H,dl,L);
-    assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+                if Ns<1.8
+                    Ns=1.8;
+                end
 
-    b1=de*Kp;
-    b2=2*H;
-    b3=0.4*ds;
-    b=cat(1,b1,b2,b3);
-    b=max(b);
+                w=(unitwt*(H^3))/((Ns^3)*((specgrav-1)^3));
 
-    arg1=(4*pi*dl/L);
-    kappa=(arg1/sinh(arg1))*((sin(2*pi*b/L))^2);
-    arg2=((1-kappa)/(kappa^(1/3)))*(dl/H);
-    Ns=1.3*arg2+1.8*exp(-1.5*(1-kappa)*arg2);
-
-    if Ns<1.8
-        Ns=1.8;
+                fprintf('\n')
+                fprintf('%s \t\t\t\t\t %-6.2f %s \t\n','Width of toe apron',b,labelUnitDist)
+                fprintf('%s \t %-6.2f %s \t\n','Weight of individual armor unit',w,labelUnitWt)
+                fprintf('%s \t\t\t %-6.2f %s \t\n','Water depth at top of tow',dl,labelUnitDist)
+            end
+        end
     end
-
-    w=(unitwt*(H^3))/((Ns^3)*((specgrav-1)^3));
-
-    fprintf('\n')
-    fprintf('%s \t\t\t\t\t %-6.2f %s \t\n','Width of toe apron',b,labelUnitDist)
-    fprintf('%s \t %-6.2f %s \t\n','Weight of individual armor unit',w,labelUnitWt)
-    fprintf('%s \t\t\t %-6.2f %s \t\n','Water depth at top of tow',dl,labelUnitDist)
     
     if fileOutputData{1}
         if ~single_case
@@ -162,9 +176,13 @@ for loopIndex = 1:numCases
         fprintf(fId, 'ht                                 %6.2f %s\n', ht, labelUnitDist);
         fprintf(fId, 'unitwt                             %6.2f %s/%s^3\n\n', unitwt, labelUnitWt, labelUnitDist);
         
-        fprintf(fId, '%s                 %-6.2f %s\n','Width of toe apron',b,labelUnitDist);
-        fprintf(fId, '%s    %-6.2f %s\n','Weight of individual armor unit',w,labelUnitWt);
-        fprintf(fId, '%s          %-6.2f %s\n','Water depth at top of tow',dl,labelUnitDist);
+        if length(errorMsg) > 0
+            fprintf(fId, '%s\n', errorMsg);
+        else
+            fprintf(fId, '%s                 %-6.2f %s\n','Width of toe apron',b,labelUnitDist);
+            fprintf(fId, '%s    %-6.2f %s\n','Weight of individual armor unit',w,labelUnitWt);
+            fprintf(fId, '%s          %-6.2f %s\n','Water depth at top of tow',dl,labelUnitDist);
+        end
         
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');

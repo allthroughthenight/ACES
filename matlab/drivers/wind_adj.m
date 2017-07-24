@@ -304,53 +304,70 @@ for loopIndex = 1:numCases
         end
     end
     
+    errorMsg = '';
+    
     if is_water_open
         phi=0;
     else
         [F,phi,theta]=WGFET(ang1,dang,wdir,angs);
     end
 
-    assert(lat~=0, 'Error: Latitude must be a non-zero value.')
-    
-%   Check WDIR vs Fetch data. WDIR must meet this criterion:
-%   ang1 -45 degrees <= WDIR <= anglast + 45 degrees
-    if ~is_water_open
-        assert(ang1 - 45 <= wdir,...
-            'Error: wdir must be at least 45 degrees less than the first fetch angle.');
-        assert(wdir <= (ang1 + (Nfet - 1)*dang) + 45,...
-            'Error: wdir must be at most 45 degrees more than the final fetch angle.');
+%     assert(lat~=0, 'Error: Latitude must be a non-zero value.')
+    if lat == 0
+        errorMsg = 'Error: Latitude must be a non-zero value.';
+        disp(errorMsg);
+    else
+    %   Check WDIR vs Fetch data. WDIR must meet this criterion:
+    %   ang1 -45 degrees <= WDIR <= anglast + 45 degrees
+        if ~is_water_open
+%             assert(ang1 - 45 <= wdir,...
+%                 'Error: wdir must be at least 45 degrees less than the first fetch angle.');
+%             assert(wdir <= (ang1 + (Nfet - 1)*dang) + 45,...
+%                 'Error: wdir must be at most 45 degrees more than the final fetch angle.');
+            if not(ang1 - 45 <= wdir)
+                errorMsg = 'Error: wdir must be at least 45 degrees less than the first fetch angle.';
+                disp(errorMsg);
+            else
+                if not(wdir <= (ang1 + (Nfet - 1)*dang) + 45)
+                    errorMsg = 'Error: wdir must be at most 45 degrees more than the final fetch angle.';
+                    disp(errorMsg);
+                end
+            end
+        end
     end
     
-%    [ue]=WADJ(Uobs*mph2mps,zobs*ft2m,dtemp,F*mi2m,duro*hr2s,durf*hr2s,lat*deg2rad,windobs);
-    [ue]=WADJ(Uobs*conversionSpeed,...
-        zobs*conversionDist,...
-        dtemp,...
-        F*conversionDistLrg,...
-        duro*hr2s,...
-        durf*hr2s,...
-        lat*deg2rad,...
-        windobs);
+    if length(errorMsg) == 0
+    %    [ue]=WADJ(Uobs*mph2mps,zobs*ft2m,dtemp,F*mi2m,duro*hr2s,durf*hr2s,lat*deg2rad,windobs);
+        [ue]=WADJ(Uobs*conversionSpeed,...
+            zobs*conversionDist,...
+            dtemp,...
+            F*conversionDistLrg,...
+            duro*hr2s,...
+            durf*hr2s,...
+            lat*deg2rad,...
+            windobs);
 
-    [ua,Hmo,Tp,wgmsg]=WGRO(d*conversionDist,F*conversionDistLrg,phi,durf*hr2s,ue,wgtyp);
+        [ua,Hmo,Tp,wgmsg]=WGRO(d*conversionDist,F*conversionDistLrg,phi,durf*hr2s,ue,wgtyp);
 
-    if ~is_water_open
-        fprintf('%s \t\t\t\t %-6.2f %s\n','Fetch length',F, labelUnitDistLrg);
-        fprintf('%s \t\t\t %-6.2f deg\n', 'Wind Direction', wdir);
+        if ~is_water_open
+            fprintf('%s \t\t\t\t %-6.2f %s\n','Fetch length',F, labelUnitDistLrg);
+            fprintf('%s \t\t\t %-6.2f deg\n', 'Wind Direction', wdir);
+        end
+
+    %    fprintf('%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/mph2mps, labelSpeedFinal);
+        fprintf('%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/conversionSpeed, labelSpeedFinal);
+    %    fprintf('%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/mph2mps, labelSpeedFinal);
+        fprintf('%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/conversionSpeed, labelSpeedFinal);
+
+        if ~is_water_open
+            fprintf('%s \t %-6.2f deg\n','Mean wave direction',theta);
+        end
+
+        fprintf('%s \t\t\t %-6.2f %s \n','Wave height ',Hmo/conversionDist,labelUnitDist);
+        fprintf('%s \t\t\t %-6.2f s \n','Wave period ',Tp);
+
+        fprintf('%s %s \n','Wave growth: ',wgmsg);
     end
-    
-%    fprintf('%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/mph2mps, labelSpeedFinal);
-    fprintf('%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/conversionSpeed, labelSpeedFinal);
-%    fprintf('%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/mph2mps, labelSpeedFinal);
-    fprintf('%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/conversionSpeed, labelSpeedFinal);
-    
-    if ~is_water_open
-        fprintf('%s \t %-6.2f deg\n','Mean wave direction',theta);
-    end
-
-    fprintf('%s \t\t\t %-6.2f %s \n','Wave height ',Hmo/conversionDist,labelUnitDist);
-    fprintf('%s \t\t\t %-6.2f s \n','Wave period ',Tp);
-    
-    fprintf('%s %s \n','Wave growth: ',wgmsg);
     
     if fileOutputData{1}
         if ~single_case
@@ -377,24 +394,28 @@ for loopIndex = 1:numCases
             fprintf(fId, 'wdir\t\t%6.2f deg\n', wdir);
         end
 
-        fprintf(fId, '\nOutput\n');
-        
-        if ~is_water_open
-            fprintf(fId, '%s \t\t\t %-6.2f %s\n','Wind fetch',F, labelUnitDistLrg);
-            fprintf(fId, '%s \t\t\t %-6.2f deg\n', 'Wind Direction', wdir);
+        if length(errorMsg) > 0
+            fprintf(fId, '\n%s\n', errorMsg);
+        else
+            fprintf(fId, '\nOutput\n');
+
+            if ~is_water_open
+                fprintf(fId, '%s \t\t\t %-6.2f %s\n','Wind fetch',F, labelUnitDistLrg);
+                fprintf(fId, '%s \t\t\t %-6.2f deg\n', 'Wind Direction', wdir);
+            end
+
+            fprintf(fId, '%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/conversionSpeed, labelSpeedFinal);
+            fprintf(fId, '%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/conversionSpeed, labelSpeedFinal);
+
+            if ~is_water_open
+                fprintf(fId, '%s \t\t %-6.2f deg\n','Mean wave direction',theta);
+            end
+
+            fprintf(fId, '%s \t\t\t %-6.2f %s \n','Wave height ',Hmo/conversionDist,labelUnitDist);
+            fprintf(fId, '%s \t\t\t %-6.2f s \n','Wave period ',Tp);
+
+            fprintf(fId, '%s %s \n','Wave growth: ',wgmsg);
         end
-
-        fprintf(fId, '%s \t\t %-6.2f %s \n','Equiv. wind speed',ue/conversionSpeed, labelSpeedFinal);
-        fprintf(fId, '%s \t\t %-6.2f %s \n','Adjus. wind speed',ua/conversionSpeed, labelSpeedFinal);
-
-        if ~is_water_open
-            fprintf(fId, '%s \t\t %-6.2f deg\n','Mean wave direction',theta);
-        end
-
-        fprintf(fId, '%s \t\t\t %-6.2f %s \n','Wave height ',Hmo/conversionDist,labelUnitDist);
-        fprintf(fId, '%s \t\t\t %-6.2f s \n','Wave period ',Tp);
-
-        fprintf(fId, '%s %s \n','Wave growth: ',wgmsg);
         
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');

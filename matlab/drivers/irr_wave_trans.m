@@ -113,30 +113,36 @@ for loopIndex = 1:numCases
         direc = direcList(loopIndex);
     end
     
+    errorMsg = '';
+    
    % Convert meter input to centimeters
     Ho=Ho*m2cm;
     d=d*m2cm;
 
     [Hb]=ERRWAVBRK1(d,0.78);
-    assert(Ho<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
+%     assert(Ho<Hb,'Error: Input wave broken (Hb = %6.2f m)',Hb)
+    if not(Ho<Hb)
+        errorMsg = sprintf('Error: Input wave broken (Hb = %6.2f m)',Hb);
+        disp(errorMsg);
+    else
+        [Ks,Kr,Hmax,Hrms,Hbar,Hs,H10,H02,SBrms,HoLo,dLo,dHo,deepd,theta,Sw,Hxo,cdfo,Hx,cdfx]=GODA(Ho,d,Ts,cotnsl,direc,g);
 
-    [Ks,Kr,Hmax,Hrms,Hbar,Hs,H10,H02,SBrms,HoLo,dLo,dHo,deepd,theta,Sw,Hxo,cdfo,Hx,cdfx]=GODA(Ho,d,Ts,cotnsl,direc,g);
-
-    fprintf('\t\t %s \t %s \t\t %s \n','Subject','Deep','Units')
-    fprintf('%s \t\t %-6.2f \t %-6.2f \t %s \n','Hs',Hs(2)/m2cm,Hs(1)/m2cm,labelUnitDist)
-    fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','Hmean',Hbar(2)/m2cm,Hbar(1)/m2cm,labelUnitDist)
-    fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','Hrms',Hrms(2)/m2cm,Hrms(1)/m2cm,labelUnitDist)
-    fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','H10%',H10(2)/m2cm,H10(1)/m2cm,labelUnitDist)
-    fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','H02%',H02(2)/m2cm,H02(1)/m2cm,labelUnitDist)
-    fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','Hmax%',Hmax(2)/m2cm,Hmax(1)/m2cm,labelUnitDist)
-    disp(' ')
-    fprintf('%s \t\t %-6.4f \t %-6.4f \n','Ks',Ks(2),Ks(1))
-    fprintf('%s \t %-6.4f \t %-6.4f \t %s \n','SBrms',SBrms(2)/m2cm,SBrms(1)/m2cm,labelUnitDist)
-    fprintf('%s \t\t %-6.4f \t %-6.4f \t %s \n','Sw',Sw(2)/m2cm,Sw(1)/m2cm,labelUnitDist)
-    fprintf('%s \t %-6.4f \t %-6.4f \n','Ho/Lo',HoLo(1),HoLo(1))
-    fprintf('%s \t\t %-6.4f \n','Kr',Kr(1))
-    fprintf('%s \t %-6.4f \t %-6.4f \n','d/Ho',dHo(2),dHo(1))
-    fprintf('%s \t %-6.4f \t %-6.4f \n','d/Lo',dLo(2),dLo(1))
+        fprintf('\t\t %s \t %s \t\t %s \n','Subject','Deep','Units')
+        fprintf('%s \t\t %-6.2f \t %-6.2f \t %s \n','Hs',Hs(2)/m2cm,Hs(1)/m2cm,labelUnitDist)
+        fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','Hmean',Hbar(2)/m2cm,Hbar(1)/m2cm,labelUnitDist)
+        fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','Hrms',Hrms(2)/m2cm,Hrms(1)/m2cm,labelUnitDist)
+        fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','H10%',H10(2)/m2cm,H10(1)/m2cm,labelUnitDist)
+        fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','H02%',H02(2)/m2cm,H02(1)/m2cm,labelUnitDist)
+        fprintf('%s \t %-6.2f \t %-6.2f \t %s \n','Hmax%',Hmax(2)/m2cm,Hmax(1)/m2cm,labelUnitDist)
+        disp(' ')
+        fprintf('%s \t\t %-6.4f \t %-6.4f \n','Ks',Ks(2),Ks(1))
+        fprintf('%s \t %-6.4f \t %-6.4f \t %s \n','SBrms',SBrms(2)/m2cm,SBrms(1)/m2cm,labelUnitDist)
+        fprintf('%s \t\t %-6.4f \t %-6.4f \t %s \n','Sw',Sw(2)/m2cm,Sw(1)/m2cm,labelUnitDist)
+        fprintf('%s \t %-6.4f \t %-6.4f \n','Ho/Lo',HoLo(1),HoLo(1))
+        fprintf('%s \t\t %-6.4f \n','Kr',Kr(1))
+        fprintf('%s \t %-6.4f \t %-6.4f \n','d/Ho',dHo(2),dHo(1))
+        fprintf('%s \t %-6.4f \t %-6.4f \n','d/Lo',dLo(2),dLo(1))
+    end
     
     if fileOutputData{1}
         if ~single_case
@@ -150,23 +156,27 @@ for loopIndex = 1:numCases
         fprintf(fId, 'cotnsl\t%6.2f\n', cotnsl);
         fprintf(fId, 'direc\t%6.2f deg\n\n', direc);
         
-        fprintf(fId, '\t%s\t\t%s\t%s\n','Subject','Deep','Units');
-        fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','Hs',Hs(2)/m2cm,Hs(1)/m2cm,labelUnitDist);
-        fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','Hmean',Hbar(2)/m2cm,Hbar(1)/m2cm,labelUnitDist);
-        fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','Hrms',Hrms(2)/m2cm,Hrms(1)/m2cm,labelUnitDist);
-        fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','H10%',H10(2)/m2cm,H10(1)/m2cm,labelUnitDist);
-        fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','H02%',H02(2)/m2cm,H02(1)/m2cm,labelUnitDist);
-        fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','Hmax%',Hmax(2)/m2cm,Hmax(1)/m2cm,labelUnitDist);
-        
-        fprintf(fId, '\n');
-        
-        fprintf(fId, '%s\t%6.4f\t\t%6.4f\n','Ks',Ks(2),Ks(1));
-        fprintf(fId, '%s\t%6.4f\t\t%6.4f\t%s\n','SBrms',SBrms(2)/m2cm,SBrms(1)/m2cm,labelUnitDist);
-        fprintf(fId, '%s\t%6.4f\t\t%6.4f\t%s\n','Sw',Sw(2)/m2cm,Sw(1)/m2cm,labelUnitDist);
-        fprintf(fId, '%s\t%6.4f\t\t%6.4f\n','Ho/Lo',HoLo(1),HoLo(1));
-        fprintf(fId, '%s\t%6.4f\n','Kr',Kr(1));
-        fprintf(fId, '%s\t%6.4f\t\t%6.4f\n','d/Ho',dHo(2),dHo(1));
-        fprintf(fId, '%s\t%6.4f\t\t%6.4f\n','d/Lo',dLo(2),dLo(1));
+        if length(errorMsg) > 0
+            fprintf(fId, '%s\n', errorMsg);
+        else
+            fprintf(fId, '\t%s\t\t%s\t%s\n','Subject','Deep','Units');
+            fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','Hs',Hs(2)/m2cm,Hs(1)/m2cm,labelUnitDist);
+            fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','Hmean',Hbar(2)/m2cm,Hbar(1)/m2cm,labelUnitDist);
+            fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','Hrms',Hrms(2)/m2cm,Hrms(1)/m2cm,labelUnitDist);
+            fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','H10%',H10(2)/m2cm,H10(1)/m2cm,labelUnitDist);
+            fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','H02%',H02(2)/m2cm,H02(1)/m2cm,labelUnitDist);
+            fprintf(fId, '%s\t%6.2f\t\t%6.2f\t%s\n','Hmax%',Hmax(2)/m2cm,Hmax(1)/m2cm,labelUnitDist);
+
+            fprintf(fId, '\n');
+
+            fprintf(fId, '%s\t%6.4f\t\t%6.4f\n','Ks',Ks(2),Ks(1));
+            fprintf(fId, '%s\t%6.4f\t\t%6.4f\t%s\n','SBrms',SBrms(2)/m2cm,SBrms(1)/m2cm,labelUnitDist);
+            fprintf(fId, '%s\t%6.4f\t\t%6.4f\t%s\n','Sw',Sw(2)/m2cm,Sw(1)/m2cm,labelUnitDist);
+            fprintf(fId, '%s\t%6.4f\t\t%6.4f\n','Ho/Lo',HoLo(1),HoLo(1));
+            fprintf(fId, '%s\t%6.4f\n','Kr',Kr(1));
+            fprintf(fId, '%s\t%6.4f\t\t%6.4f\n','d/Ho',dHo(2),dHo(1));
+            fprintf(fId, '%s\t%6.4f\t\t%6.4f\n','d/Lo',dLo(2),dLo(1));
+        end
         
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
@@ -178,7 +188,7 @@ if fileOutputData{1}
     fclose(fId);
 end
 
-if single_case
+if single_case && length(errorMsg) == 0
     plot1Hxo = Hxo/m2cm;
     figure(1)
     plot(plot1Hxo,cdfo)
