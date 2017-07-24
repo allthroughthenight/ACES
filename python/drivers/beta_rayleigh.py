@@ -1,6 +1,6 @@
 import sys
 import math
-import matplotlib.pyplot as pyplot
+import matplotlib.pyplot as plt
 sys.path.append('../functions')
 
 from base_driver import BaseDriver
@@ -62,8 +62,6 @@ class BetaRayleigh(BaseDriver):
         super(BetaRayleigh, self).__init__()
 
         self.exporter.close()
-
-        self.performPlot()
     # end __init__
 
     def defineInputDataList(self):
@@ -263,6 +261,10 @@ class BetaRayleigh(BaseDriver):
         dataDict["Hmed"] = Hmed
         dataDict["Hout"] = Hout
         self.fileOutputWriteMain(dataDict, caseIndex)
+
+        if self.isSingleCase:
+            self.plotDict = {"Hrms": Hrms, "Hmed": Hmed, "Hout": Hout,\
+                "H": H, "p": p}
     # end performCalculations
 
     def fileOutputWriteData(self, dataDict):
@@ -294,13 +296,33 @@ class BetaRayleigh(BaseDriver):
         return True
 
     def performPlot(self):
-        plottable=cat(2,H)
+        plt.figure(1, figsize = self.plotConfigDict["figSize"],\
+            dpi = self.plotConfigDict["dpi"])
+        plt.plot(self.plotDict["Hout"][0], 0, "ks",\
+            self.plotDict["Hout"][1], 0, "ro",\
+            self.plotDict["Hout"][2], 0, "bd",\
+            self.plotDict["Hrms"], 0, "g*",\
+            self.plotDict["Hmed"], 0, "m^",\
+            self.plotDict["H"], self.plotDict["p"])
+        plt.xlabel("H [%s]" % self.labelUnitDist,\
+            fontsize = self.plotConfigDict["axisLabelFontSize"])
+        plt.ylabel("Probability density p(H)",\
+            fontsize = self.plotConfigDict["axisLabelFontSize"])
+        plt.legend([r"H$_{1/3}$", r"H$_{1/10}$", r"H$_{1/100}$",\
+            r"H$_{rms}$", r"H$_{med}$"])
 
-        plot(Hout(2),0,'ks',Hout(3),0,'ro',Hout(4),0,'bd',Hrms,0,'g*',Hmed,0,'m^',table.values(),table.values())
-        legend('H_{1/3}','H_{1/10}','H_{1/100}','H_{rms}','H_{med}')
+        plt.show()
 
-        xlabel(['H [' self.labelUnitDist ']'])
-        ylabel('Probability density p(H)')
+        self.fileOutputPlotWriteData()
     # end performPlot
 
-driver = BetaRayleigh()
+    def fileOutputPlotWriteData(self):
+        self.fileRef.write("Counter\tWave height\tProbability density\n")
+
+        for i in range(len(self.plotDict["H"])):
+            self.fileRef.write("%d\t%-6.5f\t\t%-6.5f\n" %\
+                ((i + 1), self.plotDict["H"][i], self.plotDict["p"][i]))
+    # end fileOutputPlotWriteData
+
+
+driver = BetaRayleigh(5.0, 6.3, 10.2)
