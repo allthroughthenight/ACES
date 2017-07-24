@@ -144,6 +144,7 @@ class LinearWaveTheory(BaseDriver):
 
     def performCalculations(self, caseInputList, caseIndex = 0):
         H, T, d, z, xL = self.getCalcValues(caseInputList)
+        dataDict = {"H": H, "T": T, "d": d, "z": z, "xL": xL}
 
         twopi = 2*math.pi
         nIteration = 50
@@ -155,13 +156,21 @@ class LinearWaveTheory(BaseDriver):
         # Check for monochromatic wave breaking (depth limited - no slope)
         Hb = ERRWAVBRK1(d, 0.78)
         if not (H < Hb):
-            print("Error: Input wave broken (Hb = %6.2f %s)" %\
-                (Hb, self.labelUnitDist))
+            self.errorMsg = "Error: Input wave broken (Hb = %6.2f %s)" %\
+                (Hb, self.labelUnitDist)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
+            return
 
         # Check to make sure vertical coordinate is within waveform
         eta = (H/2)*math.cos(theta)
         if not (z < eta and (z + d) > 0):
-            print("Error: Point outside waveform.")
+            self.errorMsg = "Error: Point outside waveform."
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
+            return
 
         # Main Computations
         arg = (2*k*d/(math.sinh(2*k*d)))
@@ -234,10 +243,20 @@ class LinearWaveTheory(BaseDriver):
         print("Pressure\t\t\t%-8.2f%s/%s^2" %\
             (pres, self.labelUnitWt, self.labelUnitDist))
 
-        dataDict = {"H": H, "T": T, "d": d, "z": z, "xL": xL,\
-            "L": L, "C": C, "Cg": Cg, "E": E, "Ef": Ef,\
-            "Ur": Ur, "eta": eta, "px": px, "py": py,\
-            "u": u, "w": w, "dudt": dudt, "dwdt": dwdt, "pres": pres}
+        dataDict["L"] = L
+        dataDict["C"] = C
+        dataDict["Cg"] = Cg
+        dataDict["E"] = E
+        dataDict["Ef"] = Ef
+        dataDict["Ur"] = Ur
+        dataDict["eta"] = eta
+        dataDict["px"] = px
+        dataDict["py"] = py
+        dataDict["u"] = u
+        dataDict["w"] = w
+        dataDict["dudt"] = dudt
+        dataDict["dwdt"] = dwdt
+        dataDict["pres"] = pres
         self.fileOutputWriteMain(dataDict, caseIndex)
     # end performCalculations
 
@@ -256,27 +275,30 @@ class LinearWaveTheory(BaseDriver):
             dataDict["xL"])
         self.fileRef.write("fraction of wavelength\n\n")
 
-        self.fileRef.write("Item\t\t\t\tValue\t\tUnits\n")
-        self.fileRef.write("Wavelength\t\t\t%8.2f\t%s\n" % (dataDict["L"], self.labelUnitDist))
-        self.fileRef.write("Celerity\t\t\t%8.2f\t%s/s\n" % (dataDict["C"], self.labelUnitDist))
-        self.fileRef.write("Group speed\t\t\t%8.2f\t%s/s\n" % (dataDict["Cg"], self.labelUnitDist))
-        self.fileRef.write("Energy density\t\t\t%8.2f\t%s-%s/%s^2\n" %\
-            (dataDict["E"], self.labelUnitWt, self.labelUnitDist, self.labelUnitDist))
-        self.fileRef.write("Energy flux\t\t\t%8.2f\t%s-%s/%s-s\n" %\
-            (dataDict["Ef"], self.labelUnitWt, self.labelUnitDist, self.labelUnitDist))
-        self.fileRef.write("Ursell number\t\t\t%8.2f\n" % dataDict["Ur"])
-        self.fileRef.write("Water Surface Elevation\t\t%8.2f\t%s\n" %\
-            (dataDict["eta"], self.labelUnitDist))
-        self.fileRef.write("Horz. displacement\t\t%8.2f\t%s\n" % (dataDict["px"], self.labelUnitDist))
-        self.fileRef.write("Vert. displacement\t\t%8.2f\t%s\n" % (dataDict["py"], self.labelUnitDist))
-        self.fileRef.write("Horz. velocity\t\t\t%8.2f\t%s/s\n" % (dataDict["u"], self.labelUnitDist))
-        self.fileRef.write("Vert. velocity\t\t\t%8.2f\t%s/s\n" % (dataDict["w"], self.labelUnitDist))
-        self.fileRef.write("Horz. acceleration\t\t%8.2f\t%s/s^2\n" %\
-            (dataDict["dudt"], self.labelUnitDist))
-        self.fileRef.write("Vert. acceleration\t\t%8.2f\t%s/s^2\n" %\
-            (dataDict["dwdt"], self.labelUnitDist))
-        self.fileRef.write("Pressure\t\t\t%8.2f\t%s/%s^2\n" %\
-            (dataDict["pres"], self.labelUnitWt, self.labelUnitDist))
+        if self.errorMsg != None:
+            self.fileRef.write("%s\n" % self.errorMsg)
+        else:
+            self.fileRef.write("Item\t\t\t\tValue\t\tUnits\n")
+            self.fileRef.write("Wavelength\t\t\t%8.2f\t%s\n" % (dataDict["L"], self.labelUnitDist))
+            self.fileRef.write("Celerity\t\t\t%8.2f\t%s/s\n" % (dataDict["C"], self.labelUnitDist))
+            self.fileRef.write("Group speed\t\t\t%8.2f\t%s/s\n" % (dataDict["Cg"], self.labelUnitDist))
+            self.fileRef.write("Energy density\t\t\t%8.2f\t%s-%s/%s^2\n" %\
+                (dataDict["E"], self.labelUnitWt, self.labelUnitDist, self.labelUnitDist))
+            self.fileRef.write("Energy flux\t\t\t%8.2f\t%s-%s/%s-s\n" %\
+                (dataDict["Ef"], self.labelUnitWt, self.labelUnitDist, self.labelUnitDist))
+            self.fileRef.write("Ursell number\t\t\t%8.2f\n" % dataDict["Ur"])
+            self.fileRef.write("Water Surface Elevation\t\t%8.2f\t%s\n" %\
+                (dataDict["eta"], self.labelUnitDist))
+            self.fileRef.write("Horz. displacement\t\t%8.2f\t%s\n" % (dataDict["px"], self.labelUnitDist))
+            self.fileRef.write("Vert. displacement\t\t%8.2f\t%s\n" % (dataDict["py"], self.labelUnitDist))
+            self.fileRef.write("Horz. velocity\t\t\t%8.2f\t%s/s\n" % (dataDict["u"], self.labelUnitDist))
+            self.fileRef.write("Vert. velocity\t\t\t%8.2f\t%s/s\n" % (dataDict["w"], self.labelUnitDist))
+            self.fileRef.write("Horz. acceleration\t\t%8.2f\t%s/s^2\n" %\
+                (dataDict["dudt"], self.labelUnitDist))
+            self.fileRef.write("Vert. acceleration\t\t%8.2f\t%s/s^2\n" %\
+                (dataDict["dwdt"], self.labelUnitDist))
+            self.fileRef.write("Pressure\t\t\t%8.2f\t%s/%s^2\n" %\
+                (dataDict["pres"], self.labelUnitWt, self.labelUnitDist))
     # end fileOutputWriteData
 
     def performPlot(self):

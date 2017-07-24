@@ -145,7 +145,8 @@ class IrrWaveTrans(BaseDriver):
 
     def performCalculations(self, caseInputList, caseIndex = 0):
         Ho, d, Ts, cotnsl, direc = self.getCalcValues(caseInputList)
-
+        dataDict = {"Ho": Ho, "d": d, "Ts": Ts,\
+            "cotnsl": cotnsl, "direc": direc}
         m2cm = 100.0
         g = self.g * m2cm
 
@@ -155,7 +156,10 @@ class IrrWaveTrans(BaseDriver):
 
         Hb = ERRWAVBRK1(d, 0.78)
         if not (Ho < Hb):
-            print("Error: Input wave broken (Hb = %6.2f %s" % (Hb, self.labelUnitDist))
+            self.errorMsg = "Error: Input wave broken (Hb = %6.2f %s" % (Hb, self.labelUnitDist)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         Ks, Kr, Hmax, Hrms, Hbar, Hs, H10, H02, SBrms, HoLo, dLo,\
@@ -185,11 +189,10 @@ class IrrWaveTrans(BaseDriver):
         print("d/Ho\t%-6.4f\t%-6.4f" % (dHo[1], dHo[0]))
         print("d/Lo\t%-6.4f\t%-6.4f" % (dLo[1], dLo[0]))
 
-        dataDict = {"Ho": Ho, "d": d, "Ts": Ts, "cotnsl": cotnsl,\
-            "direc": direc, "Hs": Hs, "Hbar": Hbar, "Hrms": Hrms,\
+        dataDict.update({"Hs": Hs, "Hbar": Hbar, "Hrms": Hrms,\
             "H10": H10, "H02": H02, "Hmax": Hmax, "Ks": Ks,\
             "SBrms": SBrms, "Sw": Sw, "HoLo": HoLo, "Kr": Kr,\
-            "dHo": dHo, "dLo": dLo}
+            "dHo": dHo, "dLo": dLo})
         self.fileOutputWriteMain(dataDict, caseIndex)
 
         if self.isSingleCase:
@@ -207,28 +210,31 @@ class IrrWaveTrans(BaseDriver):
         self.fileRef.write("cotnsl\t%6.2f\n" % dataDict["cotnsl"])
         self.fileRef.write("direc\t%6.2f deg\n\n" % dataDict["direc"])
 
-        self.fileRef.write("\tSubject\tDeep\tUnits\n")
-        self.fileRef.write("Hs\t%-6.2f\t%-6.2f\t%s\n" %\
-            (dataDict["Hs"][1]/m2cm, dataDict["Hs"][0]/m2cm, self.labelUnitDist))
-        self.fileRef.write("Hmean\t%-6.2f\t%-6.2f\t%s\n" %\
-            (dataDict["Hbar"][1]/m2cm, dataDict["Hbar"][0]/m2cm, self.labelUnitDist))
-        self.fileRef.write("Hrms\t%-6.2f\t%-6.2f\t%s\n" %\
-            (dataDict["Hrms"][1]/m2cm, dataDict["Hrms"][0]/m2cm, self.labelUnitDist))
-        self.fileRef.write("H10%%\t%-6.2f\t%-6.2f\t%s\n" %\
-            (dataDict["H10"][1]/m2cm, dataDict["H10"][0]/m2cm, self.labelUnitDist))
-        self.fileRef.write("H02%%\t%-6.2f\t%-6.2f\t%s\n" %\
-            (dataDict["H02"][1]/m2cm, dataDict["H02"][0]/m2cm, self.labelUnitDist))
-        self.fileRef.write("Hmax%%\t%-6.2f\t%-6.2f\t%s\n" %\
-            (dataDict["Hmax"][1]/m2cm, dataDict["Hmax"][0]/m2cm, self.labelUnitDist))
-        self.fileRef.write("\nKs\t%-6.4f\t%-6.4f\n" % (dataDict["Ks"][1], dataDict["Ks"][0]))
-        self.fileRef.write("SBrms\t%-6.4f\t%-6.4f\t%s\n" %\
-            (dataDict["SBrms"][1]/m2cm, dataDict["SBrms"][0]/m2cm, self.labelUnitDist))
-        self.fileRef.write("Sw\t%-6.4f\t%-6.4f\t%s\n" %\
-            (dataDict["Sw"][1]/m2cm, dataDict["Sw"][0]/m2cm, self.labelUnitDist))
-        self.fileRef.write("Ho/Lo\t%-6.4f\t%-6.4f\n" % (dataDict["HoLo"], dataDict["HoLo"]))
-        self.fileRef.write("Kr\t%-6.4f\n" % dataDict["Kr"])
-        self.fileRef.write("d/Ho\t%-6.4f\t%-6.4f\n" % (dataDict["dHo"][1], dataDict["dHo"][0]))
-        self.fileRef.write("d/Lo\t%-6.4f\t%-6.4f\n" % (dataDict["dLo"][1], dataDict["dLo"][0]))
+        if self.errorMsg != None:
+            self.fileRef.write("%s\n" % self.errorMsg)
+        else:
+            self.fileRef.write("\tSubject\tDeep\tUnits\n")
+            self.fileRef.write("Hs\t%-6.2f\t%-6.2f\t%s\n" %\
+                (dataDict["Hs"][1]/m2cm, dataDict["Hs"][0]/m2cm, self.labelUnitDist))
+            self.fileRef.write("Hmean\t%-6.2f\t%-6.2f\t%s\n" %\
+                (dataDict["Hbar"][1]/m2cm, dataDict["Hbar"][0]/m2cm, self.labelUnitDist))
+            self.fileRef.write("Hrms\t%-6.2f\t%-6.2f\t%s\n" %\
+                (dataDict["Hrms"][1]/m2cm, dataDict["Hrms"][0]/m2cm, self.labelUnitDist))
+            self.fileRef.write("H10%%\t%-6.2f\t%-6.2f\t%s\n" %\
+                (dataDict["H10"][1]/m2cm, dataDict["H10"][0]/m2cm, self.labelUnitDist))
+            self.fileRef.write("H02%%\t%-6.2f\t%-6.2f\t%s\n" %\
+                (dataDict["H02"][1]/m2cm, dataDict["H02"][0]/m2cm, self.labelUnitDist))
+            self.fileRef.write("Hmax%%\t%-6.2f\t%-6.2f\t%s\n" %\
+                (dataDict["Hmax"][1]/m2cm, dataDict["Hmax"][0]/m2cm, self.labelUnitDist))
+            self.fileRef.write("\nKs\t%-6.4f\t%-6.4f\n" % (dataDict["Ks"][1], dataDict["Ks"][0]))
+            self.fileRef.write("SBrms\t%-6.4f\t%-6.4f\t%s\n" %\
+                (dataDict["SBrms"][1]/m2cm, dataDict["SBrms"][0]/m2cm, self.labelUnitDist))
+            self.fileRef.write("Sw\t%-6.4f\t%-6.4f\t%s\n" %\
+                (dataDict["Sw"][1]/m2cm, dataDict["Sw"][0]/m2cm, self.labelUnitDist))
+            self.fileRef.write("Ho/Lo\t%-6.4f\t%-6.4f\n" % (dataDict["HoLo"], dataDict["HoLo"]))
+            self.fileRef.write("Kr\t%-6.4f\n" % dataDict["Kr"])
+            self.fileRef.write("d/Ho\t%-6.4f\t%-6.4f\n" % (dataDict["dHo"][1], dataDict["dHo"][0]))
+            self.fileRef.write("d/Lo\t%-6.4f\t%-6.4f\n" % (dataDict["dLo"][1], dataDict["dLo"][0]))
     # end fileOutputWriteData
 
     def hasPlot(self):

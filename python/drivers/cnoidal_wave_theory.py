@@ -151,14 +151,20 @@ class CnoidalWaveTheory(BaseDriver):
 
     def performCalculations(self, caseInputList, caseIndex = 0):
         H, T, d, z, xL = self.getCalcValues(caseInputList)
+        dataDict = {"H": H, "T": T, "d": d, "z": z, "xL": xL}
+        
         time = 0
 
         epsi = H/d
 
         Hb = ERRWAVBRK1(d, 0.78)
         if not (H < Hb):
-            print("Error: Input wave broken (Hb = %6.2f %s)" %\
-                (Hb, self.labelUnitDist))
+            self.errorMsg = "Error: Input wave broken (Hb = %6.2f %s)" %\
+                (Hb, self.labelUnitDist)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
+            return
 
         # First Order Approximation
         if self.O == 1: #determining m using bisection method
@@ -192,7 +198,10 @@ class CnoidalWaveTheory(BaseDriver):
 
             Ur = (H*(L**2))/(d**3)
             if not (Ur > 26.0):
-                print("Error: Ursell parameter test failed.")
+                self.errorMsg = "Error: Ursell parameter test failed."
+                
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
 
             SN, CN, DN, PH = sp.ellipj(theta, m)
@@ -203,7 +212,10 @@ class CnoidalWaveTheory(BaseDriver):
             eta = d*(A0 + A1*CN**2) # water surface elevation
 
             if not (z < eta and (z + d) > 0.0):
-                print("Error: Point outside waveform.")
+                self.errorMsg = "Error: Point outside waveform."
+                
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
 
             E0 = (-lambdaVal + 2.0*mu + 4.0*lambdaVal*mu - lambdaVal**2 - 3.0*mu**2)/3.0
@@ -266,7 +278,10 @@ class CnoidalWaveTheory(BaseDriver):
 
             Ur = (H*(L**2))/(d**3)
             if not (Ur > 26.0):
-                print("Error: Ursell parameter test failed.")
+                self.errorMsg = "Error: Ursell parameter test failed."
+                
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
 
             A2 = 0.75*epsi**2
@@ -276,7 +291,10 @@ class CnoidalWaveTheory(BaseDriver):
             eta = d*(A0 + A1*CN**2 + A2*CN**4) #wave surface elevation
 
             if not (z < eta and (z + d) > 0.0):
-                print("Error: Point outside waveform.")
+                self.errorMsg = "Error: Point outside waveform."
+                
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
 
             E1 = (1.0/30.0)*(lambdaVal - 2.0*mu - 17.0*lambdaVal*mu +\
@@ -338,9 +356,17 @@ class CnoidalWaveTheory(BaseDriver):
         print("Vert. acceleration\t%-6.2f %s/sec^2" % (dwdt, self.labelUnitDist))
         print("Pressure\t\t%-8.2f %s/%s^2" % (pres, self.labelUnitWt, self.labelUnitDist))
 
-        dataDict = {"H": H, "T": T, "d": d, "z": z, "xL": xL,\
-            "L": L, "C": C, "E": E, "Ef": Ef, "Ur": Ur, "eta": eta,\
-            "u": u, "w": w, "dudt": dudt, "dwdt": dwdt, "pres": pres}
+        dataDict["L"] = L
+        dataDict["C"] = C
+        dataDict["E"] = E
+        dataDict["Ef"] = Ef
+        dataDict["Ur"] = Ur
+        dataDict["eta"] = eta
+        dataDict["u"] = u
+        dataDict["w"] = w
+        dataDict["dudt"] = dudt
+        dataDict["dwdt"] = dwdt
+        dataDict["pres"] = pres
         self.fileOutputWriteMain(dataDict, caseIndex)
 
         if self.isSingleCase:
@@ -366,7 +392,7 @@ class CnoidalWaveTheory(BaseDriver):
 
     def fileOutputWriteData(self, dataDict):
         self.fileRef.write("Input\n")
-        self.fileRef.write("WaveHeight\t\t\t%8.2f %s\n" %\
+        self.fileRef.write("Wave height\t\t\t%8.2f %s\n" %\
             (dataDict["H"], self.labelUnitDist))
         self.fileRef.write("Wave period\t\t\t%8.2f s\n" % dataDict["T"])
         self.fileRef.write("Water depth\t\t\t%8.2f %s\n" %\
@@ -375,32 +401,35 @@ class CnoidalWaveTheory(BaseDriver):
             (dataDict["z"], self.labelUnitDist))
         self.fileRef.write("Horizontal coordinate\t\t%8.2f\nas fraction of wavelength (x/L)\n" % dataDict["xL"])
 
-        if self.O == 1:
-            self.fileRef.write("\nFirst Order Approximations\n")
+        if self.errorMsg != None:
+            self.fileRef.write("\n%s\n" % self.errorMsg)
         else:
-            self.fileRef.write("\nSecond Order Approximations\n")
-
-        self.fileRef.write("Wavelength\t\t%-6.2f %s\n" %\
-            (dataDict["L"], self.labelUnitDist))
-        self.fileRef.write("Celerity\t\t%-6.2f %s/sec\n" %\
-            (dataDict["C"], self.labelUnitDist))
-        self.fileRef.write("Energy density\t\t%-8.2f %s-%s/%s^2\n" %\
-            (dataDict["E"], self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
-        self.fileRef.write("Energy flux\t\t%-8.2f %s-%s/sec-%s\n" %\
-            (dataDict["Ef"], self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
-        self.fileRef.write("Ursell number\t\t%-6.2f\n" % dataDict["Ur"])
-        self.fileRef.write("Elevation\t\t%-6.2f %s\n" %\
-            (dataDict["eta"], self.labelUnitDist))
-        self.fileRef.write("Horz. velocity\t\t%-6.2f %s/sec\n" %\
-            (dataDict["u"], self.labelUnitDist))
-        self.fileRef.write("Vert. velocity\t\t%-6.2f %s/sec\n" %\
-            (dataDict["w"], self.labelUnitDist))
-        self.fileRef.write("Horz. acceleration\t%-6.2f %s/sec^2\n" %\
-            (dataDict["dudt"], self.labelUnitDist))
-        self.fileRef.write("Vert. acceleration\t%-6.2f %s/sec^2\n" %\
-            (dataDict["dwdt"], self.labelUnitDist))
-        self.fileRef.write("Pressure\t\t%-8.2f %s/%s^2\n" %\
-            (dataDict["pres"], self.labelUnitWt, self.labelUnitDist))
+            if self.O == 1:
+                self.fileRef.write("\nFirst Order Approximations\n")
+            else:
+                self.fileRef.write("\nSecond Order Approximations\n")
+    
+            self.fileRef.write("Wavelength\t\t%-6.2f %s\n" %\
+                (dataDict["L"], self.labelUnitDist))
+            self.fileRef.write("Celerity\t\t%-6.2f %s/sec\n" %\
+                (dataDict["C"], self.labelUnitDist))
+            self.fileRef.write("Energy density\t\t%-8.2f %s-%s/%s^2\n" %\
+                (dataDict["E"], self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
+            self.fileRef.write("Energy flux\t\t%-8.2f %s-%s/sec-%s\n" %\
+                (dataDict["Ef"], self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
+            self.fileRef.write("Ursell number\t\t%-6.2f\n" % dataDict["Ur"])
+            self.fileRef.write("Elevation\t\t%-6.2f %s\n" %\
+                (dataDict["eta"], self.labelUnitDist))
+            self.fileRef.write("Horz. velocity\t\t%-6.2f %s/sec\n" %\
+                (dataDict["u"], self.labelUnitDist))
+            self.fileRef.write("Vert. velocity\t\t%-6.2f %s/sec\n" %\
+                (dataDict["w"], self.labelUnitDist))
+            self.fileRef.write("Horz. acceleration\t%-6.2f %s/sec^2\n" %\
+                (dataDict["dudt"], self.labelUnitDist))
+            self.fileRef.write("Vert. acceleration\t%-6.2f %s/sec^2\n" %\
+                (dataDict["dwdt"], self.labelUnitDist))
+            self.fileRef.write("Pressure\t\t%-8.2f %s/%s^2\n" %\
+                (dataDict["pres"], self.labelUnitWt, self.labelUnitDist))
     # end fileOutputWriteData
 
     def hasPlot(self):

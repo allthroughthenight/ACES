@@ -372,6 +372,9 @@ class WindAdj(BaseDriver):
     def performCalculations(self, caseInputList, caseIndex = 0):
         zobs, Uobs, dtemp, duro, durf, lat, F, d, wdir,\
             dang, ang1, Nfet, angs = self.getCalcValues(caseInputList)
+        dataDict = {"zobs": zobs, "Uobs": Uobs, "dtemp": dtemp,\
+            "duro": duro, "durf": durf, "lat": lat, "F": F,\
+            "d": d, "wdir": wdir, "dang": dang, "ang1": ang1}
 
         # Constant for convertions
         ft2m = 0.3048
@@ -404,17 +407,26 @@ class WindAdj(BaseDriver):
             F, phi, theta = WGFET(ang1, dang, wdir, angs)
 
         if np.isclose(lat, 0.0):
-            print("Error: Latitude must be a non-zero value.")
+            self.errorMsg = "Error: Latitude must be a non-zero value."
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         # Check WDIR vs Fetch data. WDIR must meet this criterion:
         # ang1 -45 degrees <= WDIR <= anglast + 45 degrees
         if not self.isWaterOpen:
             if not (ang1 - 45 <= wdir):
-                print("Error: wdir must be at least 45 degrees less than the first fetch angle.")
+                self.errorMsg = "Error: wdir must be at least 45 degrees less than the first fetch angle."
+                
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
             if not (wdir <= (ang1 + (Nfet - 1)*dang)):
-                print("Error: wdir must be at most 45 degrees more than the final fetch angle.")
+                self.errorMsg = "Error: wdir must be at most 45 degrees more than the final fetch angle."
+                
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
 
         ue = WADJ(Uobs*conversionSpeed,\
@@ -452,13 +464,14 @@ class WindAdj(BaseDriver):
 
         print("Wave growth: %s" % wgmsg)
 
-        dataDict = {"zobs": zobs, "Uobs": Uobs, "dtemp": dtemp,\
-            "duro": duro, "durf": durf, "lat": lat, "F": F,\
-            "d": d, "wdir": wdir, "dang": dang, "ang1": ang1,\
-            "ue": ue, "ua": ua, "Hmo": Hmo, "Tp": Tp,\
-            "wgmsg": wgmsg, "conversionDist": conversionDist,\
-            "conversionDistLrg": conversionDistLrg,\
-            "conversionSpeed": conversionSpeed}
+        dataDict["ue"] = ue
+        dataDict["ua"] = ua
+        dataDict["Hmo"] = Hmo
+        dataDict["Tp"] = Tp
+        dataDict["wgmsg"] = wgmsg
+        dataDict["conversionDist"] = conversionDist
+        dataDict["conversionDistLrg"] = conversionDistLrg
+        dataDict["conversionSpeed"] = conversionSpeed
         if not self.isWaterOpen:
             dataDict["theta"] = theta
         self.fileOutputWriteMain(dataDict, caseIndex)
@@ -482,28 +495,31 @@ class WindAdj(BaseDriver):
         if not self.isWaterOpen:
             self.fileRef.write("wdir\t%6.2f deg\n" % dataDict["wdir"])
 
-        self.fileRef.write("\nOutput\n")
-
-        if not self.isWaterOpen:
-            self.fileRef.write("Wind fetch\t\t\t%-6.2f %s\n" %\
-                (dataDict["F"], self.labelUnitDistLrg))
-            self.fileRef.write("Wind Direction\t\t\t%-6.2f deg\n" %\
-                dataDict["wdir"])
-
-        self.fileRef.write("Equiv. wind speed\t\t%-6.2f %s\n" %\
-            (dataDict["ue"]/dataDict["conversionSpeed"], self.labelSpeedFinal))
-        self.fileRef.write("Adjus. wind speed\t\t%-6.2f %s\n" %\
-            (dataDict["ua"]/dataDict["conversionSpeed"], self.labelSpeedFinal))
-
-        if not self.isWaterOpen:
-            self.fileRef.write("Mean wave direction\t\t%-6.2f deg\n" %\
-                dataDict["theta"])
-
-        self.fileRef.write("Wave height\t\t\t%-6.2f %s\n" %\
-            (dataDict["Hmo"]/dataDict["conversionDist"], self.labelUnitDist))
-        self.fileRef.write("Wave period\t\t\t%-6.2f s\n" % dataDict["Tp"])
-
-        self.fileRef.write("Wave growth: %s\n" % dataDict["wgmsg"])
+        if self.errorMsg != None:
+            self.fileRef.write("\n%s\n" % self.errorMsg)
+        else:
+            self.fileRef.write("\nOutput\n")
+    
+            if not self.isWaterOpen:
+                self.fileRef.write("Wind fetch\t\t\t%-6.2f %s\n" %\
+                    (dataDict["F"], self.labelUnitDistLrg))
+                self.fileRef.write("Wind Direction\t\t\t%-6.2f deg\n" %\
+                    dataDict["wdir"])
+    
+            self.fileRef.write("Equiv. wind speed\t\t%-6.2f %s\n" %\
+                (dataDict["ue"]/dataDict["conversionSpeed"], self.labelSpeedFinal))
+            self.fileRef.write("Adjus. wind speed\t\t%-6.2f %s\n" %\
+                (dataDict["ua"]/dataDict["conversionSpeed"], self.labelSpeedFinal))
+    
+            if not self.isWaterOpen:
+                self.fileRef.write("Mean wave direction\t\t%-6.2f deg\n" %\
+                    dataDict["theta"])
+    
+            self.fileRef.write("Wave height\t\t\t%-6.2f %s\n" %\
+                (dataDict["Hmo"]/dataDict["conversionDist"], self.labelUnitDist))
+            self.fileRef.write("Wave period\t\t\t%-6.2f s\n" % dataDict["Tp"])
+    
+            self.fileRef.write("Wave growth: %s\n" % dataDict["wgmsg"])
     # end fileOutputWriteData
 
 

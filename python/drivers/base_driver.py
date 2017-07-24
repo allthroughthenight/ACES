@@ -2,6 +2,8 @@ import USER_INPUT
 
 class BaseDriver(object):
     def __init__(self):
+        self.errorMsg = None
+        
         self.userInput()
 
         self.fileOutputRequestInit()
@@ -11,6 +13,8 @@ class BaseDriver(object):
         else:
             caseIndex = 0
             for caseData in self.dataOutputList:
+                self.errorMsg = None
+                
                 self.performCalculations(caseData, caseIndex)
                 caseIndex = caseIndex + 1
         # end performCalculations if
@@ -20,7 +24,7 @@ class BaseDriver(object):
             self.fileRef.close()
 
         # Plotting logic
-        if self.isSingleCase and self.hasPlot():
+        if self.isSingleCase and self.hasPlot() and self.errorMsg == None:
             self.plotConfigDict = {"figSize": (8, 6), "dpi": 160,\
                 "titleFontSize": 20, "axisLabelFontSize": 18}
 

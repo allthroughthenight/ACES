@@ -139,14 +139,20 @@ class ExtHsAnalysis(BaseDriver):
         lambdaVal = Nt / K
         nu = N / Nt
 
+        dataDict = {"Nt": Nt, "K": K, "d": d, "N": N,\
+            "nu": nu, "lambdaVal": lambdaVal}
+        
         self.Hs = [i / 0.3048 for i in self.Hs]
         d = d / 0.3048
 
         Hb = ERRWAVBRK1(d, 0.78)
         for j in self.Hs:
             if not (j < Hb):
-                print("Error: Input wave broken (Hb = %6.2f %s)" %\
-                    (Hb, self.labelUnitDist))
+                self.errorMsg = "Error: Input wave broken (Hb = %6.2f %s)" %\
+                    (Hb, self.labelUnitDist)
+                    
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
 
         ret = [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9,\
@@ -380,12 +386,21 @@ class ExtHsAnalysis(BaseDriver):
             print(printLine)
         # end for loop
 
-        dataDict = {"Nt": Nt, "K": K, "d": d, "N": N, "nu": nu,\
-            "lambdaVal": lambdaVal, "Sx": Sx, "standev": standev,\
-            "alpha": alpha, "beta": beta, "rxy": rxy,\
-            "sumresid": sumresid, "yact": yact, "ym": ym,\
-            "xxr": xxr, "conf": conf, "Hsr": Hsr, "sigr": sigr,\
-            "printside": printside, "indexList": indexList}
+        dataDict["Sx"] = Sx
+        dataDict["standev"] = standev
+        dataDict["alpha"] = alpha
+        dataDict["beta"] = beta
+        dataDict["rxy"] = rxy
+        dataDict["sumresid"] = sumresid
+        dataDict["yact"] = yact
+        dataDict["ym"] = ym
+        dataDict["xxr"] = xxr
+        dataDict["conf"] = conf
+        dataDict["Hsr"] = Hsr
+        dataDict["sigr"] = sigr
+        dataDict["printside"] = printside
+        dataDict["indexList"] = indexList
+        
         self.fileOutputWriteMain(dataDict)
 
         self.plotDict = {"ret": ret, "Hsr": Hsr, "rtp": rtp,\
@@ -407,45 +422,50 @@ class ExtHsAnalysis(BaseDriver):
         self.fileRef.write("NU = %-6.2f\n" % dataDict["nu"])
         self.fileRef.write("K = %-6.2f YEARS\n" % dataDict["K"])
         self.fileRef.write("LAMBDA = %-6.2f STORMS PER YEAR\n" % dataDict["lambdaVal"])
-        self.fileRef.write("MEAN OF SAMPLE DATA = %-6.3f FEET\n" % (dataDict["Sx"]/dataDict["N"]))
-        self.fileRef.write("STANDARD DEVIATION OF SAMPLE = %-6.3f FEET\n" % dataDict["standev"])
-
-        for distIndex in range(len(distList)):
-            self.fileRef.write("\n%s\n" % distList[distIndex])
-            self.fileRef.write("F(Hs) = EXP(-EXP(-(Hs-B)/A)) - Equation 1\n")
-            self.fileRef.write("A = %-6.3f %s\n" % (dataDict["alpha"][distIndex], self.labelUnitDist))
-            self.fileRef.write("B = %-6.3f %s\n" % (dataDict["beta"][distIndex], self.labelUnitDist))
-            self.fileRef.write("CORRELATION = %-6.4f\n" % dataDict["rxy"][distIndex])
-            self.fileRef.write("SUM SQUARE OF RESIDUALS = %-6.4f %s\n" %\
-                (dataDict["sumresid"][distIndex], self.labelUnitDist))
-
-            self.fileRef.write("\nRANK\tHsm\tF(Hs<=Hsm)\tYm\tA*Ym+B\t\tHsm-(A*Ym+B)\n")
-            self.fileRef.write("\t(Ft)\tEq. 3\t\tEq. 5\tEq. 4 (%s)\t(%s)\n" %\
-                (self.labelUnitDist, self.labelUnitDist))
-
-            for loopIndex in range(len(self.Hs)):
-                self.fileRef.write("%d\t%-6.2f\t%-6.4f\t\t%-6.3f\t%-6.4f\t\t%-6.4f\n" %\
-                    ((loopIndex + 1),\
-                    self.Hs[loopIndex],\
-                    dataDict["yact"][loopIndex][distIndex],\
-                    dataDict["ym"][loopIndex][distIndex],\
-                    dataDict["xxr"][loopIndex][distIndex],\
-                    (self.Hs[loopIndex] - dataDict["xxr"][loopIndex][distIndex])))
-
-            self.fileRef.write("\nRETURN PERIOD TABLE with %d%% CONFIDENCE INTERVAL\n" % dataDict["conf"])
-
-            self.fileRef.write("\nRETURN\tHs\tSIGR\tHs-1.28*SIGR\tHs+1.28*SIGR\n")
-            self.fileRef.write("PERIOD\t(%s)\t(%s)\t(%s)\t\t(%s)\n" %\
-                (self.labelUnitDist, self.labelUnitDist, self.labelUnitDist, self.labelUnitDist))
-            self.fileRef.write("(Yr)\tEq. 6\tEq. 10\n")
-
-            for loopIndex in range(len(dataDict["indexList"])):
-                self.fileRef.write("%-6.2f\t%-6.2f\t%-6.2f\t%-6.2f\t\t%-6.2f\n" %\
-                    (dataDict["printside"][loopIndex],\
-                    dataDict["Hsr"][dataDict["indexList"][loopIndex]][distIndex],\
-                    dataDict["sigr"][dataDict["indexList"][loopIndex]][distIndex],\
-                    dataDict["Hsr"][dataDict["indexList"][loopIndex]][distIndex] - 1.28*dataDict["sigr"][dataDict["indexList"][loopIndex]][distIndex],\
-                    dataDict["Hsr"][dataDict["indexList"][loopIndex]][distIndex] + 1.28*dataDict["sigr"][dataDict["indexList"][loopIndex]][distIndex]))
+        
+        if self.errorMsg != None:
+            self.fileRef.write("\n%s" % self.errorMsg)
+        else:
+            self.fileRef.write("MEAN OF SAMPLE DATA = %-6.3f FEET\n" % (dataDict["Sx"]/dataDict["N"]))
+            self.fileRef.write("STANDARD DEVIATION OF SAMPLE = %-6.3f FEET\n" % dataDict["standev"])
+    
+            for distIndex in range(len(distList)):
+                self.fileRef.write("\n%s\n" % distList[distIndex])
+                self.fileRef.write("F(Hs) = EXP(-EXP(-(Hs-B)/A)) - Equation 1\n")
+                self.fileRef.write("A = %-6.3f %s\n" % (dataDict["alpha"][distIndex], self.labelUnitDist))
+                self.fileRef.write("B = %-6.3f %s\n" % (dataDict["beta"][distIndex], self.labelUnitDist))
+                self.fileRef.write("CORRELATION = %-6.4f\n" % dataDict["rxy"][distIndex])
+                self.fileRef.write("SUM SQUARE OF RESIDUALS = %-6.4f %s\n" %\
+                    (dataDict["sumresid"][distIndex], self.labelUnitDist))
+    
+                self.fileRef.write("\nRANK\tHsm\tF(Hs<=Hsm)\tYm\tA*Ym+B\t\tHsm-(A*Ym+B)\n")
+                self.fileRef.write("\t(Ft)\tEq. 3\t\tEq. 5\tEq. 4 (%s)\t(%s)\n" %\
+                    (self.labelUnitDist, self.labelUnitDist))
+    
+                for loopIndex in range(len(self.Hs)):
+                    self.fileRef.write("%d\t%-6.2f\t%-6.4f\t\t%-6.3f\t%-6.4f\t\t%-6.4f\n" %\
+                        ((loopIndex + 1),\
+                        self.Hs[loopIndex],\
+                        dataDict["yact"][loopIndex][distIndex],\
+                        dataDict["ym"][loopIndex][distIndex],\
+                        dataDict["xxr"][loopIndex][distIndex],\
+                        (self.Hs[loopIndex] - dataDict["xxr"][loopIndex][distIndex])))
+    
+                self.fileRef.write("\nRETURN PERIOD TABLE with %d%% CONFIDENCE INTERVAL\n" % dataDict["conf"])
+    
+                self.fileRef.write("\nRETURN\tHs\tSIGR\tHs-1.28*SIGR\tHs+1.28*SIGR\n")
+                self.fileRef.write("PERIOD\t(%s)\t(%s)\t(%s)\t\t(%s)\n" %\
+                    (self.labelUnitDist, self.labelUnitDist, self.labelUnitDist, self.labelUnitDist))
+                self.fileRef.write("(Yr)\tEq. 6\tEq. 10\n")
+    
+                for loopIndex in range(len(dataDict["indexList"])):
+                    self.fileRef.write("%-6.2f\t%-6.2f\t%-6.2f\t%-6.2f\t\t%-6.2f\n" %\
+                        (dataDict["printside"][loopIndex],\
+                        dataDict["Hsr"][dataDict["indexList"][loopIndex]][distIndex],\
+                        dataDict["sigr"][dataDict["indexList"][loopIndex]][distIndex],\
+                        dataDict["Hsr"][dataDict["indexList"][loopIndex]][distIndex] - 1.28*dataDict["sigr"][dataDict["indexList"][loopIndex]][distIndex],\
+                        dataDict["Hsr"][dataDict["indexList"][loopIndex]][distIndex] + 1.28*dataDict["sigr"][dataDict["indexList"][loopIndex]][distIndex]))
+        # end if
     # end fileOutputWrite
 
     def hasPlot(self):

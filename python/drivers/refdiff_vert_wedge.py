@@ -276,17 +276,28 @@ class RefdiffVertWedge(BaseDriver):
 
             steep, maxstp = ERRSTP(Hi, d, L)
             if not (steep < maxstp):
-                print("Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f" % (maxstp, steep))
+                self.errorMsg = "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f" %\
+                    (maxstp, steep)
+                
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
 
             Hb = ERRWAVBRK1(d, 0.78)
             if not (Hi < Hb):
-                print("Error: Input wave broken (Hb = %6.2f %s" % (Hb, self.labelUnitDist))
+                self.errorMsg = "Error: Input wave broken (Hb = %6.2f %s" %\
+                    (Hb, self.labelUnitDist)
+                    
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
 
             phi, beta, H, error = DRWEDG(xcor, ycor, Hi, alpha, wedgang, L)
             if error == 1:
-                print("Error: (x,y) location inside structure.")
+                self.errorMsg = "Error: (x,y) location inside structure."
+                
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
 
             print("Wavelength\t\t%6.2f\t%s" % (L, self.labelUnitDist))
@@ -309,15 +320,24 @@ class RefdiffVertWedge(BaseDriver):
                 for i in range(nypt)]
 
             L, k = WAVELEN(d, T, 50, self.g)
+            dataDict["L"] = L
 
             steep, maxstp = ERRSTP(Hi, d, L)
             if not (steep < maxstp):
-                print("Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f" % (maxstp, steep))
+                self.errorMsg = "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f" %\
+                    (maxstp, steep)
+                
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
 
             Hb = ERRWAVBRK(T, d, 0.0, 0.78, 0)
             if not (Hi < Hb):
-                print("error: Input wave broken (Hb = %6.2f %s" % (Hb, self.labelUnitDist))
+                self.errorMsg = "error: Input wave broken (Hb = %6.2f %s" %\
+                    (Hb, self.labelUnitDist)
+                
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
 
             phi = []
@@ -340,7 +360,10 @@ class RefdiffVertWedge(BaseDriver):
                     H[i].append(valH)
 
                     if error == 1:
-                        print("Error: (x,y) location inside structure.")
+                        self.errorMsg = "Error: (x,y) location inside structure."
+                        
+                        print(self.errorMsg)
+                        self.fileOutputWriteMain(dataDict, caseIndex)
                         return
                 # end for loop
             # end for loop
@@ -387,7 +410,6 @@ class RefdiffVertWedge(BaseDriver):
                     printMsg += "\t%6.2f" % beta[i][j]
                 print(printMsg)
 
-            dataDict["L"] = L
             dataDict["xcors"] = xcors
             dataDict["ycors"] = ycors
             dataDict["phi"] = phi
@@ -399,7 +421,6 @@ class RefdiffVertWedge(BaseDriver):
     # end performCalculations
 
     def fileOutputWriteData(self, dataDict):
-
         if self.mode == 0:
             self.fileRef.write("Input\n")
             self.fileRef.write("Hi                  %6.2f %s\n" % (dataDict["Hi"], self.labelUnitDist))
@@ -410,10 +431,13 @@ class RefdiffVertWedge(BaseDriver):
             self.fileRef.write("xcor                %6.2f %s\n" % (dataDict["xcor"], self.labelUnitDist))
             self.fileRef.write("ycor                %6.2f %s\n" % (dataDict["ycor"], self.labelUnitDist))
 
-            self.fileRef.write("\nWavelength          %6.2f %s\n" % (dataDict["L"], self.labelUnitDist))
-            self.fileRef.write("Mod factor (phi)    %6.2f\n" % dataDict["phi"])
-            self.fileRef.write("Wave phase          %6.2f rad\n" % dataDict["beta"])
-            self.fileRef.write("Mod wave height     %6.2f %s\n" % (dataDict["H"], self.labelUnitDist))
+            if self.errorMsg != None:
+                self.fileRef.write("\n%s\n" % self.errorMsg)
+            else:
+                self.fileRef.write("\nWavelength          %6.2f %s\n" % (dataDict["L"], self.labelUnitDist))
+                self.fileRef.write("Mod factor (phi)    %6.2f\n" % dataDict["phi"])
+                self.fileRef.write("Wave phase          %6.2f rad\n" % dataDict["beta"])
+                self.fileRef.write("Mod wave height     %6.2f %s\n" % (dataDict["H"], self.labelUnitDist))
         else:
             self.fileRef.write("Incident Wave Height\t=\t%-6.2f\t%s\tWave Period\t=\t%-6.2f\tsec\n" %\
                 (dataDict["Hi"], self.labelUnitDist, dataDict["T"]))
@@ -421,77 +445,80 @@ class RefdiffVertWedge(BaseDriver):
                 (dataDict["d"], self.labelUnitDist, dataDict["L"], self.labelUnitDist))
             self.fileRef.write("Wave Angle\t\t=\t%-6.2f\tdeg\tWedge Angle\t=\t%-6.2f\tdeg\n\n" % (dataDict["alpha"], dataDict["wedgang"]))
 
-            # phi table
-            self.fileRef.write("**** Modification Factors:\n")
-            self.fileRef.write("              x=  ")
-            for xcor in dataDict["xcors"]:
-                self.fileRef.write("  %8.2f" % xcor)
-            self.fileRef.write("\n--------------------------------------------------------------------\n")
-
-            for i in range(len(dataDict["phi"])):
-                self.fileRef.write("y=      %8.2f  " % dataDict["ycors"][i])
-
-                for j in range(len(dataDict["phi"][0])):
-                    self.fileRef.write("  %8.2f" % dataDict["phi"][i][j])
-
-                self.fileRef.write("\n")
-            self.fileRef.write("--------------------------------------------------------------------\n")
-
-            self.fileRef.write("              x=  ")
-            for xcor in dataDict["xcors"]:
-                self.fileRef.write("  %8.2f" % xcor)
-            self.fileRef.write("\n--------------------------------------------------------------------\n")
-            # end phi table
-
-            self.fileRef.write("\n\n")
-
-            # H table
-            self.fileRef.write("**** Modified Wave Heights (%s):\n" % self.labelUnitDist)
-
-            self.fileRef.write("              x=  ")
-            for xcor in dataDict["xcors"]:
-                self.fileRef.write("  %8.2f" % xcor)
-            self.fileRef.write("\n--------------------------------------------------------------------\n")
-
-            for i in range(len(dataDict["H"])):
-                self.fileRef.write("y=      %8.2f  " % dataDict["ycors"][i])
-
-                for j in range(len(dataDict["H"][0])):
-                    self.fileRef.write("  %8.2f" % dataDict["H"][i][j])
-
-                self.fileRef.write("\n")
-            self.fileRef.write("--------------------------------------------------------------------\n")
-
-            self.fileRef.write("              x=  ")
-            for xcor in dataDict["xcors"]:
-                self.fileRef.write("  %8.2f" % xcor)
-            self.fileRef.write("\n--------------------------------------------------------------------\n")
-            # end H table
-
-            self.fileRef.write("\n\n")
-
-            # beta table
-            self.fileRef.write("**** Phase Angles (rad):\n")
-
-            self.fileRef.write("              x=  ")
-            for xcor in dataDict["xcors"]:
-                self.fileRef.write("  %8.2f" % xcor)
-            self.fileRef.write("\n--------------------------------------------------------------------\n")
-
-            for i in range(len(dataDict["beta"])):
-                self.fileRef.write("y=      %8.2f  " % dataDict["ycors"][i])
-
-                for j in range(len(dataDict["beta"][0])):
-                    self.fileRef.write("  %8.2f" % dataDict["beta"][i][j])
-
-                self.fileRef.write("\n")
-            self.fileRef.write("--------------------------------------------------------------------\n")
-
-            self.fileRef.write("              x=  ")
-            for xcor in dataDict["xcors"]:
-                self.fileRef.write("  %8.2f" % xcor)
-            self.fileRef.write("\n--------------------------------------------------------------------\n")
-            # end beta table
+            if self.errorMsg != None:
+                self.fileRef.write("\n%s\n" % self.errorMsg)
+            else:
+                # phi table
+                self.fileRef.write("**** Modification Factors:\n")
+                self.fileRef.write("              x=  ")
+                for xcor in dataDict["xcors"]:
+                    self.fileRef.write("  %8.2f" % xcor)
+                self.fileRef.write("\n--------------------------------------------------------------------\n")
+    
+                for i in range(len(dataDict["phi"])):
+                    self.fileRef.write("y=      %8.2f  " % dataDict["ycors"][i])
+    
+                    for j in range(len(dataDict["phi"][0])):
+                        self.fileRef.write("  %8.2f" % dataDict["phi"][i][j])
+    
+                    self.fileRef.write("\n")
+                self.fileRef.write("--------------------------------------------------------------------\n")
+    
+                self.fileRef.write("              x=  ")
+                for xcor in dataDict["xcors"]:
+                    self.fileRef.write("  %8.2f" % xcor)
+                self.fileRef.write("\n--------------------------------------------------------------------\n")
+                # end phi table
+    
+                self.fileRef.write("\n\n")
+    
+                # H table
+                self.fileRef.write("**** Modified Wave Heights (%s):\n" % self.labelUnitDist)
+    
+                self.fileRef.write("              x=  ")
+                for xcor in dataDict["xcors"]:
+                    self.fileRef.write("  %8.2f" % xcor)
+                self.fileRef.write("\n--------------------------------------------------------------------\n")
+    
+                for i in range(len(dataDict["H"])):
+                    self.fileRef.write("y=      %8.2f  " % dataDict["ycors"][i])
+    
+                    for j in range(len(dataDict["H"][0])):
+                        self.fileRef.write("  %8.2f" % dataDict["H"][i][j])
+    
+                    self.fileRef.write("\n")
+                self.fileRef.write("--------------------------------------------------------------------\n")
+    
+                self.fileRef.write("              x=  ")
+                for xcor in dataDict["xcors"]:
+                    self.fileRef.write("  %8.2f" % xcor)
+                self.fileRef.write("\n--------------------------------------------------------------------\n")
+                # end H table
+    
+                self.fileRef.write("\n\n")
+    
+                # beta table
+                self.fileRef.write("**** Phase Angles (rad):\n")
+    
+                self.fileRef.write("              x=  ")
+                for xcor in dataDict["xcors"]:
+                    self.fileRef.write("  %8.2f" % xcor)
+                self.fileRef.write("\n--------------------------------------------------------------------\n")
+    
+                for i in range(len(dataDict["beta"])):
+                    self.fileRef.write("y=      %8.2f  " % dataDict["ycors"][i])
+    
+                    for j in range(len(dataDict["beta"][0])):
+                        self.fileRef.write("  %8.2f" % dataDict["beta"][i][j])
+    
+                    self.fileRef.write("\n")
+                self.fileRef.write("--------------------------------------------------------------------\n")
+    
+                self.fileRef.write("              x=  ")
+                for xcor in dataDict["xcors"]:
+                    self.fileRef.write("  %8.2f" % xcor)
+                self.fileRef.write("\n--------------------------------------------------------------------\n")
+                # end beta table
     # end fileOutputWriteData
 
 

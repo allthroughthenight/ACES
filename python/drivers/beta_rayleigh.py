@@ -103,7 +103,6 @@ class BetaRayleigh(BaseDriver):
 
     def performCalculations(self, caseInputList, caseIndex = 0):
         Hmo, Tp, d = self.getCalcValues(caseInputList)
-        self.errorMsg = None
         dataDict = {"Hmo": Hmo, "Tp": Tp, "d": d}
 
         Htype = []
