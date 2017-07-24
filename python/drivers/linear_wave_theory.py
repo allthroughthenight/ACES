@@ -205,7 +205,7 @@ class LinearWaveTheory(BaseDriver):
         plt.subplot(3, 1, 3)
         plt.plot(plotxL, plotw, lw=2)
         plt.axhline(color = 'r', linestyle = '--')
-        plt.ylabel('Velocity, w [%s/s]', self.labelUnitDist)
+        plt.ylabel('Velocity, w [%s/s]' % self.labelUnitDist)
         plt.ylim(min(plotw) - 1, max(plotw) + 1)
 
         plt.tight_layout(pad=0.4)
