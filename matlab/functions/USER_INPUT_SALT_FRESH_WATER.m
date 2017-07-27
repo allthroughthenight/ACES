@@ -13,7 +13,7 @@ if strcmp('S', waterType) || strcmp('s', waterType)
         rho = 1.989; % rho/g = 63.99/32.17 lb sec^2/ft^4 (sea water)
     end
 else
-    if metric && ~customRho
+    if metric 
         rho = 999.8; % kg/m^3 ( fresh water)
     else
         rho = 1.940; % rho/g = 62.415475/32.17 lb sec^2/ft^4 (fresh water)
