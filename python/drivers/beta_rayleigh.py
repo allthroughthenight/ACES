@@ -47,7 +47,7 @@ from EXPORTER import EXPORTER
 
 class BetaRayleigh(BaseDriver):
     def __init__(self, Hmo = None, Tp = None, d = None):
-        self.exporter = EXPORTER("output/exportBetaRayleigh.txt")
+        self.exporter = EXPORTER("output/exportBetaRayleigh")
 
         if Hmo != None:
             self.isSingleCase = True

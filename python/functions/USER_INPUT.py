@@ -127,9 +127,15 @@ def MULTI_INCR(inputList):
         varMax = dataInfo[1]
 
         dataOutputList.append(np.linspace(varMin, varMax, numCases))
-    dataOutputList = zip(*dataOutputList)
+    
+    dataOutputListFinal = []
+    for i in range(len(dataOutputList)):
+        for j in range(len(dataOutputList[i])):
+            if i == 0:
+                dataOutputListFinal.append([])
+            dataOutputListFinal[j].append(dataOutputList[i][j])
 
-    return dataOutputList
+    return dataOutputListFinal
 # end MULTI_INCR
 
 def MULTI_MODE(inputList):

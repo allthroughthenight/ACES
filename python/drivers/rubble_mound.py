@@ -10,6 +10,8 @@ from ERRSTP import ERRSTP
 from RUNUPR import RUNUPR
 from WAVELEN import WAVELEN
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Rubble-Mound Revetment Design (page 4-4 in ACES # User's Guide). 
@@ -61,6 +63,8 @@ from WAVELEN import WAVELEN
 class RubbleMound(BaseDriver):
     def __init__(self, Hs = None, Ts = None, cotnsl = None,\
         ds = None, cotssl = None, unitwt = None, P = None, S = None):
+        self.exporter = EXPORTER("output/exportRubbleMound.txt")
+
         if Hs != None:
             self.isSingleCase = True
             self.defaultValueHs = Hs
@@ -87,6 +91,8 @@ class RubbleMound(BaseDriver):
             self.defaultValueS = S
 
         super(RubbleMound, self).__init__()
+
+        self.exporter.close()
     # end __init__
 
     def userInput(self):
@@ -185,6 +191,8 @@ class RubbleMound(BaseDriver):
     def performCalculations(self, caseInputList, caseIndex = 0):
         Hs, Ts, cotnsl, ds, cotssl, unitwt, P, S =\
             self.getCalcValues(caseInputList)
+        dataDict = {"Hs": Hs, "Ts": Ts, "cotnsl": cotnsl, "ds": ds,\
+            "cotssl": cotssl, "unitwt": unitwt, "P": P, "S": S}
 
         N = 7000
 
@@ -194,15 +202,21 @@ class RubbleMound(BaseDriver):
 
         Hbs = ERRWAVBRK2(Ts, m, ds)
         if not (Hs < Hbs):
-            print("Error: Wave broken at structure (Hbs = %6.2f %s" %\
-                (Hbs, self.labelUnitDist))
+            self.errorMsg = "Error: Wave broken at structure (Hbs = %6.2f %s)" %\
+                (Hbs, self.labelUnitDist)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         L, k = WAVELEN(ds, Ts, 50, self.g)
 
         steep, maxstp = ERRSTP(Hs, ds, L)
         if not (steep < maxstp):
-            print("Error: Wave unstable (Max: %0.4f, [H/L] = %0.4f" % (maxstp, steep))
+            self.errorMsg = "Error: Wave unstable (Max: %0.4f, [H/L] = %0.4f)" % (maxstp, steep)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         tanssl = 1.0 / cotssl
@@ -327,16 +341,14 @@ class RubbleMound(BaseDriver):
         print("Expected Maximum = %-6.2f %s" %\
             (runupr_max, self.labelUnitDist))
 
-        dataDict = {"Hs": Hs, "Ts": Ts, "cotnsl": cotnsl, "ds": ds,\
-            "cotssl": cotssl, "unitwt": unitwt, "P": P, "S": S,\
-            "rarmor": rarmor, "alw0": alw0, "ald0": ald0,\
+        dataDict.update({"rarmor": rarmor, "alw0": alw0, "ald0": ald0,\
             "alw15": alw15, "ald15": ald15, "alw50": alw50, "ald50": ald50,\
             "alw85": alw85, "ald85": ald85, "alw100": alw100,\
             "ald100": ald100, "rfilter": rfilter, "blw0": blw0,\
             "bld0": bld0, "blw15": blw15, "bld15": bld15,\
             "blw50": blw50, "bld50": bld50, "blw85": blw85,\
             "bld85": bld85, "blw100": blw100, "bld100": bld100,\
-            "runupr_conserv": runupr_conserv, "runupr_max": runupr_max}
+            "runupr_conserv": runupr_conserv, "runupr_max": runupr_max})
         self.fileOutputWriteMain(dataDict, caseIndex)
     # end performCalculations
 
@@ -353,41 +365,61 @@ class RubbleMound(BaseDriver):
         self.fileRef.write("P\t%6.2f\n" % dataDict["P"])
         self.fileRef.write("S\t%6.2f\n\n" % dataDict["S"])
 
-        self.fileRef.write("Armor layer thickness =  %-6.2f %s\n" %\
-            (dataDict["rarmor"], self.labelUnitDist))
-        self.fileRef.write("Percent less than by weight\tWeight (%s)\tDimension (%s)\n" %\
-            (self.labelUnitWt, self.labelUnitDist))
-        self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
-            (0.0, dataDict["alw0"], dataDict["ald0"]))
-        self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
-            (15.0, dataDict["alw15"], dataDict["ald15"]))
-        self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
-            (50.0, dataDict["alw50"], dataDict["ald50"]))
-        self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
-            (85.0, dataDict["alw85"], dataDict["ald85"]))
-        self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n\n" %\
-            (100.0, dataDict["alw100"], dataDict["ald100"]))
-
-        self.fileRef.write("Filter layer thickness =  %-6.2f %s\n" %\
-            (dataDict["rfilter"], self.labelUnitDist))
-        self.fileRef.write("Percent less than by weight\tWeight (%s)\tDimension (%s)\n" %\
-            (self.labelUnitWt, self.labelUnitDist))
-        self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
-            (0.0, dataDict["blw0"], dataDict["bld0"]))
-        self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
-            (15.0, dataDict["blw15"], dataDict["bld15"]))
-        self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
-            (50.0, dataDict["blw50"], dataDict["bld50"]))
-        self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
-            (85.0, dataDict["blw85"], dataDict["bld85"]))
-        self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n\n" %\
-            (100.0, dataDict["blw100"], dataDict["bld100"]))
-
-        self.fileRef.write("Irregular runup\n")
-        self.fileRef.write("Conservative = %-6.2f %s\n" %\
-            (dataDict["runupr_conserv"], self.labelUnitDist))
-        self.fileRef.write("Expected Maximum = %-6.2f %s\n" %\
-            (dataDict["runupr_max"], self.labelUnitDist))
+        if self.errorMsg != None:
+            self.fileRef.write("%s\n\n" % self.errorMsg)
+        else:
+            self.fileRef.write("Armor layer thickness =  %-6.2f %s\n" %\
+                (dataDict["rarmor"], self.labelUnitDist))
+            self.fileRef.write("Percent less than by weight\tWeight (%s)\tDimension (%s)\n" %\
+                (self.labelUnitWt, self.labelUnitDist))
+            self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
+                (0.0, dataDict["alw0"], dataDict["ald0"]))
+            self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
+                (15.0, dataDict["alw15"], dataDict["ald15"]))
+            self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
+                (50.0, dataDict["alw50"], dataDict["ald50"]))
+            self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
+                (85.0, dataDict["alw85"], dataDict["ald85"]))
+            self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n\n" %\
+                (100.0, dataDict["alw100"], dataDict["ald100"]))
+    
+            self.fileRef.write("Filter layer thickness =  %-6.2f %s\n" %\
+                (dataDict["rfilter"], self.labelUnitDist))
+            self.fileRef.write("Percent less than by weight\tWeight (%s)\tDimension (%s)\n" %\
+                (self.labelUnitWt, self.labelUnitDist))
+            self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
+                (0.0, dataDict["blw0"], dataDict["bld0"]))
+            self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
+                (15.0, dataDict["blw15"], dataDict["bld15"]))
+            self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
+                (50.0, dataDict["blw50"], dataDict["bld50"]))
+            self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n" %\
+                (85.0, dataDict["blw85"], dataDict["bld85"]))
+            self.fileRef.write("%-3.1f\t\t\t\t%-6.2f\t\t%-6.2f\n\n" %\
+                (100.0, dataDict["blw100"], dataDict["bld100"]))
+    
+            self.fileRef.write("Irregular runup\n")
+            self.fileRef.write("Conservative = %-6.2f %s\n" %\
+                (dataDict["runupr_conserv"], self.labelUnitDist))
+            self.fileRef.write("Expected Maximum = %-6.2f %s\n" %\
+                (dataDict["runupr_max"], self.labelUnitDist))
+        
+        exportData = [dataDict["Hs"], dataDict["Ts"], dataDict["cotnsl"],\
+            dataDict["ds"], dataDict["cotssl"], dataDict["unitwt"],\
+            dataDict["P"], dataDict["S"]]
+        if self.errorMsg != None:
+            exportData.append("Error")
+        else:
+            exportData = exportData + [dataDict["rarmor"], dataDict["alw0"],\
+                dataDict["ald0"], dataDict["alw15"], dataDict["ald15"],\
+                dataDict["alw50"], dataDict["ald50"], dataDict["alw85"],\
+                dataDict["ald85"], dataDict["alw100"], dataDict["ald100"],\
+                dataDict["rfilter"], dataDict["blw0"], dataDict["bld0"],\
+                dataDict["blw15"], dataDict["bld15"], dataDict["blw50"],\
+                dataDict["bld50"], dataDict["blw85"], dataDict["bld85"],\
+                dataDict["blw100"], dataDict["bld100"],\
+                dataDict["runupr_conserv"], dataDict["runupr_max"]]
+        self.exporter.writeData(exportData)
     # end fileOutputWriteData
 
 

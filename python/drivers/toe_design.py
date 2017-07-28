@@ -9,6 +9,8 @@ from ERRSTP import ERRSTP
 from ERRWAVBRK2 import ERRWAVBRK2
 from WAVELEN import WAVELEN
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to python
 # -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 # Driver for Toe Protection Design (page 4 - 2 in ACES User's Guide).
@@ -48,6 +50,8 @@ from WAVELEN import WAVELEN
 class ToeDesign(BaseDriver):
     def __init__(self, H = None, T = None, ds = None, cotphi = None,\
         Kp = None, de = None, ht = None, unitwt = None):
+        self.exporter = EXPORTER("output/exportToeDesign.txt")
+
         if H != None:
             self.isSingleCase = True
             self.defaultValueH = H
@@ -74,6 +78,8 @@ class ToeDesign(BaseDriver):
             self.defaultValue_unitwt = unitwt
 
         super(ToeDesign, self).__init__()
+        
+        self.exporter.close()
     # end __init__
 
     def userInput(self):
@@ -170,6 +176,8 @@ class ToeDesign(BaseDriver):
     def performCalculations(self, caseInputList, caseIndex = 0):
         H, T, ds, cotphi, Kp, de, ht, unitwt =\
             self.getCalcValues(caseInputList)
+        dataDict = {"H": H, "T": T, "ds": ds, "cotphi": cotphi,\
+            "Kp": Kp, "de": de, "ht": ht, "unitwt": unitwt}
 
         H20weight = self.g * self.rho
 
@@ -179,19 +187,30 @@ class ToeDesign(BaseDriver):
         m = 1.0 / cotphi
 
         if not (ds / (T**2) > 0.0037424):
-            print("Error: Limiting value detected...Hbs cannot be solved.")
+            self.errorMsg = "Error: Limiting value detected...Hbs cannot be solved."
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         Hbs = ERRWAVBRK2(T, m, ds)
         if not (H < Hbs):
-            print("Error: Wave broken at structure (Hbs = %6.2f %s" %\
-                (Hbs, self.labelUnitDist))
+            self.errorMsg = "Error: Wave broken at structure (Hbs = %6.2f %s" %\
+                (Hbs, self.labelUnitDist)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
+            return
 
         L, k = WAVELEN(dl, T, 50, self.g)
 
         steep, maxstp = ERRSTP(H, dl, L)
         if not (steep < maxstp):
-            print("Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f" % (maxstp, steeps))
+            self.errorMsg = "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f" % (maxstp, steeps)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
+            return
 
         b1 = de*Kp
         b2 = 2.0*H
@@ -215,9 +234,7 @@ class ToeDesign(BaseDriver):
         print("Water depth at top of tow\t%6.2f %s" %\
             (dl, self.labelUnitDist))
 
-        dataDict = {"H": H, "T": T, "ds": ds, "cotphi": cotphi,\
-            "Kp": Kp, "de": de, "ht": ht, "unitwt": unitwt,\
-            "b": b, "w": w, "dl": dl}
+        dataDict.update({"b": b, "w": w, "dl": dl})
         self.fileOutputWriteMain(dataDict, caseIndex)
     # end performCalculations
 
@@ -237,12 +254,25 @@ class ToeDesign(BaseDriver):
         self.fileRef.write("unitwt\t\t\t\t%6.2f %s/%s^3\n" %\
             (dataDict["unitwt"], self.labelUnitWt, self.labelUnitDist))
 
-        self.fileRef.write("\nWidth of toe apron\t\t%6.2f %s\n" %\
-            (dataDict["b"], self.labelUnitDist))
-        self.fileRef.write("Weight of individual armor unit\t%6.2f %s\n" %\
-            (dataDict["w"], self.labelUnitWt))
-        self.fileRef.write("Water depth at top of tow\t%6.2f %s\n" %\
-            (dataDict["dl"], self.labelUnitDist))
+        if self.errorMsg != None:
+            self.fileRef.write("\n%s\n" % self.errorMsg)
+        else:
+            self.fileRef.write("\nWidth of toe apron\t\t%6.2f %s\n" %\
+                (dataDict["b"], self.labelUnitDist))
+            self.fileRef.write("Weight of individual armor unit\t%6.2f %s\n" %\
+                (dataDict["w"], self.labelUnitWt))
+            self.fileRef.write("Water depth at top of tow\t%6.2f %s\n" %\
+                (dataDict["dl"], self.labelUnitDist))
+        
+        exportData = [dataDict["H"], dataDict["T"], dataDict["ds"],\
+            dataDict["cotphi"], dataDict["Kp"], dataDict["de"],\
+            dataDict["ht"], dataDict["unitwt"]]
+        if self.errorMsg != None:
+            exportData.append("Error")
+        else:
+            exportData = exportData + [dataDict["b"], dataDict["w"],\
+                dataDict["dl"]]
+        self.exporter.writeData(exportData)
     # end fileOutputWriteData
 
 

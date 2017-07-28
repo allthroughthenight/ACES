@@ -1,8 +1,14 @@
 import sys
+import math
 sys.path.append('../functions')
-from READ_INPUT import READ_INPUT
 
-## ACES Update to MATLAB
+from base_driver import BaseDriver
+from helper_objects import BaseField
+import USER_INPUT
+
+from EXPORTER import EXPORTER
+
+## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Breakwater Design Using Hudson and Related Equations
 # (page 4-1 in ACES User's Guide). Estimates armor weight, minimum crest,
@@ -37,61 +43,187 @@ from READ_INPUT import READ_INPUT
 #   H20weight: specific weight of water
 #-------------------------------------------------------------
 
-def breakwater_Hudson(unitwt, H, Kd, kdelt, P, cotssl, n):
-    unitwt = 165
-    H = 11.50
-    Kd = 10.0
-    kdelt = 1.02
-    P = 54.0
-    cotssl = 2.00
-    n = 2
+class BreakwaterHudson(BaseDriver):
+    def __init__(self, unitwt = None, H = None, Kd = None,\
+        kdelt = None, P = None, cotssl = None, n = None):
+        self.exporter = EXPORTER("output/exportBreakwaterHudson.txt")
 
-    g = 32.17
-    rho = 1.989
-    H20weight = rho * g # 64 lb/ft^3 for seawater, 62.4 for fresh
+        if unitwt != None:
+            self.isSingleCase = True
+            self.defaultValue_unitwt = unitwt
+        if H != None:
+            self.isSingleCase = True
+            self.defaultValueH = H
+        if Kd != None:
+            self.isSingleCase = True
+            self.defaultValueKd = Kd
+        if kdelt != None:
+            self.isSingleCase = True
+            self.defaultValue_kdelt = kdelt
+        if P != None:
+            self.isSingleCase = True
+            self.defaultValueP = P
+        if cotssl != None:
+            self.isSingleCase = True
+            self.defaultValue_cotssl = cotssl
+        if n != None:
+            self.isSingleCase = True
+            self.defaultValue_n = n
 
-    specgrav = unitwt / H20weight
+        super(BreakwaterHudson, self).__init__()
 
-    w = (unitwt * H**3) / (Kd * (specgrav - 1.0)**3 * cotssl)
-    r = n * kdelt * (w / unitwt)**(1 / 3)
-    Nr = 1000 * n * kdelt * (1 - P / 100) * (unitwt / w)**(2 / 3)
-    b = 3 * kdelt * (w / unitwt)**(1 / 3)
+        self.exporter.close()
+    # end __init__
 
-    if g == 9.81:
-        if w > 8000:
-            w = w / 8896.4 # 1 ton=8896.4 N
-            units = 'tons'
+    def userInput(self):
+        super(BreakwaterHudson, self).userInput()
+
+        self.water, self.rho = USER_INPUT.SALT_FRESH_WATER(self.isMetric)
+    # end userInput
+
+    def defineInputDataList(self):
+        self.inputList = []
+
+        if not hasattr(self, "defaultValue_unitwt"):
+            self.inputList.append(BaseField(\
+                "unitwt: armor specific unit weight (%s/%s^3)" %\
+                (self.labelUnitWt, self.labelUnitDist), 1.0, 99999.0))
+        if not hasattr(self, "defaultValueH"):
+            self.inputList.append(BaseField(\
+                "H: wave height (%s)" % self.labelUnitDist, 0.1, 100.0))
+        if not hasattr(self, "defaultValueKd"):
+            self.inputList.append(BaseField(\
+                "Kd: stability coefficient", 0.0, 10.0))
+        if not hasattr(self, "defaultValue_kdelt"):
+            self.inputList.append(BaseField(\
+                "kdelt: layer coefficient", 0.0, 2.0))
+        if not hasattr(self, "defaultValueP"):
+            self.inputList.append(BaseField(\
+                "P: average porosity of armor layer", 0.0, 54.0))
+        if not hasattr(self, "defaultValue_cotssl"):
+            self.inputList.append(BaseField(\
+                "cotssl: cotangent of structure slope", 1.0, 6.0))
+        if not hasattr(self, "defaultValue_n"):
+            self.inputList.append(BaseField(\
+                "n: number of armor units comprising the thickness of the armor layer", 1.0, 3.0))
+    # end defineInputDataList
+
+    def fileOutputRequestInit(self):
+        self.fileOutputRequestMain(defaultFilename = "breakwater_Hudson")
+
+    def getCalcValues(self, caseInputList):
+        currIndex = 0
+
+        if hasattr(self, "defaultValue_unitwt"):
+            unitwt = self.defaultValue_unitwt
         else:
-            units = 'N'
-    elif g == 32.17:
-        if w > 2000:
-            w = w / 2000
-            units = 'tons'
+            unitwt = caseInputList[currIndex]
+            currIndex = currIndex + 1
+
+        if hasattr(self, "defaultValueH"):
+            H = self.defaultValueH
         else:
-            units = 'lbs'
+            H = caseInputList[currIndex]
+            currIndex = currIndex + 1
 
-    print('%s \t\t %-6.2f \t \n' % ('Weight of individual unit', w))
-    print('%s \t\t\t\t %-6.2f \t \n' % ('Crest width',b))
-    print('%s \t\t %-6.2f \t \n' % ('Average cover layer thickness', r))
-    print('%s \t\t %-6.2f \t \n' % ('Number of single armor unit', Nr))
+        if hasattr(self, "defaultValueKd"):
+            Kd = self.defaultValueKd
+        else:
+            Kd = caseInputList[currIndex]
+            currIndex = currIndex + 1
 
-# breakwater_Hudson(165, 11.50, 10.0, 1.02, 54.0, 2.00, 2)
+        if hasattr(self, "defaultValue_kdelt"):
+            kdelt = self.defaultValue_kdelt
+        else:
+            kdelt = caseInputList[currIndex]
+            currIndex = currIndex + 1
 
-def main():
-    unitwt = READ_INPUT('Enter unitwt: armor specific unit weight (\' labelUnitWt \'/\' labelUnitDist \'^3): ', 1.0, 99999.0);
+        if hasattr(self, "defaultValueP"):
+            P = self.defaultValueP
+        else:
+            P = caseInputList[currIndex]
+            currIndex = currIndex + 1
 
-    H = READ_INPUT('Enter H: wave height (\' labelUnitDist \'): ', 0.1, 100.0)
+        if hasattr(self, "defaultValue_cotssl"):
+            cotssl = self.defaultValue_cotssl
+        else:
+            cotssl = caseInputList[currIndex]
+            currIndex = currIndex + 1
 
-    Kd = READ_INPUT('Enter Kd: stability coefficient: ', 0, 10)
+        if hasattr(self, "defaultValue_n"):
+            n = self.defaultValue_n
+        else:
+            n = caseInputList[currIndex]
 
-    kdelt = READ_INPUT('Enter kdelt: layer coefficient: ', 0, 2)
+        return unitwt, H, Kd, kdelt, P, cotssl, n
+    # end getCalcValues
 
-    P = READ_INPUT('Enter P: average porosity of armor layer: ', 0, 54)
+    def performCalculations(self, caseInputList, caseIndex = 0):
+        unitwt, H, Kd, kdelt, P, cotssl, n =\
+            self.getCalcValues(caseInputList)
 
-    cotssl = READ_INPUT('Enter cotssl: cotangent of structure slope: ', 1.0, 6.0)
+        H20weight = self.rho*self.g #64 lb/ft^3 for seawater, 62.4 for fresh
 
-    n = READ_INPUT('Enter n: number of armor units comprising the thickness of the armor layer: ', 1.0, 3.0)
+        specgrav = unitwt / H20weight
 
-    breakwater_Hudson(unitwt, H, Kd, kdelt, P, cotssl, n)
+        w = (unitwt*H**3)/(Kd*(specgrav - 1.0)**3 * cotssl)
+        r = n*kdelt*(w/unitwt)**(1.0/3.0)
+        Nr = 1000.0*n*kdelt*(1.0 - P/100.0)*(unitwt/w)**(2.0/3.0)
+        b = 3.0*kdelt*(w/unitwt)**(1.0/3.0)
 
-main()
+        if self.isMetric:
+            if w > 8000.0:
+                w = w/8896.4 #1 ton = 8896.4 N
+                self.labelUnitWtLrg = "tons"
+            else:
+                self.labelUnitWtLrg = "N"
+        else:
+            if w > 2000.0:
+                w = w/2000.0
+                self.labelUnitWtLrg = "tons"
+            else:
+                self.labelUnitWtLrg = "lbs"
+        # end if
+
+        print("Weight of individual unit\t%6.2f %s" %\
+            (w, self.labelUnitWtLrg))
+        print("Crest width\t\t\t%6.2f %s" % (b, self.labelUnitDist))
+        print("Average cover layer thickness\t%6.2f %s" %\
+            (r, self.labelUnitDist))
+        print("Number of single armor unit\t%6.2f" % Nr)
+
+        dataDict = {"unitwt": unitwt, "H": H, "Kd": Kd,\
+            "kdelt": kdelt, "P": P, "cotssl": cotssl, "n": n,\
+            "w": w, "b": b, "r": r, "Nr": Nr}
+        self.fileOutputWriteMain(dataDict, caseIndex)
+    # end performCalculations
+
+    def fileOutputWriteData(self, dataDict):
+        self.fileRef.write("Input\n")
+        self.fileRef.write("unitwt                             %6.2f %s/%s^3\n" %\
+            (dataDict["unitwt"], self.labelUnitWt, self.labelUnitDist))
+        self.fileRef.write("H                                  %6.2f %s\n" %\
+            (dataDict["H"], self.labelUnitDist))
+        self.fileRef.write("Kd                                 %6.2f\n" % dataDict["Kd"])
+        self.fileRef.write("kdelt                              %6.2f\n" % dataDict["kdelt"])
+        self.fileRef.write("P                                  %6.2f %%\n" % dataDict["P"])
+        self.fileRef.write("cotssl                             %6.2f\n" % dataDict["cotssl"])
+        self.fileRef.write("n                                  %6.2f\n\n" % dataDict["n"])
+
+        self.fileRef.write("Weight of individual unit\t%6.2f %s\n" %\
+            (dataDict["w"], self.labelUnitWtLrg))
+        self.fileRef.write("Crest width\t\t\t%6.2f %s\n" %\
+            (dataDict["b"], self.labelUnitDist))
+        self.fileRef.write("Average cover layer thickness\t%6.2f %s\n" %\
+            (dataDict["r"], self.labelUnitDist))
+        self.fileRef.write("Number of single armor unit\t%6.2f\n" % dataDict["Nr"])
+        
+        exportData = [dataDict["unitwt"], dataDict["H"], dataDict["Kd"],\
+            dataDict["kdelt"], dataDict["P"], dataDict["cotssl"],\
+            dataDict["n"], dataDict["w"], dataDict["b"], dataDict["r"],\
+            dataDict["Nr"]]
+        self.exporter.writeData(exportData)
+    # end fileOutputWriteData
+
+
+driver = BreakwaterHudson()

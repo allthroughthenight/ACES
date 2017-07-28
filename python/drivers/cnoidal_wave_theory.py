@@ -10,6 +10,8 @@ from helper_objects import BaseField
 import USER_INPUT
 from ERRWAVBRK1 import ERRWAVBRK1
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Cnoidal Wave Theory (page 2-2 in ACES User's Guide)
@@ -57,6 +59,8 @@ from ERRWAVBRK1 import ERRWAVBRK1
 
 class CnoidalWaveTheory(BaseDriver):
     def __init__(self, H = None, T = None, d = None, z = None, xL = None):
+        self.exporter = EXPORTER("output/exportCnoidalWaveTheory.txt")
+
         if H != None:
             self.isSingleCase = True
             self.defaultValueH = H
@@ -74,6 +78,8 @@ class CnoidalWaveTheory(BaseDriver):
             self.defaultValue_xL = xL
             
         super(CnoidalWaveTheory, self).__init__()
+
+        self.exporter.close()
     # end __init__
 
     def userInput(self):
@@ -430,6 +436,17 @@ class CnoidalWaveTheory(BaseDriver):
                 (dataDict["dwdt"], self.labelUnitDist))
             self.fileRef.write("Pressure\t\t%-8.2f %s/%s^2\n" %\
                 (dataDict["pres"], self.labelUnitWt, self.labelUnitDist))
+        
+        
+        exportData = [dataDict["H"], dataDict["T"], dataDict["d"], dataDict["z"], dataDict["xL"]]
+        if self.errorMsg != None:
+            exportData.append(self.errorMsg)
+        else:
+            exportData = exportData + [dataDict["L"], dataDict["C"],\
+                dataDict["E"], dataDict["Ef"], dataDict["eta"],\
+                dataDict["u"], dataDict["w"], dataDict["dudt"], dataDict["dwdt"],\
+                dataDict["pres"]]
+        self.exporter.writeData(exportData)
     # end fileOutputWriteData
 
     def hasPlot(self):

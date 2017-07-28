@@ -16,6 +16,8 @@ from RUNUPR import RUNUPR
 from RUNUPS import RUNUPS
 from WAVELEN import WAVELEN
 
+from EXPORTER import EXPORTER
+
 #check for option 3, vert wall
 ## ACES Update to MATLAB
 #-------------------------------------------------------------
@@ -71,6 +73,8 @@ from WAVELEN import WAVELEN
 class RunupOvertopping(BaseDriver):
     def __init__(self, H = None, T = None, cotphi = None,\
         ds = None, cottheta = None, hs = None):
+        self.exporter = EXPORTER("output/exportRunupOvertopping.txt")
+
         if H != None:
             self.isSingleCase = True
             self.defaultValueH = H
@@ -93,6 +97,8 @@ class RunupOvertopping(BaseDriver):
         self.conversionKnots2mph = 1.15077945 #1 knots = 1.15077945 mph
 
         super(RunupOvertopping, self).__init__()
+        
+        self.exporter.close()
     # end __init__
 
     def userInput(self):
@@ -122,9 +128,6 @@ class RunupOvertopping(BaseDriver):
 
         super(RunupOvertopping, self).userInput()
 
-        print(self.inputList)
-        # self.roughSlopeCoeffDict = {"a": 0.956, "b": 0.398,\
-        #     "alpha": 0.076473, "Qstar0": 0.025, "U": 35.0, "R": R_default}
         if self.option != 2:
             self.roughSlopeCoeffDict = USER_INPUT.ROUGH_SLOPE_COEFFICIENTS(\
                 self.has_rough_slope, self.has_overtopping, self.has_runup,\
@@ -195,8 +198,6 @@ class RunupOvertopping(BaseDriver):
         else:
             hs = caseInputList[currIndex]
 
-        print(self.roughSlopeCoeffDict)
-
         coeffDict = {}
         for coeffName in ["a", "b", "alpha", "Qstar0", "U", "R"]:
             if coeffName in self.roughSlopeCoeffDict:
@@ -219,25 +220,37 @@ class RunupOvertopping(BaseDriver):
     def performCalculations(self, caseInputList, caseIndex = 0):
         H, T, cotphi, ds, cottheta, hs, a, b, alpha, Qstar0, U, R =\
             self.getCalcValues(caseInputList, caseIndex)
+        dataDict = {"H": H, "T": T, "cotphi": cotphi, "ds": ds,\
+            "cottheta": cottheta, "hs": hs, "a": a, "b": b,\
+            "alpha": alpha, "Qstar0": Qstar0, "U": U, "R": R}
 
         m = 1.0/cotphi
 
         if not (ds < hs):
-            print("Error: Method does not apply to submerged structures.")
+            self.errorMsg = "Error: Method does not apply to submerged structures."
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         Hbs = ERRWAVBRK2(T, m, ds)
         if not (H < Hbs):
-            print("Error: Wave broken at structure (Hbs = %6.2f %s)" %\
-                (Hbs, self.labelUnitDist))
+            self.errorMsg = "Error: Wave broken at structure (Hbs = %6.2f %s)" %\
+                (Hbs, self.labelUnitDist)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         c, c0, cg, cg0, k, L, L0, reldep = LWTGEN(ds, T, self.g)
 
         steep, maxstp = ERRSTP(H, ds, L)
         if not (steep < maxstp):
-            print("Error: Input wave unstable (Max: %0.4f. [H/L] = %0.4f" %\
-                (maxstp, steep))
+            self.errorMsg = "Error: Input wave unstable (Max: %0.4f. [H/L] = %0.4f" %\
+                (maxstp, steep)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         alpha0, H0 = LWTDWS(0.0, c, cg, c0, H)
@@ -247,7 +260,10 @@ class RunupOvertopping(BaseDriver):
 
         if np.isclose(cottheta, 0):
             if not (self.option != 1):
-                print("Error: Vertical wall cannot have rough slope.")
+                self.errorMsg = "Error: Vertical wall cannot have rough slope."
+                
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
 
             theta = 0.5*math.pi
@@ -264,10 +280,7 @@ class RunupOvertopping(BaseDriver):
 
         freeb = hs - ds
 
-        dataDict = {"H": H, "T": T, "cotphi": cotphi, "ds": ds,\
-            "cottheta": cottheta, "hs": hs, "a": a, "b": b,\
-            "alpha": alpha, "Qstar0": Qstar0, "U": U, "H0": H0,\
-            "relht0": relht0, "steep0": steep0}
+        dataDict.update({"H0": H0, "relht0": relht0, "steep0": steep0})
 
         if self.option == 1:
             R = RUNUPR(H, ssp, a, b)
@@ -332,24 +345,56 @@ class RunupOvertopping(BaseDriver):
             self.fileRef.write("R\t\t%6.4f %s\n" %\
                 (dataDict["R"], self.labelUnitDist))
 
-        self.fileRef.write("\nDeepwater\n")
-        self.fileRef.write("\tWave height, Hs0\t\t%-6.3f %s\n" %\
-            (dataDict["H0"], self.labelUnitDist))
-        self.fileRef.write("\tRelative height, ds/H0\t\t%-6.3f\n" %\
-            dataDict["relht0"])
-        self.fileRef.write("\tWave steepness, Hs0/(gT^2)\t%-6.6f\n" %\
-            dataDict["steep0"])
-
-        if self.option == 1 or self.option == 2 or\
-            self.option == 5 or self.option == 6 or\
-            self.option == 7 or self.option == 8:
-            self.fileRef.write("Runup\t\t\t\t\t%-6.3f %s\n" %\
-                (dataDict["R"], self.labelUnitDist))
-        if self.option == 3 or self.option == 4 or\
-            self.option == 5 or self.option == 6 or\
-            self.option == 7 or self.option == 8:
-            self.fileRef.write("Overtopping rate per unit width\t\t%-6.3f %s^3/sec-%s\n" %\
-                (dataDict["Q"], self.labelUnitDist, self.labelUnitDist))
+        if self.errorMsg != None:
+            self.fileRef.write("\n%s\n" % self.errorMsg)
+        else:
+            self.fileRef.write("\nDeepwater\n")
+            self.fileRef.write("\tWave height, Hs0\t\t%-6.3f %s\n" %\
+                (dataDict["H0"], self.labelUnitDist))
+            self.fileRef.write("\tRelative height, ds/H0\t\t%-6.3f\n" %\
+                dataDict["relht0"])
+            self.fileRef.write("\tWave steepness, Hs0/(gT^2)\t%-6.6f\n" %\
+                dataDict["steep0"])
+    
+            if self.option == 1 or self.option == 2 or\
+                self.option == 5 or self.option == 6 or\
+                self.option == 7 or self.option == 8:
+                self.fileRef.write("Runup\t\t\t\t\t%-6.3f %s\n" %\
+                    (dataDict["R"], self.labelUnitDist))
+            if self.option == 3 or self.option == 4 or\
+                self.option == 5 or self.option == 6 or\
+                self.option == 7 or self.option == 8:
+                self.fileRef.write("Overtopping rate per unit width\t\t%-6.3f %s^3/sec-%s\n" %\
+                    (dataDict["Q"], self.labelUnitDist, self.labelUnitDist))
+        
+        exportData = [dataDict["H"], dataDict["T"], dataDict["cotphi"],\
+            dataDict["ds"], dataDict["cottheta"], dataDict["hs"]]
+        if "a" in dataDict and dataDict["a"] != None:
+            exportData.append(dataDict["a"])
+        if "b" in dataDict and dataDict["b"] != None:
+            exportData.append(dataDict["b"])
+        if "alpha" in dataDict and dataDict["alpha"] != None:
+            exportData.append(dataDict["alpha"])
+        if "Qstar0" in dataDict and dataDict["Qstar0"] != None:
+            exportData.append(dataDict["Qstar0"])
+        if "U" in dataDict and dataDict["U"] != None:
+            exportData.append(dataDict["U"]/self.conversionKnots2mph)
+        if "R" in dataDict and dataDict["R"] != None and not self.has_runup:
+            exportData.append(dataDict["R"])
+        if self.errorMsg != None:
+            exportData.append("Error")
+        else:
+            exportData = exportData + [dataDict["H0"], dataDict["relht0"],\
+                dataDict["steep0"]]
+            if self.option == 1 or self.option == 2 or\
+                self.option == 5 or self.option == 6 or\
+                self.option == 7 or self.option == 8:
+                exportData.append(dataDict["R"])
+            if self.option == 3 or self.option == 4 or\
+                self.option == 5 or self.option == 6 or\
+                self.option == 7 or self.option == 8:
+                exportData.append(dataDict["Q"])
+        self.exporter.writeData(exportData)
     # end fileOutputWriteData
 
 

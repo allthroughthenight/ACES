@@ -6,6 +6,8 @@ from base_driver import BaseDriver
 from helper_objects import BaseField
 import USER_INPUT
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Irregular Wave Runup on Beaches (page 5-1 in ACES # User's Guide).
@@ -38,6 +40,8 @@ import USER_INPUT
 
 class IrregularRunup(BaseDriver):
     def __init__(self, Hs0 = None, Tp = None, cottheta = None):
+        self.exporter = EXPORTER("output/exportIrregularRunup.txt")
+
         if Hs0 != None:
             self.isSingleCase = True
             self.defaultValueHs0 = Hs0
@@ -49,6 +53,8 @@ class IrregularRunup(BaseDriver):
             self.defaultValue_cottheta = cottheta
 
         super(IrregularRunup, self).__init__()
+
+        self.exporter.close()
     # end __init__
 
     def defineInputDataList(self):
@@ -94,6 +100,7 @@ class IrregularRunup(BaseDriver):
 
     def performCalculations(self, caseInputList, caseIndex = 0):
         Hs0, Tp, cottheta = self.getCalcValues(caseInputList)
+        dataDict = {"Hs0": Hs0, "Tp": Tp, "cottheta": cottheta}
 
         #Coefficients provided by Mase (1989)
         amax = 2.32
@@ -110,7 +117,10 @@ class IrregularRunup(BaseDriver):
         L0 = self.g * (Tp**2) / (2 * math.pi)
         steep = Hs0 / L0
         if not (steep < 0.142):
-            print('Error: Input wave unstable (Max: 0.142, [H/L] = %0.4f' % steep)
+            self.errorMsg = 'Error: Input wave unstable (Max: 0.142, [H/L] = %0.4f)' % steep
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         tantheta = 1 / cottheta
@@ -128,8 +138,8 @@ class IrregularRunup(BaseDriver):
         print('%s\t%6.2f %s' % ('Avg. of highest 1 / 3 runups', R13, self.labelUnitDist))
         print('%s\t\t\t%6.2f %s' % ('Average runup', Ravg, self.labelUnitDist))
 
-        dataDict = {"Hs0": Hs0, "Tp": Tp, "cottheta": cottheta,\
-            "Rmax": Rmax, "R2": R2, "R110": R110, "R13": R13, "Ravg": Ravg}
+        dataDict.update({"Rmax": Rmax, "R2": R2, "R110": R110, "R13": R13,\
+            "Ravg": Ravg})
         self.fileOutputWriteMain(dataDict, caseIndex)
     # end performCalculations
 
@@ -140,16 +150,27 @@ class IrregularRunup(BaseDriver):
         self.fileRef.write("Tp\t\t\t%6.2f s\n" % dataDict["Tp"])
         self.fileRef.write("cottheta\t\t%6.2f\n\n" % dataDict["cottheta"])
 
-        self.fileRef.write('%s\t\t\t%6.2f %s\n' %\
-            ('Maximum runup', dataDict["Rmax"], self.labelUnitDist))
-        self.fileRef.write('%s\t%6.2f %s\n' %\
-            ('Runup exceeded by 2% of runup', dataDict["R2"], self.labelUnitDist))
-        self.fileRef.write('%s\t%6.2f %s\n' %\
-            ('Avg. of highest 1 / 10 runups', dataDict["R110"], self.labelUnitDist))
-        self.fileRef.write('%s\t%6.2f %s\n' %\
-            ('Avg. of highest 1 / 3 runups', dataDict["R13"], self.labelUnitDist))
-        self.fileRef.write('%s\t\t\t%6.2f %s\n' %\
-            ('Average runup', dataDict["Ravg"], self.labelUnitDist))
+        if self.errorMsg != None:
+            self.fileRef.write("%s\n" % self.errorMsg)
+        else:
+            self.fileRef.write('%s\t\t\t%6.2f %s\n' %\
+                ('Maximum runup', dataDict["Rmax"], self.labelUnitDist))
+            self.fileRef.write('%s\t%6.2f %s\n' %\
+                ('Runup exceeded by 2% of runup', dataDict["R2"], self.labelUnitDist))
+            self.fileRef.write('%s\t%6.2f %s\n' %\
+                ('Avg. of highest 1 / 10 runups', dataDict["R110"], self.labelUnitDist))
+            self.fileRef.write('%s\t%6.2f %s\n' %\
+                ('Avg. of highest 1 / 3 runups', dataDict["R13"], self.labelUnitDist))
+            self.fileRef.write('%s\t\t\t%6.2f %s\n' %\
+                ('Average runup', dataDict["Ravg"], self.labelUnitDist))
+        
+        exportData = [dataDict["Hs0"], dataDict["Tp"], dataDict["cottheta"]]
+        if self.errorMsg != None:
+            exportData.append("Error")
+        else:
+            exportData = exportData + [dataDict["Rmax"], dataDict["R2"],\
+                dataDict["R110"], dataDict["R13"], dataDict["Ravg"]]
+        self.exporter.writeData(exportData)
     # end fileOutputWriteData
 
 

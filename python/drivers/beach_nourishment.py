@@ -39,6 +39,8 @@ from BOVERF import BOVERF
 
 class BeachNourishment(BaseDriver):
     def __init__(self, Vol_i = None, M_R = None, ro_n = None, M_b = None, ro_b = None):
+        self.exporter = EXPORTER("output/exportBeachNourishment.txt")
+        
         if Vol_i != None:
             self.isSingleCase = True
             self.defaultValueVol_i = Vol_i
@@ -56,6 +58,8 @@ class BeachNourishment(BaseDriver):
             self.defaultValue_ro_b = ro_b
 
         super(BeachNourishment, self).__init__()
+        
+        self.exporter.close()
     # end __init__
 
     def defineInputDataList(self):
@@ -214,6 +218,15 @@ class BeachNourishment(BaseDriver):
         self.fileRef.write("Renourishment factor, R_j\t\t%6.2f\n" % (dataDict["R_j"]))
         self.fileRef.write("Design Volume, Vol_D\t\t\t%6.2f %s\n" %\
             (dataDict["Vol_D"], self.labelUnitVolumeRate))
+        
+        exportData = [dataDict["Vol_i"], dataDict["M_R"], dataDict["ro_n"],\
+            dataDict["M_b"], dataDict["ro_b"]]
+        if self.errorMsg != None:
+            exportData.append("Error")
+        else:
+            exportData = exportData + [dataDict["R_A"], dataDict["R_j"],\
+                dataDict["Vol_D"]]
+        self.exporter.writeData(exportData)
     # end fileOutputWriteData
 
 

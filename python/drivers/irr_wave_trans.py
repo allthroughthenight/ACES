@@ -13,6 +13,8 @@ from GODA3 import GODA3
 from GODA4 import GODA4
 from GODA5 import GODA5
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Irregular Wave Transformation (page 3-2 of ACES User's
@@ -61,6 +63,8 @@ from GODA5 import GODA5
 class IrrWaveTrans(BaseDriver):
     def __init__(self, Ho = None, d = None, Ts = None,\
         cotnsl = None, direc = None):
+        self.exporter = EXPORTER("output/exportIrrWaveTrans.txt")
+        
         if Ho != None:
             self.isSingleCase = True
             self.defaultValueHo = Ho
@@ -78,6 +82,8 @@ class IrrWaveTrans(BaseDriver):
             self.defaultValue_direc = direc
 
         super(IrrWaveTrans, self).__init__()
+
+        self.exporter.close()
     # end __init__
 
     def defineInputDataList(self):
@@ -235,6 +241,25 @@ class IrrWaveTrans(BaseDriver):
             self.fileRef.write("Kr\t%-6.4f\n" % dataDict["Kr"])
             self.fileRef.write("d/Ho\t%-6.4f\t%-6.4f\n" % (dataDict["dHo"][1], dataDict["dHo"][0]))
             self.fileRef.write("d/Lo\t%-6.4f\t%-6.4f\n" % (dataDict["dLo"][1], dataDict["dLo"][0]))
+            
+        exportData = [dataDict["Ho"], dataDict["d"], dataDict["Ts"],\
+            dataDict["cotnsl"], dataDict["direc"]]
+        if self.errorMsg != None:
+            exportData.append("Error")
+        else:
+            exportData = exportData + [dataDict["Hs"][1]/m2cm, dataDict["Hs"][0]/m2cm,\
+                dataDict["Hbar"][1]/m2cm, dataDict["Hbar"][0]/m2cm,\
+                dataDict["Hrms"][1]/m2cm, dataDict["Hrms"][0]/m2cm,\
+                dataDict["H10"][1]/m2cm, dataDict["H10"][0]/m2cm,\
+                dataDict["H02"][1]/m2cm, dataDict["H02"][0]/m2cm,\
+                dataDict["Hmax"][1]/m2cm, dataDict["Hmax"][0]/m2cm,\
+                dataDict["Ks"][1], dataDict["Ks"][0],\
+                dataDict["SBrms"][1]/m2cm, dataDict["SBrms"][0]/m2cm,\
+                dataDict["Sw"][1]/m2cm, dataDict["Sw"][0]/m2cm,\
+                dataDict["HoLo"], dataDict["Kr"],\
+                dataDict["dHo"][1], dataDict["dHo"][0],
+                dataDict["dLo"][1], dataDict["dLo"][0]]
+        self.exporter.writeData(exportData)
     # end fileOutputWriteData
 
     def hasPlot(self):

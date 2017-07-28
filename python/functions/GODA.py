@@ -9,6 +9,7 @@ from GODA5 import GODA5
 
 def GODA(Ho, dloc, Ts, S, direc, g):
     Ksout = [0.0, 0.0]
+    Krout = 0.0
     Hmaxout = [0.0, 0.0]
     Hrmsout = [0.0, 0.0]
     Hmeanout = [0.0, 0.0]

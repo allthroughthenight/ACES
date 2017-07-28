@@ -59,6 +59,8 @@ class RefdiffVertWedge(BaseDriver):
         alpha = None, wedgang = None, mode = None, xcor = None,\
         ycor = None, x0 = None, xend = None, dx = None, y0 = None,\
         yend = None, dy = None):
+        self.exporter = EXPORTER("output/exportRefdiffVertWedge.txt")
+        
         if Hi != None:
             self.isSingleCase = True
             self.defaultValueHi = Hi
@@ -103,6 +105,8 @@ class RefdiffVertWedge(BaseDriver):
             self.defaultValue_dy = dy
 
         super(RefdiffVertWedge, self).__init__()
+
+        self.exporter.close()
     # end __init__
 
     def userInput(self):
@@ -438,6 +442,16 @@ class RefdiffVertWedge(BaseDriver):
                 self.fileRef.write("Mod factor (phi)    %6.2f\n" % dataDict["phi"])
                 self.fileRef.write("Wave phase          %6.2f rad\n" % dataDict["beta"])
                 self.fileRef.write("Mod wave height     %6.2f %s\n" % (dataDict["H"], self.labelUnitDist))
+                
+            exportData = [dataDict["Hi"], dataDict["T"], dataDict["d"],\
+                dataDict["alpha"], dataDict["wedgang"], dataDict["xcor"],\
+                dataDict["ycor"]]
+            if self.errorMsg != None:
+                exportData.append("Error")
+            else:
+                exportData = exportData + [dataDict["L"], dataDict["phi"],\
+                    dataDict["beta"], dataDict["H"]]
+            self.exporter.writeData(exportData)
         else:
             self.fileRef.write("Incident Wave Height\t=\t%-6.2f\t%s\tWave Period\t=\t%-6.2f\tsec\n" %\
                 (dataDict["Hi"], self.labelUnitDist, dataDict["T"]))
@@ -446,7 +460,7 @@ class RefdiffVertWedge(BaseDriver):
             self.fileRef.write("Wave Angle\t\t=\t%-6.2f\tdeg\tWedge Angle\t=\t%-6.2f\tdeg\n\n" % (dataDict["alpha"], dataDict["wedgang"]))
 
             if self.errorMsg != None:
-                self.fileRef.write("\n%s\n" % self.errorMsg)
+                self.fileRef.write("%s\n" % self.errorMsg)
             else:
                 # phi table
                 self.fileRef.write("**** Modification Factors:\n")
@@ -519,6 +533,33 @@ class RefdiffVertWedge(BaseDriver):
                     self.fileRef.write("  %8.2f" % xcor)
                 self.fileRef.write("\n--------------------------------------------------------------------\n")
                 # end beta table
+            # end if
+            
+            exportData = [dataDict["Hi"], dataDict["T"], dataDict["d"]]
+            exportData = exportData + [dataDict["alpha"], dataDict["wedgang"]]
+            if self.errorMsg != None:
+                exportData.append("Error")
+            else:
+                exportData = exportData + [dataDict["L"],\
+                    dataDict["xcors"][0], dataDict["xcors"][-1],\
+                    abs(dataDict["xcors"][1] - dataDict["xcors"][0]),\
+                    dataDict["ycors"][0], dataDict["ycors"][-1],\
+                    abs(dataDict["ycors"][1] - dataDict["ycors"][0])]
+                
+                for i in dataDict["phi"]:
+                    for j in i:
+                        exportData.append(j)
+                
+                for i in dataDict["H"]:
+                    for j in i:
+                        exportData.append(j)
+                
+                for i in dataDict["beta"]:
+                    for j in i:
+                        exportData.append(j)
+                
+            self.exporter.writeData(exportData)
+        # end if
     # end fileOutputWriteData
 
 

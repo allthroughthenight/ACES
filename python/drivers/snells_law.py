@@ -73,6 +73,8 @@ from LWTTWS import LWTTWS
 class SnellsLaw(BaseDriver):
     def __init__(self, H1 = None, T = None, d1 = None, alpha1 = None,\
         cotphi = None, d2 = None):
+        self.exporter = EXPORTER("output/exportSnellsLaw.txt")
+        
         if H1 != None:
             self.isSingleCase = True
             self.defaultValueH1 = H1
@@ -93,6 +95,8 @@ class SnellsLaw(BaseDriver):
             self.defaultValue_d2 = d2
 
         super(SnellsLaw, self).__init__()
+
+        self.exporter.close()
     # end __init__
 
     def userInput(self):
@@ -293,6 +297,22 @@ class SnellsLaw(BaseDriver):
                 (dataDict["Hb"], self.labelUnitDist))
             self.fileRef.write("Breaking depth\t\t%-5.2f %s\n" %\
                 (dataDict["db"], self.labelUnitDist))
+            
+        exportData = [dataDict["H1"], dataDict["T"], dataDict["d1"],\
+            dataDict["alpha1"], dataDict["cotphi"], dataDict["d2"]]
+        if self.errorMsg != None:
+            exportData.append("Error")
+        else:
+            exportData = exportData + [dataDict["H1"], dataDict["H0"],\
+                dataDict["H2"], dataDict["alpha1"], dataDict["alpha0"],\
+                dataDict["alpha2"], dataDict["L1"], dataDict["L0"],\
+                dataDict["L2"], dataDict["c1"], dataDict["c0"],\
+                dataDict["c2"], dataDict["cg1"], dataDict["cg0"],\
+                dataDict["cg2"], dataDict["E1"], dataDict["E0"],\
+                dataDict["E2"], dataDict["P1"], dataDict["P0"],\
+                dataDict["P2"], dataDict["Ur1"], dataDict["Ur2"],\
+                dataDict["HL"]]
+        self.exporter.writeData(exportData)
     # end fileOutputWriteData
 
 

@@ -10,6 +10,8 @@ from WAVELEN import WAVELEN
 import numpy as np
 import matplotlib.pyplot as plt
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to MATLAB
 #-------------------------------------------------------------
 # Driver for Linear Wave Theory (page 2-1 in ACES User's Guide)
@@ -53,6 +55,8 @@ import matplotlib.pyplot as plt
 class LinearWaveTheory(BaseDriver):
     def __init__(self, H = None, T = None, d = None,\
         z = None, xL = None):
+        self.exporter = EXPORTER("output/exportLinearWaveTheory.txt")
+        
         if H != None:
             self.isSingleCase = True
             self.defaultValueH = H
@@ -71,7 +75,7 @@ class LinearWaveTheory(BaseDriver):
 
         super(LinearWaveTheory, self).__init__()
 
-        self.performPlot()
+        self.exporter.close()
     # end __init__
 
     def userInput(self):
@@ -190,36 +194,37 @@ class LinearWaveTheory(BaseDriver):
         pres = -self.rho*self.g*z + self.rho*self.g*(H/2)*(math.cosh(k*tot)/math.cosh(k*d))*math.cos(theta)
 
         # plotting waveform
-        plotxL = np.arange(-1, 1, 0.001)
-        plottheta = plotxL * np.pi * 2
-
-        ploteta = (H / 2) * np.cos(plottheta)
-        plotu = (H * np.pi / T) * (np.cosh(k * tot) / np.sinh(k * d)) * np.cos(plottheta)
-        plotw = (H * np.pi / T) * (np.sinh(k * tot) / np.sinh(k * d)) * np.sin(plottheta)
-
-        plt.subplot(3, 1, 1)
-        plt.plot(plotxL, ploteta, lw=2)
-        plt.ylabel('Elevation [%s]' % self.labelUnitDist)
-        plt.ylim(min(ploteta) - 1, max(ploteta) + 1)
-        plt.axhline(color = 'r', linestyle = '--')
-
-        # subplot
-        plt.subplot(3, 1, 2)
-        plt.plot(plotxL, plotu, lw=2)
-        plt.axhline(color = 'r', linestyle = '--')
-        plt.ylabel('Velocity, u [%s/s]' % self.labelUnitDist)
-        plt.ylim(min(plotu) - 1, max(plotu) + 1)
-
-        # subplot
-        plt.subplot(3, 1, 3)
-        plt.plot(plotxL, plotw, lw=2)
-        plt.axhline(color = 'r', linestyle = '--')
-        plt.ylabel('Velocity, w [%s/s]' % self.labelUnitDist)
-        plt.ylim(min(plotw) - 1, max(plotw) + 1)
-
-        plt.tight_layout(pad=0.4)
-
-        plt.show()
+        if self.isSingleCase:
+            plotxL = np.arange(-1, 1, 0.001)
+            plottheta = plotxL * np.pi * 2
+    
+            ploteta = (H / 2) * np.cos(plottheta)
+            plotu = (H * np.pi / T) * (np.cosh(k * tot) / np.sinh(k * d)) * np.cos(plottheta)
+            plotw = (H * np.pi / T) * (np.sinh(k * tot) / np.sinh(k * d)) * np.sin(plottheta)
+    
+            plt.subplot(3, 1, 1)
+            plt.plot(plotxL, ploteta, lw=2)
+            plt.ylabel('Elevation [%s]' % self.labelUnitDist)
+            plt.ylim(min(ploteta) - 1, max(ploteta) + 1)
+            plt.axhline(color = 'r', linestyle = '--')
+    
+            # subplot
+            plt.subplot(3, 1, 2)
+            plt.plot(plotxL, plotu, lw=2)
+            plt.axhline(color = 'r', linestyle = '--')
+            plt.ylabel('Velocity, u [%s/s]' % self.labelUnitDist)
+            plt.ylim(min(plotu) - 1, max(plotu) + 1)
+    
+            # subplot
+            plt.subplot(3, 1, 3)
+            plt.plot(plotxL, plotw, lw=2)
+            plt.axhline(color = 'r', linestyle = '--')
+            plt.ylabel('Velocity, w [%s/s]' % self.labelUnitDist)
+            plt.ylim(min(plotw) - 1, max(plotw) + 1)
+    
+            plt.tight_layout(pad=0.4)
+    
+            plt.show()
 
         print("\t\t\t\t\tUnits")
         print("Wavelength\t\t\t%-6.2f\t%s" % (L, self.labelUnitDist))
@@ -299,11 +304,17 @@ class LinearWaveTheory(BaseDriver):
                 (dataDict["dwdt"], self.labelUnitDist))
             self.fileRef.write("Pressure\t\t\t%8.2f\t%s/%s^2\n" %\
                 (dataDict["pres"], self.labelUnitWt, self.labelUnitDist))
+            
+        exportData = [dataDict["H"], dataDict["T"], dataDict["d"], dataDict["z"], dataDict["xL"] ]
+        if self.errorMsg != None:
+            exportData.append("Error")
+        else:
+            exportData = exportData + [dataDict["L"], dataDict["C"],\
+                dataDict["Cg"], dataDict["E"], dataDict["Ef"],dataDict["Ur"], dataDict["eta"],\
+                dataDict["px"], dataDict["py"], dataDict["u"], dataDict["w"], dataDict["dudt"],\
+                dataDict["dwdt"], dataDict["pres"]]
+        self.exporter.writeData(exportData)
     # end fileOutputWriteData
-
-    def performPlot(self):
-        pass
-    # end performPlot
 
 
 driver = LinearWaveTheory()

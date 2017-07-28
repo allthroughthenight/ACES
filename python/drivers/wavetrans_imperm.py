@@ -14,6 +14,8 @@ from RUNUPR import RUNUPR
 from RUNUPS import RUNUPS
 from VERTKT import VERTKT
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to Python
 #-------------------------------------------------------------
 # Driver for Wave Transmission on Impermeable Structures (page 5-3 in ACES
@@ -65,6 +67,8 @@ from VERTKT import VERTKT
 class WavetransImperm(BaseDriver):
     def __init__(self, H = None, T = None, cotphi = None, ds = None,\
             cottheta = None, hs = None, B = None, R = None, hB = None):
+        self.exporter = EXPORTER("output/exportWavetransImperm.txt")
+
         if H != None:
             self.isSingleCase = True
             self.defaultValueH = H
@@ -102,6 +106,8 @@ class WavetransImperm(BaseDriver):
             self.defaultValue_hB = hB
 
         super(WavetransImperm, self).__init__()
+        
+        self.exporter.close()
     # end __init__
 
     def userInput(self):
@@ -260,34 +266,51 @@ class WavetransImperm(BaseDriver):
 
     def performCalculations(self, caseInputList, caseIndex = 0):
         H, T, cotphi, ds, cottheta, hs, B, R, hB = self.getCalcValues(caseInputList)
-
+        dataDict = {"H": H, "T": T, "cotphi": cotphi, "ds": ds,\
+            "cottheta": cottheta, "hs": hs, "B": B, "R": R, "hB": hB}
         m = 1.0/cotphi
 
         if self.option != 2 and not (ds < hs):
-            print("Error: Method does not apply to submerged structures.")
+            self.errorMsg = "Error: Method does not apply to submerged structures."
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         c, c0, cg, cg0, k, L, L0, reldep = LWTGEN(ds, T, self.g)
 
         Hbs = ERRWAVBRK2(T, m, ds)
         if not (H < Hbs):
-            print("Error: Wave broken at structure (Hbs = %6.2f %s" % (Hb, self.labelUnitDist))
+            self.errorMsg = "Error: Wave broken at structure (Hbs = %6.2f %s" %\
+                (Hbs, self.labelUnitDist)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         steep, maxstp = ERRSTP(H, ds, L)
         if not (steep < maxstp):
-            print("Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)" % (maxstp, steep))
+            self.errorMsg = "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)" % (maxstp, steep)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         if cottheta == 0:
             if self.option != 2:
-                print("Error: A cotangent of zero indicates a vertical wall.")
+                self.errorMsg = "Error: A cotangent of zero indicates a vertical wall."
+                
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
 
             reldep = ds / L
 
             if not (reldep > 0.14 and reldep < 0.5):
-                print("Error: d/L conditions exceeded - 0.14 <= (d/L) <= 0.5")
+                self.errorMsg = "Error: d/L conditions exceeded - 0.14 <= (d/L) <= 0.5"
+                
+                print(self.errorMsg)
+                self.fileOutputWriteMain(dataDict, caseIndex)
                 return
         else:
             theta = math.atan(1/cottheta)
@@ -309,8 +332,7 @@ class WavetransImperm(BaseDriver):
             Ht = VERTKT(H, freeb, B, ds, dl)
         print("Transmitted wave height\t%-6.3f" % Ht)
 
-        dataDict = {"H": H, "T": T, "cotphi": cotphi, "ds": ds,\
-            "cottheta": cottheta, "hs": hs, "B": B, "R": R, "hB": hB, "Ht": Ht}
+        dataDict.update({"R": R, "Ht": Ht})
         self.fileOutputWriteMain(dataDict, caseIndex)
     # end performCalculations
 
@@ -336,11 +358,33 @@ class WavetransImperm(BaseDriver):
 
         self.fileRef.write("\n")
 
-        if self.option == 3 or self.option == 4:
-            self.fileRef.write("Runup\t\t%6.3f\n" % dataDict["R"])
-
-        self.fileRef.write("Transmitted wave height\t%-6.3f %s\n" %\
-            (dataDict["Ht"], self.labelUnitDist))
+        if self.errorMsg != None:
+            self.fileRef.write("%s\n" % self.errorMsg)
+        else:
+            if self.option == 3 or self.option == 4:
+                self.fileRef.write("Runup\t\t%6.3f\n" % dataDict["R"])
+    
+            self.fileRef.write("Transmitted wave height\t%-6.3f %s\n" %\
+                (dataDict["Ht"], self.labelUnitDist))
+        
+        exportData = [dataDict["H"], dataDict["T"], dataDict["cotphi"],\
+            dataDict["ds"], dataDict["cottheta"], dataDict["hs"],\
+            dataDict["B"]]
+        if self.option == 1:
+            exportData.append(dataDict["R"])
+        if self.option == 2:
+            exportData.append(dataDict["hB"])
+        if self.option == 3:
+            exportData.append(self.a)
+            exportData.append(self.b)
+        
+        if self.errorMsg != None:
+            exportData.append("Error")
+        else:
+            if self.option == 3 or self.option == 4:
+                exportData.append(dataDict["R"])
+            exportData.append(dataDict["Ht"])
+        self.exporter.writeData(exportData)
     # end fileOutputWriteData
 
 
