@@ -82,6 +82,8 @@ else
     xLList = varData(5, :);
 end
 
+exporter = EXPORTER('output/exporterCnoidal.txt');
+
 twopi=2*pi;
 
 O = 0;
@@ -349,12 +351,22 @@ for loopIndex = 1:numCases
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
+        
+        exportData = {H, T, d, z, xL, O, time};
+            if length(errorMsg) > 0
+                exportData = [exportData {errorMsg}];
+            else
+                exportData = [exportData {L, C, E, Ef, Ur, eta, u, w, dudt, dwdt, pres}];
+            end
+        exporter.writeData(exportData);
     end
 end
 
 if fileOutputData{1}
     fclose(fId);
 end
+
+exporter.close();
 
 if single_case && length(errorMsg) == 0
     if O == 1

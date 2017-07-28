@@ -82,6 +82,8 @@ end
 
 H20weight=rho*g; %64 lb/ft^3 for seawater, 62.4 for fresh
 
+exporter = EXPORTER('output/exporterBreakwaterHudson.txt');
+
 % File Output
 fileOutputArgs = {};
 [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
@@ -152,9 +154,14 @@ for loopIndex = 1:numCases
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
+        
+        exportData = {unitwt, H, Kd, kdelt, P, cotssl, n, w, b, r, Nr};
+        exporter.writeData(exportData);
     end
 end
 
 if fileOutputData{1}
     fclose(fId);
 end
+
+exporter.close();

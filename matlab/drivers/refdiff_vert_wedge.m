@@ -114,6 +114,8 @@ else
     end
 end
 
+exporter = EXPORTER('output/exporterReffDifVertWedge.txt');
+
 %Define Uniform Grid
 if mode == 1
     [x0] = USER_INPUT_DATA_VALUE(['Enter x0: x start coordinate (' labelUnitDist '): '], -5280, 5280);
@@ -158,6 +160,11 @@ for loopIndex = 1:numCases
     end
     
     errorMsg = '';
+    
+    exportData = {Hi, T, d, alpha, wedgang};
+    if mode == 0
+        exportData = [exportData {xcor, ycor}];
+    end
     
 %     assert(wedgang>=0 && wedgang<=180,'Error: Range is 0.0 to 180.0')
     if not(wedgang>=0 && wedgang<=180)
@@ -232,6 +239,8 @@ for loopIndex = 1:numCases
                 fprintf(fId, '%s          %6.2f %s\n','Wave phase',beta,'rad');
                 fprintf(fId, '%s     %6.2f %s\n','Mod wave height',H,labelUnitDist);
             end
+            
+            exportData = [exportData {L, phi, beta, H}];
         end
 
     %Uniform Grid Case
@@ -397,6 +406,25 @@ for loopIndex = 1:numCases
 
                 fprintf(fId, '\n');
             end
+            
+            exportData = [exportData {L, xcors(2), xcors(end),...
+                (xcors(3) - xcors(2)), ycors(end), ycors(1),...
+                (ycors(1) - ycors(2))}];
+            for rowIndex = 2:size(phi, 1)
+                for colIndex = 2:size(phi, 2)
+                    exportData = [exportData {phi(rowIndex, colIndex)}];
+                end
+            end
+            for rowIndex = 2:size(H, 1)
+                for colIndex = 2:size(H, 2)
+                    exportData = [exportData {H(rowIndex, colIndex)}];
+                end
+            end
+            for rowIndex = 2:size(beta, 1)
+                for colIndex = 2:size(beta, 2)
+                    exportData = [exportData {beta(rowIndex, colIndex)}];
+                end
+            end
         end
     end
     
@@ -404,6 +432,11 @@ for loopIndex = 1:numCases
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
+        
+        if length(errorMsg) > 0
+            exportData = [exportData {errorMsg}];
+        end
+        exporter.writeData(exportData);
     end
 end
 
@@ -433,3 +466,5 @@ if fileOutputData{1}
         fclose(fId);
     end
 end
+
+exporter.close();

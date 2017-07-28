@@ -151,6 +151,8 @@ if isfield(roughSlopeCoeffData, 'R')
     R = roughSlopeCoeffData.R;
 end
 
+exporter = EXPORTER('output/exporterRunupOvertopping.txt');
+
 % File Output
 fileOutputArgs = {};
 [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
@@ -258,37 +260,50 @@ for loopIndex = 1:numCases
         fprintf(fId, 'cottheta\t%6.2f\n', cottheta);
         fprintf(fId, 'hs\t\t%6.2f %s\n', hs, labelUnitDist);
         
+        exportData = {H, T, cotphi, ds, cottheta, hs};
+        
         if exist('a') == 1
             fprintf(fId, 'a\t\t%6.4f\n', a);
+            exportData = [exportData {a}];
         end
         
         if exist('b') == 1
             fprintf(fId, 'b\t\t%6.4f\n', b);
+            exportData = [exportData {b}];
         end
         
         if exist('alpha') == 1
             fprintf(fId, 'alpha\t\t%6.4f\n', alpha);
+            exportData = [exportData {alpha}];
         end
         
         if exist('Qstar0') == 1
             fprintf(fId, 'Qstar0\t\t%6.4f\n', Qstar0);
+            exportData = [exportData {Qstar0}];
         end
         
         if exist('U') == 1
             fprintf(fId, 'U\t\t%6.4f knots\n', U/conversionKnots2mph);
+            exportData = [exportData {U/conversionKnots2mph}];
         end
         
         if exist('R') == 1
             fprintf(fId, 'R\t\t%6.4f %s\n', R, labelUnitDist);
+            if ~has_runup
+                exportData = [exportData {R}];
+            end
         end
         
         if length(errorMsg) > 0
             fprintf(fId, '\n%s\n\n', errorMsg);
+            exportData = [exportData {errorMsg}];
         else
             fprintf(fId, '\n%s \n','Deepwater');
             fprintf(fId, '\t %s \t\t %6.3f %s \n','Wave height, Hs0',H0,labelUnitDist);
             fprintf(fId, '\t %s \t %6.3f \n','Relative height, ds/H0',relht0);
             fprintf(fId, '\t %s \t %6.6f \n\n','Wave steepness, Hs0/(gT^2)',steep0);
+            
+            exportData = [exportData {H0, relht0, steep0}];
         end
     end
     
@@ -301,6 +316,7 @@ for loopIndex = 1:numCases
 
             if fileOutputData{1}
                 fprintf(fId, '%s \t %6.3f %s \n\n','Runup',R,labelUnitDist);
+                exportData = [exportData {R}];
             end
         elseif option==2
             [R]=RUNUPS(H,L,ds,theta,ssp);
@@ -308,6 +324,7 @@ for loopIndex = 1:numCases
 
             if fileOutputData{1}
                 fprintf(fId, '%s \t %6.3f %s \n\n','Runup',R,labelUnitDist);
+                exportData = [exportData {R}];
             end
         elseif option==3   
             [Q]=QOVERT(H0,freeb,R,Qstar0,alpha,theta,U,g);
@@ -315,6 +332,7 @@ for loopIndex = 1:numCases
 
             if fileOutputData{1}
                 fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
+                exportData = [exportData {Q}];
             end
         elseif option==4
             [Q]=QOVERT(H0,freeb,R,Qstar0,alpha,theta,U,g);
@@ -322,6 +340,7 @@ for loopIndex = 1:numCases
 
             if fileOutputData{1}
                 fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
+                exportData = [exportData {Q}];
             end
         elseif option==5
             [R]=RUNUPR(H,ssp,a,b);
@@ -332,6 +351,7 @@ for loopIndex = 1:numCases
             if fileOutputData{1}
                 fprintf(fId, '%s \t %6.3f %s \n','Runup',R,labelUnitDist);
                 fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
+                exportData = [exportData {R, Q}];
             end
         elseif option==6
             [R]=RUNUPS(H,L,ds,theta,ssp);
@@ -342,6 +362,7 @@ for loopIndex = 1:numCases
             if fileOutputData{1}
                 fprintf(fId, '%s \t %6.3f %s \n','Runup',R,labelUnitDist);
                 fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
+                exportData = [exportData {R, Q}];
             end
         elseif option==7
             [R]=RUNUPR(H,ssp,a,b);
@@ -352,6 +373,7 @@ for loopIndex = 1:numCases
             if fileOutputData{1}
                 fprintf(fId, '%s \t %6.3f %s \n','Runup',R,labelUnitDist);
                 fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
+                exportData = [exportData {R, Q}];
             end
         elseif option==8
             [R]=RUNUPS(H,L,ds,theta,ssp);
@@ -362,6 +384,7 @@ for loopIndex = 1:numCases
             if fileOutputData{1}
                 fprintf(fId, '%s \t %6.3f %s \n','Runup',R,labelUnitDist);
                 fprintf(fId, '%s \t %6.3f %s^3/sec-%s \n\n','Overtopping rate per unit width',Q,labelUnitDist,labelUnitDist);
+                exportData = [exportData {R, Q}];
             end
         end
     end
@@ -370,9 +393,13 @@ for loopIndex = 1:numCases
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
+        
+        exporter.writeData(exportData);
     end
 end
 
 if fileOutputData{1}
     fclose(fId);
 end
+
+exporter.close();

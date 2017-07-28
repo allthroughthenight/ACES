@@ -99,6 +99,8 @@ else
     d2List = varData(6, :);
 end
 
+exporter = EXPORTER('output/exporterSnellsLaw.txt');
+
 % File Output
 fileOutputArgs = {};
 [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
@@ -219,6 +221,16 @@ for loopIndex = 1:numCases
             fprintf(fId, '%s \t\t %-5.2f %s \t\n','Breaking depth',db,labelUnitDist);
         end
         
+        exportData = {H1, T, d1, alpha1, cotphi, d2};
+        if length(errorMsg) > 0
+            exportData = [exportData {'Error'}];
+        else
+            exportData = [exportData {H1,H0,H2,alpha1,alpha0,alpha2,...
+                L1,L0,L2,c1,c0,c2,cg1,cg0,cg2,E1,E0,E2,P1,P0,P2,...
+                Ur1,Ur2,HL,Hb,db}];
+        end
+        exporter.writeData(exportData);
+        
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
@@ -228,3 +240,5 @@ end
 if fileOutputData{1}
     fclose(fId);
 end
+
+exporter.close();

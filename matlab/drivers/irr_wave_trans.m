@@ -90,6 +90,8 @@ else
     direcList = varData(5, :);
 end
 
+exporter = EXPORTER('output/exporterIrrWaveTrans.txt');
+
 % Meter to centimeter constant
 m2cm=100;
 g=g*m2cm;
@@ -181,12 +183,26 @@ for loopIndex = 1:numCases
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
+        exportData = {Ho/m2cm, d/m2cm, Ts, cotnsl, direc };
+        if length(errorMsg) > 0
+            exportData = [exportData {errorMsg}];
+        else
+            exportData = [exportData {Hs(2)/m2cm, Hs(1)/m2cm,...
+                Hbar(2)/m2cm, Hbar(1)/m2cm, Hrms(2)/m2cm,Hrms(1)/m2cm,...
+                H10(2)/m2cm,H10(1)/m2cm, H02(2)/m2cm,H02(1)/m2cm,...
+                Hmax(2)/m2cm,Hmax(1)/m2cm, Ks(2),Ks(1),...
+                SBrms(2)/m2cm,SBrms(1)/m2cm, Sw(2)/m2cm,Sw(1)/m2cm,...
+                HoLo(1),Kr(1),dHo(2),dHo(1),dLo(2),dLo(1)}];
+        end
+        exporter.writeData(exportData);
     end
 end
 
 if fileOutputData{1}
     fclose(fId);
 end
+
+exporter.close();
 
 if single_case && length(errorMsg) == 0
     plot1Hxo = Hxo/m2cm;

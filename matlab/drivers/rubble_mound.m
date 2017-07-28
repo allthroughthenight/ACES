@@ -101,6 +101,8 @@ N=7000;
 
 H20weight=g*rho;
 
+exporter = EXPORTER('output/exporterRubbleMound.txt');
+
 % File Output
 fileOutputArgs = {};
 [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
@@ -298,9 +300,22 @@ for loopIndex = 1:numCases
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
+        
+        exportData = {Hs, Ts, cotnsl, ds, cotssl, unitwt, P, S};
+        if length(errorMsg) > 0
+            exportData = [exportData {errorMsg}];
+        else
+            exportData = [exportData {rarmor, alw0, ald0, alw15, ald15,...
+                alw50, ald50, alw85, ald85, alw100, ald100, rfilter,...
+                blw0, bld0, blw15, bld15, blw50, bld50, blw85, bld85,...
+                blw100, bld100, runupr_conserv, runupr_max}];
+        end
+        exporter.writeData(exportData);
     end
 end
 
 if fileOutputData{1}
     fclose(fId);
 end
+
+exporter.close();

@@ -78,6 +78,7 @@ else
     xLList = varData(5, :);
 end
 
+exporter = EXPORTER('output/exporterLinearWaveTheory.txt');
 
 twopi=2*pi;
 nIteration = 50;
@@ -195,6 +196,13 @@ for loopIndex = 1:numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
     end
+    exportData = {H, T, d, z, xL};
+    if length(errorMsg) > 0
+        exportData = [exportData {errorMsg}];
+    else
+        exportData = [exportData {L, C, Cg, E, Ef, eta, px, py, u, w, dudt, dwdt, pres}];
+    end
+    exporter.writeData(exportData);
     
     if single_case && length(errorMsg) == 0
         %Plotting waveform
@@ -227,3 +235,5 @@ end
 if fileOutputData{1}
     fclose(fId);
 end
+
+exporter.close();

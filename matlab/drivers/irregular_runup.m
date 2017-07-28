@@ -69,6 +69,8 @@ b13=0.70;
 aavg=0.88;
 bavg=0.69;
 
+exporter = EXPORTER('output/exporterIrregularRunup.txt');
+
 % File Output
 fileOutputArgs = {};
 [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
@@ -106,7 +108,7 @@ for loopIndex = 1:numCases
         fprintf('%s \t %-6.2f %s \n','Runup exceeded by 2% of runup',R2,labelUnitDist)
         fprintf('%s \t %-6.2f %s \n','Avg. of highest 1/10 runups',R110,labelUnitDist)
         fprintf('%s \t\t %-6.2f %s \n','Avg. of highest 1/3 runups',R13,labelUnitDist)
-        fprintf('%s \t\t\t\t\t %-6.2f %s \n','Maximum runup',Ravg,labelUnitDist)
+        fprintf('%s \t\t\t\t\t %-6.2f %s \n','Average runup',Ravg,labelUnitDist)
     end
 
     if fileOutputData{1}
@@ -126,15 +128,25 @@ for loopIndex = 1:numCases
             fprintf(fId, '%s \t %6.2f %s \n','Runup exceeded by 2% of runup',R2,labelUnitDist);
             fprintf(fId, '%s \t %6.2f %s \n','Avg. of highest 1/10 runups',R110,labelUnitDist);
             fprintf(fId, '%s \t %6.2f %s \n','Avg. of highest 1/3 runups',R13,labelUnitDist);
-            fprintf(fId, '%s \t\t\t %6.2f %s \n','Maximum runup',Ravg,labelUnitDist);
+            fprintf(fId, '%s \t\t\t %6.2f %s \n','Average runup',Ravg,labelUnitDist);
         end
         
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
+        
+        exportData = {Hs0, Tp, cottheta};
+        if length(errorMsg) > 0
+            exportData = [exportData {errorMsg}];
+        else
+            exportData = [exportData {Rmax, R2, R110, R13, Ravg}];
+        end
+        exporter.writeData(exportData);
     end
 end
 
 if fileOutputData{1}
     fclose(fId);
 end
+
+exporter.close();
