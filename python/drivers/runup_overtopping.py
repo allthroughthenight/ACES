@@ -73,7 +73,7 @@ from EXPORTER import EXPORTER
 class RunupOvertopping(BaseDriver):
     def __init__(self, H = None, T = None, cotphi = None,\
         ds = None, cottheta = None, hs = None):
-        self.exporter = EXPORTER("output/exportRunupOvertopping.txt")
+        self.exporter = EXPORTER("output/exportRunupOvertopping")
 
         if H != None:
             self.isSingleCase = True
@@ -382,7 +382,7 @@ class RunupOvertopping(BaseDriver):
         if "R" in dataDict and dataDict["R"] != None and not self.has_runup:
             exportData.append(dataDict["R"])
         if self.errorMsg != None:
-            exportData.append("Error")
+            exportData.append(self.errorMsg)
         else:
             exportData = exportData + [dataDict["H0"], dataDict["relht0"],\
                 dataDict["steep0"]]

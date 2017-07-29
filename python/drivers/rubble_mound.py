@@ -63,7 +63,7 @@ from EXPORTER import EXPORTER
 class RubbleMound(BaseDriver):
     def __init__(self, Hs = None, Ts = None, cotnsl = None,\
         ds = None, cotssl = None, unitwt = None, P = None, S = None):
-        self.exporter = EXPORTER("output/exportRubbleMound.txt")
+        self.exporter = EXPORTER("output/exportRubbleMound")
 
         if Hs != None:
             self.isSingleCase = True
@@ -408,7 +408,7 @@ class RubbleMound(BaseDriver):
             dataDict["ds"], dataDict["cotssl"], dataDict["unitwt"],\
             dataDict["P"], dataDict["S"]]
         if self.errorMsg != None:
-            exportData.append("Error")
+            exportData.append(self.errorMsg)
         else:
             exportData = exportData + [dataDict["rarmor"], dataDict["alw0"],\
                 dataDict["ald0"], dataDict["alw15"], dataDict["ald15"],\

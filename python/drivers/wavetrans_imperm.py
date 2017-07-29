@@ -67,7 +67,7 @@ from EXPORTER import EXPORTER
 class WavetransImperm(BaseDriver):
     def __init__(self, H = None, T = None, cotphi = None, ds = None,\
             cottheta = None, hs = None, B = None, R = None, hB = None):
-        self.exporter = EXPORTER("output/exportWavetransImperm.txt")
+        self.exporter = EXPORTER("output/exportWavetransImperm")
 
         if H != None:
             self.isSingleCase = True
@@ -379,7 +379,7 @@ class WavetransImperm(BaseDriver):
             exportData.append(self.b)
         
         if self.errorMsg != None:
-            exportData.append("Error")
+            exportData.append(self.errorMsg)
         else:
             if self.option == 3 or self.option == 4:
                 exportData.append(dataDict["R"])

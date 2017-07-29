@@ -6,6 +6,8 @@ from base_driver import BaseDriver
 from helper_objects import BaseField
 from BOVERF import BOVERF
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to Python BEACH NOURISMENT and OVERFILL RATIO
 #-------------------------------------------------------------
 # Evaluates the suitable of borrow material as beach fill and give overfill
@@ -39,7 +41,7 @@ from BOVERF import BOVERF
 
 class BeachNourishment(BaseDriver):
     def __init__(self, Vol_i = None, M_R = None, ro_n = None, M_b = None, ro_b = None):
-        self.exporter = EXPORTER("output/exportBeachNourishment.txt")
+        self.exporter = EXPORTER("output/exportBeachNourishment")
         
         if Vol_i != None:
             self.isSingleCase = True
@@ -222,7 +224,7 @@ class BeachNourishment(BaseDriver):
         exportData = [dataDict["Vol_i"], dataDict["M_R"], dataDict["ro_n"],\
             dataDict["M_b"], dataDict["ro_b"]]
         if self.errorMsg != None:
-            exportData.append("Error")
+            exportData.append(self.errorMsg)
         else:
             exportData = exportData + [dataDict["R_A"], dataDict["R_j"],\
                 dataDict["Vol_D"]]

@@ -40,7 +40,7 @@ from EXPORTER import EXPORTER
 
 class IrregularRunup(BaseDriver):
     def __init__(self, Hs0 = None, Tp = None, cottheta = None):
-        self.exporter = EXPORTER("output/exportIrregularRunup.txt")
+        self.exporter = EXPORTER("output/exportIrregularRunup")
 
         if Hs0 != None:
             self.isSingleCase = True
@@ -166,7 +166,7 @@ class IrregularRunup(BaseDriver):
         
         exportData = [dataDict["Hs0"], dataDict["Tp"], dataDict["cottheta"]]
         if self.errorMsg != None:
-            exportData.append("Error")
+            exportData.append(self.errorMsg)
         else:
             exportData = exportData + [dataDict["Rmax"], dataDict["R2"],\
                 dataDict["R110"], dataDict["R13"], dataDict["Ravg"]]

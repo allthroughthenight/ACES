@@ -59,7 +59,7 @@ from EXPORTER import EXPORTER
 
 class CnoidalWaveTheory(BaseDriver):
     def __init__(self, H = None, T = None, d = None, z = None, xL = None):
-        self.exporter = EXPORTER("output/exportCnoidalWaveTheory.txt")
+        self.exporter = EXPORTER("output/exportCnoidalWaveTheory")
 
         if H != None:
             self.isSingleCase = True

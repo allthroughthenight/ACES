@@ -12,6 +12,8 @@ from ERRWAVBRK2 import ERRWAVBRK2
 from MADSEELG import MADSEELG
 from WAVELEN import WAVELEN
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to Python
 #-------------------------------------------------------------
 # Driver for Wave Transmission on Permeable Structures (page 5-4 in ACES
@@ -66,6 +68,8 @@ class WavetransPerm(BaseDriver):
     def __init__(self, H = None, T = None, ds = None, d50 = None,\
         por = None, hs = None, cottheta = None, b = None,\
         th = None, hlen = None):
+        self.exporter = EXPORTER("output/exportWavetransPerm")
+
         if H != None:
             self.isSingleCase = True
             self.defaultValueH = H
@@ -90,6 +94,8 @@ class WavetransPerm(BaseDriver):
             self.defaultValue_hlen = hlen
 
         super(WavetransPerm, self).__init__()
+        
+        self.exporter.close()
     # end __init__
 
     def userInput(self):
@@ -192,12 +198,8 @@ class WavetransPerm(BaseDriver):
                 "H: incident wave height (%s)" % self.labelUnitDist, 0.1, 100.0))
 
         if not hasattr(self, "defaultValueT"):
-           self.inputList.append(BaseField("T: wave period (s)", 1.0, 1000.0))
+            self.inputList.append(BaseField("T: wave period (s)", 1.0, 1000.0))
     # end defineInputDataList
-
-    def getBreakwaterMaterialData(self, inputArg):
-        pass
-    # end getBreakwaterMaterialData
 
     def fileOutputRequestInit(self):
         self.fileOutputRequestMain(defaultFilename = "wavetrans_perm")
@@ -216,56 +218,6 @@ class WavetransPerm(BaseDriver):
         else:
             T = caseInputList[currIndex]
 
-        # if hasattr(self, "defaultValue_ds"):
-        #     ds = self.defaultValue_ds
-        # else:
-        #     ds = caseInputList[currIndex]
-        #     currIndex = currIndex + 1
-
-        # if hasattr(self, "defaultValue_d50"):
-        #     d50 = self.defaultValue_d50
-        #     self.NM = len(d50)
-        # else:
-        #     d50 = caseInputList[currIndex]
-        #     currIndex = currIndex + 1
-
-        # if hasattr(self, "defaultValue_por"):
-        #     por = self.defaultValue_por
-        #     self.NM = len(por)
-        # else:
-        #     por = caseInputList[currIndex]
-        #     currIndex = currIndex + 1
-
-        # if hasattr(self, "defaultValue_hs"):
-        #     hs = self.defaultValue_hs
-        # else:
-        #     hs = caseInputList[currIndex]
-        #     currIndex = currIndex + 1
-
-        # if hasattr(self, "defaultValue_cottheta"):
-        #     cottheta = self.defaultValue_cottheta
-        # else:
-        #     cottheta = caseInputList[currIndex]
-        #     currIndex = currIndex + 1
-
-        # if hasattr(self, "defaultValue_b"):
-        #     b = self.defaultValue_b
-        # else:
-        #     b = caseInputList[currIndex]
-        #     currIndex = currIndex + 1
-
-        # if hasattr(self, "defaultValue_th"):
-        #     th = self.defaultValue_th
-        #     self.NL = len(th)
-        # else:
-        #     th = caseInputList[currIndex]
-        #     currIndex = currIndex + 1
-
-        # if hasattr(self, "defaultValue_hlen"):
-        #     hlen = self.defaultValue_hlen
-        # else:
-        #     hlen = caseInputList[currIndex]
-
         return H, T, self.ds, self.d50, self.por, self.hs,\
             self.cottheta, self.b, self.th, self.hlen
     # end getCalcValues
@@ -273,7 +225,10 @@ class WavetransPerm(BaseDriver):
     def performCalculations(self, caseInputList, caseIndex = 0):
         H, T, ds, d50, por, hs, cottheta, b, th, hlen =\
             self.getCalcValues(caseInputList)
-
+        dataDict = {"H": H, "T": T, "ds": ds, "d50": d50, "por": por,\
+            "hs": hs, "cottheta": cottheta, "b": b, "th": th,\
+            "hlen": hlen}
+        
         if not self.isMetric:
             if self.water == "S" or self.water == "s":
                 nu = 14.643223710**(-6) #salt water
@@ -287,28 +242,43 @@ class WavetransPerm(BaseDriver):
 
         Hb = ERRWAVBRK1(ds, 0.78)
         if not (H < Hb):
-            print("Error: Input wave broken (Hb = %6.2f %s)" % (Hb, self.labelUnitDist))
+            self.errorMsg = "Error: Input wave broken (Hb = %6.2f %s)" % (Hb, self.labelUnitDist)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         Hbs = ERRWAVBRK2(T, 1.0/cottheta, ds)
         if not (H < Hbs):
-            print("Error: Input wave breaking at toe of the structure (Hbs = %6.2f %s)" % (Hbs, self.labelUnitDist))
+            self.errorMsg = "Error: Input wave breaking at toe of the structure (Hbs = %6.2f %s)" % (Hbs, self.labelUnitDist)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         L, k = WAVELEN(ds, T, 50, self.g)
 
         steep, maxstp = ERRSTP(H, ds, L)
         if not (steep < maxstp):
-            print("Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)" %\
-                (maxstp, steep))
+            self.errorMsg = "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)" %\
+                (maxstp, steep)
+                
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         if not (ds < hs):
-            print("Error: Method does not apply to submerged structures.")
+            self.errorMsg = "Error: Method does not apply to submerged structures."
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         if not (np.isclose(sum(th), ds)):
-            print("Error: Water depth must equal sum of all layer thicknesses.")
+            self.errorMsg = "Error: Water depth must equal sum of all layer thicknesses."
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         KTt, Kto, KT, Kr, Ht, L = MADSEELG(\
@@ -321,10 +291,7 @@ class WavetransPerm(BaseDriver):
         print("Wave Transmission (Total), KT\t\t%-6.3f" % KT)
         print("Transmitted wave height, Ht\t\t%-6.2f %s" % (Ht, self.labelUnitDist))
 
-        dataDict = {"H": H, "T": T, "ds": ds, "d50": d50, "por": por,\
-            "hs": hs, "cottheta": cottheta, "b": b, "th": th,\
-            "hlen": hlen, "Kr": Kr, "KTt": KTt, "Kto": Kto, "KT": KT,\
-            "Ht": Ht}
+        dataDict.update({"Kr": Kr, "KTt": KTt, "Kto": Kto, "KT": KT, "Ht": Ht})
         self.fileOutputWriteMain(dataDict)
     # end performCalculations
 
@@ -353,18 +320,33 @@ class WavetransPerm(BaseDriver):
                     ((i + 1), dataDict["hlen"][i][j], self.labelUnitDist))
                 self.fileRef.write("  layer %d\n" % (j + 1))
 
-        self.fileRef.write("\nReflection coefficient, Kr\t\t%-6.3f\n" %\
-            dataDict["Kr"])
-        self.fileRef.write("Wave transmission coefficient\n")
-        self.fileRef.write("Wave Transmission (Through), KTt\t%-6.3f\n" %\
-            dataDict["KTt"])
-        self.fileRef.write("Wave Transmission (Overtopping), KTo\t%-6.3f\n" %\
-            dataDict["Kto"])
-        self.fileRef.write("Wave Transmission (Total), KT\t\t%-6.3f\n" %\
-            dataDict["KT"])
-        self.fileRef.write("Transmitted wave height, Ht\t\t%-6.2f %s\n" %\
-            (dataDict["Ht"], self.labelUnitDist))
+        if self.errorMsg != None:
+            self.fileRef.write("\n%s\n" % self.errorMsg)
+        else:
+            self.fileRef.write("\nReflection coefficient, Kr\t\t%-6.3f\n" %\
+                dataDict["Kr"])
+            self.fileRef.write("Wave transmission coefficient\n")
+            self.fileRef.write("Wave Transmission (Through), KTt\t%-6.3f\n" %\
+                dataDict["KTt"])
+            self.fileRef.write("Wave Transmission (Overtopping), KTo\t%-6.3f\n" %\
+                dataDict["Kto"])
+            self.fileRef.write("Wave Transmission (Total), KT\t\t%-6.3f\n" %\
+                dataDict["KT"])
+            self.fileRef.write("Transmitted wave height, Ht\t\t%-6.2f %s\n" %\
+                (dataDict["Ht"], self.labelUnitDist))
+        
+        exportData = [dataDict["H"], dataDict["T"], dataDict["ds"]] +\
+            [i for i in dataDict["d50"]] + [i*100 for i in dataDict["por"]] +\
+            [dataDict["hs"], dataDict["cottheta"], dataDict["b"]] +\
+            [i for i in dataDict["th"]] +\
+            [j for i in dataDict["hlen"] for j in i]
+        if self.errorMsg != None:
+            exportData.append(self.errorMsg)
+        else:
+            exportData = exportData + [dataDict["Kr"], dataDict["KTt"],\
+                dataDict["Kto"], dataDict["KT"], dataDict["Ht"]]
+        self.exporter.writeData(exportData)
     # end fileOutputWriteData
 
 
-driver = WavetransPerm(hlen=[[14.76, 14.76, 17.39],[12.46, 8.2, 0.0],[21.0, 0.0, 0.0]])
+driver = WavetransPerm()

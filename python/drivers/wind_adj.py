@@ -10,6 +10,8 @@ from WADJ import WADJ
 from WGFET import WGFET
 from WGRO import WGRO
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Windspeed Adjustment and Wave Growth (page 1-1 of ACES User's
@@ -72,6 +74,8 @@ class WindAdj(BaseDriver):
         zobs = None, Uobs = None, dtemp = None, duro = None, durf = None,\
         lat = None, F = None, d = None, wdir = None, dang = None,\
         ang1 = None, manualOrFile = None, Nfet = None, angs = None):
+        self.exporter = EXPORTER("output/exportWindAdj")
+
         if windobs != None:
             self.isSingleCase = True
             self.defaultValue_windobs = windobs
@@ -125,6 +129,8 @@ class WindAdj(BaseDriver):
             self.defaultValue_useKnots = useKnots
 
         super(WindAdj, self).__init__()
+        
+        self.exporter.close()
     # end __init__
 
     def userInput(self):
@@ -199,7 +205,7 @@ class WindAdj(BaseDriver):
                     for i in range(self.Nfet):
                         self.angs.append(USER_INPUT.DATA_VALUE(\
                             "angs: fetch length [%s] #%d" %\
-                            (self.labelUnitDistLrg, i), 0.0, 9999.0))
+                            (self.labelUnitDistLrg, (i + 1)), 0.0, 9999.0))
                 else:
                     accepted = False
                     while not accepted:
@@ -464,6 +470,7 @@ class WindAdj(BaseDriver):
 
         print("Wave growth: %s" % wgmsg)
 
+        dataDict["F"] = F
         dataDict["ue"] = ue
         dataDict["ua"] = ua
         dataDict["Hmo"] = Hmo
@@ -520,6 +527,33 @@ class WindAdj(BaseDriver):
             self.fileRef.write("Wave period\t\t\t%-6.2f s\n" % dataDict["Tp"])
     
             self.fileRef.write("Wave growth: %s\n" % dataDict["wgmsg"])
+            
+        exportData = [dataDict["zobs"], dataDict["Uobs"], dataDict["dtemp"],\
+            dataDict["duro"], dataDict["durf"], dataDict["lat"]]
+        if self.isWaterOpen:
+            exportData.append(dataDict["F"])
+        if self.isWaterShallow:
+            exportData.append(dataDict["d"])
+        if not self.isWaterOpen:
+            exportData.append(dataDict["wdir"])
+        
+        if self.errorMsg != None:
+            exportData.append(self.errorMsg)
+        else:
+            if not self.isWaterOpen:
+                exportData = exportData + [dataDict["F"]]#, dataDict["wdir"]]
+            exportData = exportData + [\
+                    dataDict["ue"]/dataDict["conversionSpeed"],\
+                    dataDict["ua"]/dataDict["conversionSpeed"]]
+    
+            if not self.isWaterOpen:
+                exportData.append(dataDict["theta"])
+    
+            exportData = exportData + [\
+                dataDict["Hmo"]/dataDict["conversionDist"],\
+                dataDict["Tp"], dataDict["wgmsg"]]
+        
+        self.exporter.writeData(exportData)
     # end fileOutputWriteData
 
 

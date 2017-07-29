@@ -46,7 +46,7 @@ from EXPORTER import EXPORTER
 class BreakwaterHudson(BaseDriver):
     def __init__(self, unitwt = None, H = None, Kd = None,\
         kdelt = None, P = None, cotssl = None, n = None):
-        self.exporter = EXPORTER("output/exportBreakwaterHudson.txt")
+        self.exporter = EXPORTER("output/exportBreakwaterHudson")
 
         if unitwt != None:
             self.isSingleCase = True

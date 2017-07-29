@@ -63,7 +63,7 @@ from EXPORTER import EXPORTER
 class IrrWaveTrans(BaseDriver):
     def __init__(self, Ho = None, d = None, Ts = None,\
         cotnsl = None, direc = None):
-        self.exporter = EXPORTER("output/exportIrrWaveTrans.txt")
+        self.exporter = EXPORTER("output/exportIrrWaveTrans")
         
         if Ho != None:
             self.isSingleCase = True
@@ -245,7 +245,7 @@ class IrrWaveTrans(BaseDriver):
         exportData = [dataDict["Ho"], dataDict["d"], dataDict["Ts"],\
             dataDict["cotnsl"], dataDict["direc"]]
         if self.errorMsg != None:
-            exportData.append("Error")
+            exportData.append(self.errorMsg)
         else:
             exportData = exportData + [dataDict["Hs"][1]/m2cm, dataDict["Hs"][0]/m2cm,\
                 dataDict["Hbar"][1]/m2cm, dataDict["Hbar"][0]/m2cm,\

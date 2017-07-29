@@ -11,6 +11,8 @@ from ERRWAVBRK import ERRWAVBRK
 from ERRWAVBRK1 import ERRWAVBRK1
 from WAVELEN import WAVELEN
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Combined Diffraction and Reflection by a Vertical Wedge
@@ -59,7 +61,7 @@ class RefdiffVertWedge(BaseDriver):
         alpha = None, wedgang = None, mode = None, xcor = None,\
         ycor = None, x0 = None, xend = None, dx = None, y0 = None,\
         yend = None, dy = None):
-        self.exporter = EXPORTER("output/exportRefdiffVertWedge.txt")
+        self.exporter = EXPORTER("output/exportRefdiffVertWedge")
         
         if Hi != None:
             self.isSingleCase = True
@@ -538,13 +540,13 @@ class RefdiffVertWedge(BaseDriver):
             exportData = [dataDict["Hi"], dataDict["T"], dataDict["d"]]
             exportData = exportData + [dataDict["alpha"], dataDict["wedgang"]]
             if self.errorMsg != None:
-                exportData.append("Error")
+                exportData.append(self.errorMsg)
             else:
                 exportData = exportData + [dataDict["L"],\
                     dataDict["xcors"][0], dataDict["xcors"][-1],\
-                    abs(dataDict["xcors"][1] - dataDict["xcors"][0]),\
-                    dataDict["ycors"][0], dataDict["ycors"][-1],\
-                    abs(dataDict["ycors"][1] - dataDict["ycors"][0])]
+                    (dataDict["xcors"][1] - dataDict["xcors"][0]),\
+                    dataDict["ycors"][-1], dataDict["ycors"][0],\
+                    (dataDict["ycors"][1] - dataDict["ycors"][0])]
                 
                 for i in dataDict["phi"]:
                     for j in i:

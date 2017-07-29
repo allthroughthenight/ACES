@@ -55,7 +55,7 @@ from EXPORTER import EXPORTER
 class LinearWaveTheory(BaseDriver):
     def __init__(self, H = None, T = None, d = None,\
         z = None, xL = None):
-        self.exporter = EXPORTER("output/exportLinearWaveTheory.txt")
+        self.exporter = EXPORTER("output/exportLinearWaveTheory")
         
         if H != None:
             self.isSingleCase = True
@@ -307,7 +307,7 @@ class LinearWaveTheory(BaseDriver):
             
         exportData = [dataDict["H"], dataDict["T"], dataDict["d"], dataDict["z"], dataDict["xL"] ]
         if self.errorMsg != None:
-            exportData.append("Error")
+            exportData.append(self.errorMsg)
         else:
             exportData = exportData + [dataDict["L"], dataDict["C"],\
                 dataDict["Cg"], dataDict["E"], dataDict["Ef"],dataDict["Ur"], dataDict["eta"],\

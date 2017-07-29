@@ -284,7 +284,7 @@ class BetaRayleigh(BaseDriver):
 
         exportData = [dataDict["Hmo"], dataDict["Tp"], dataDict["d"]]
         if self.errorMsg != None:
-            exportData.append("Error")
+            exportData.append(self.errorMsg)
         else:
             exportData = exportData + [dataDict["Hrms"], dataDict["Hmed"],\
                 dataDict["Hout"][0], dataDict["Hout"][1], dataDict["Hout"][2]]

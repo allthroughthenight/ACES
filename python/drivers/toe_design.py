@@ -50,7 +50,7 @@ from EXPORTER import EXPORTER
 class ToeDesign(BaseDriver):
     def __init__(self, H = None, T = None, ds = None, cotphi = None,\
         Kp = None, de = None, ht = None, unitwt = None):
-        self.exporter = EXPORTER("output/exportToeDesign.txt")
+        self.exporter = EXPORTER("output/exportToeDesign")
 
         if H != None:
             self.isSingleCase = True
@@ -268,7 +268,7 @@ class ToeDesign(BaseDriver):
             dataDict["cotphi"], dataDict["Kp"], dataDict["de"],\
             dataDict["ht"], dataDict["unitwt"]]
         if self.errorMsg != None:
-            exportData.append("Error")
+            exportData.append(self.errorMsg)
         else:
             exportData = exportData + [dataDict["b"], dataDict["w"],\
                 dataDict["dl"]]

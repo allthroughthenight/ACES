@@ -13,6 +13,8 @@ from LWTGEN import LWTGEN
 from LWTTWM import LWTTWM
 from LWTTWS import LWTTWS
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Lineat Wave Theory with Snell's Law (page 3-1 in ACES User's Guide)
@@ -73,7 +75,7 @@ from LWTTWS import LWTTWS
 class SnellsLaw(BaseDriver):
     def __init__(self, H1 = None, T = None, d1 = None, alpha1 = None,\
         cotphi = None, d2 = None):
-        self.exporter = EXPORTER("output/exportSnellsLaw.txt")
+        self.exporter = EXPORTER("output/exportSnellsLaw")
         
         if H1 != None:
             self.isSingleCase = True
@@ -301,7 +303,7 @@ class SnellsLaw(BaseDriver):
         exportData = [dataDict["H1"], dataDict["T"], dataDict["d1"],\
             dataDict["alpha1"], dataDict["cotphi"], dataDict["d2"]]
         if self.errorMsg != None:
-            exportData.append("Error")
+            exportData.append(self.errorMsg)
         else:
             exportData = exportData + [dataDict["H1"], dataDict["H0"],\
                 dataDict["H2"], dataDict["alpha1"], dataDict["alpha0"],\
