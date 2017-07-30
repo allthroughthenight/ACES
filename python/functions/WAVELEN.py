@@ -1,4 +1,5 @@
 import math
+import cmath
 import numpy as np
 
 #
@@ -12,16 +13,22 @@ import numpy as np
 # g = 32.2lb/ft^2 or 9.81N/m^2
 
 def WAVELEN(d, T, n, g):
-    Leck = (g * (T**2) * 0.5 / math.pi) * math.sqrt(math.tanh(4.0 * math.pi * math.pi * d / (T * T * g))) # 1984 SPM, p.2-7
+    Leck = (g * (T**2) * 0.5 / math.pi) * cmath.sqrt(math.tanh(4.0 * math.pi * math.pi * d / (T * T * g))) # 1984 SPM, p.2-7
 
     L1 = Leck
 
     for i in range(n):
-        L2 = (g * (T**2) * 0.5 / math.pi) * math.tanh(2.0 * math.pi * d / L1) # check if it's right
+        if np.isclose(L1, 0.0):
+            L2 = (g * (T**2) * 0.5 / math.pi)
+        else:
+            L2 = (g * (T**2) * 0.5 / math.pi) * math.tanh(2.0 * math.pi * d / L1)
         L1 = L2 # redo
 
     L = L2
-    k = 2.0 * math.pi / L
+    if np.isclose(L, 0.0):
+        k = float('inf')
+    else:
+        k = 2.0 * math.pi / L
 
     # if isinstance(d, list):
     #     ko = [index for index, value in enumerate(d) if value <= 0.0]

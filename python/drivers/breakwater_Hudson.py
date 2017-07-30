@@ -161,16 +161,26 @@ class BreakwaterHudson(BaseDriver):
     def performCalculations(self, caseInputList, caseIndex = 0):
         unitwt, H, Kd, kdelt, P, cotssl, n =\
             self.getCalcValues(caseInputList)
+        dataDict = {"unitwt": unitwt, "H": H, "Kd": Kd,\
+            "kdelt": kdelt, "P": P, "cotssl": cotssl, "n": n}
 
         H20weight = self.rho*self.g #64 lb/ft^3 for seawater, 62.4 for fresh
 
         specgrav = unitwt / H20weight
 
+
         w = (unitwt*H**3)/(Kd*(specgrav - 1.0)**3 * cotssl)
+        if w < 0.0:
+            self.errorMsg = "Error: Unit weight must be greater than water weight"
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
+            return
+        
         r = n*kdelt*(w/unitwt)**(1.0/3.0)
         Nr = 1000.0*n*kdelt*(1.0 - P/100.0)*(unitwt/w)**(2.0/3.0)
         b = 3.0*kdelt*(w/unitwt)**(1.0/3.0)
-
+        
         if self.isMetric:
             if w > 8000.0:
                 w = w/8896.4 #1 ton = 8896.4 N
@@ -192,9 +202,7 @@ class BreakwaterHudson(BaseDriver):
             (r, self.labelUnitDist))
         print("Number of single armor unit\t%6.2f" % Nr)
 
-        dataDict = {"unitwt": unitwt, "H": H, "Kd": Kd,\
-            "kdelt": kdelt, "P": P, "cotssl": cotssl, "n": n,\
-            "w": w, "b": b, "r": r, "Nr": Nr}
+        dataDict.update({"w": w, "b": b, "r": r, "Nr": Nr})
         self.fileOutputWriteMain(dataDict, caseIndex)
     # end performCalculations
 
@@ -210,18 +218,25 @@ class BreakwaterHudson(BaseDriver):
         self.fileRef.write("cotssl                             %6.2f\n" % dataDict["cotssl"])
         self.fileRef.write("n                                  %6.2f\n\n" % dataDict["n"])
 
-        self.fileRef.write("Weight of individual unit\t%6.2f %s\n" %\
-            (dataDict["w"], self.labelUnitWtLrg))
-        self.fileRef.write("Crest width\t\t\t%6.2f %s\n" %\
-            (dataDict["b"], self.labelUnitDist))
-        self.fileRef.write("Average cover layer thickness\t%6.2f %s\n" %\
-            (dataDict["r"], self.labelUnitDist))
-        self.fileRef.write("Number of single armor unit\t%6.2f\n" % dataDict["Nr"])
+        if self.errorMsg != None:
+            self.fileRef.write("%s\n" % self.errorMsg)
+        else:
+            self.fileRef.write("Weight of individual unit\t%6.2f %s\n" %\
+                (dataDict["w"], self.labelUnitWtLrg))
+            self.fileRef.write("Crest width\t\t\t%6.2f %s\n" %\
+                (dataDict["b"], self.labelUnitDist))
+            self.fileRef.write("Average cover layer thickness\t%6.2f %s\n" %\
+                (dataDict["r"], self.labelUnitDist))
+            self.fileRef.write("Number of single armor unit\t%6.2f\n" % dataDict["Nr"])
         
         exportData = [dataDict["unitwt"], dataDict["H"], dataDict["Kd"],\
             dataDict["kdelt"], dataDict["P"], dataDict["cotssl"],\
-            dataDict["n"], dataDict["w"], dataDict["b"], dataDict["r"],\
-            dataDict["Nr"]]
+            dataDict["n"]]
+        if self.errorMsg != None:
+            exportData.append(self.errorMsg)
+        else:
+            exportData = exportData + [dataDict["w"], dataDict["b"],\
+                dataDict["r"], dataDict["Nr"]]
         self.exporter.writeData(exportData)
     # end fileOutputWriteData
 

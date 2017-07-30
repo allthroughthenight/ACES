@@ -206,7 +206,7 @@ class ToeDesign(BaseDriver):
 
         steep, maxstp = ERRSTP(H, dl, L)
         if not (steep < maxstp):
-            self.errorMsg = "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f" % (maxstp, steeps)
+            self.errorMsg = "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f" % (maxstp, steep)
             
             print(self.errorMsg)
             self.fileOutputWriteMain(dataDict, caseIndex)

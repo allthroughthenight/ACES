@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 # Error check for wave steepness
 
@@ -12,8 +13,12 @@ import math
 #   maxstp: maximum wave steepness
 
 def ERRSTP(H, d, L):
-    steep = H / L
-    k = (2.0 * math.pi) / L
+    if np.isclose(L, 0.0):
+        steep = float('inf')
+        k = float('inf')
+    else:
+        steep = H / L
+        k = (2.0 * math.pi) / L
     maxstp = 0.142 * math.tanh(k * d)
 
     return steep, maxstp

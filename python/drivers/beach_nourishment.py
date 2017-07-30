@@ -135,10 +135,14 @@ class BeachNourishment(BaseDriver):
 
     def performCalculations(self, caseInputList, caseIndex = 0):
         Vol_i, M_R, ro_n, M_b, ro_b = self.getCalcValues(caseInputList)
+        dataDict = {"Vol_i": Vol_i, "M_R": M_R, "ro_n": ro_n, "M_b": M_b,\
+            "ro_b": ro_b}
 
         catg = 0 # category of the material according to table 6-4-1 in Aces manual
 
-        if self.isMetric:
+        if self.isMetric: # If Means are entered in mm, convert to phi units for computations.
+            print(M_R)
+            print(M_b)
             M_R = -(math.log(M_R) / math.log(2.0))
             M_b = -(math.log(M_b) / math.log(2.0))
 
@@ -192,9 +196,16 @@ class BeachNourishment(BaseDriver):
         # end if
 
         if R_A < 1.0:
-            print("Error: Overfill ratio (R_A) < 1.0. Respecify data")
+            self.errorMsg = "Error: Overfill ratio (R_A) < 1.0. Respecify data"
 
-        R_j = math.exp((delta - 0.5*((ro_b**2 / ro_n**2) - 1)))
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
+            return
+
+        try:
+            R_j = math.exp((delta - 0.5*((ro_b**2 / ro_n**2) - 1)))
+        except:
+            R_j = float('inf')
 
         Vol_D = R_A * Vol_i
 
@@ -202,8 +213,7 @@ class BeachNourishment(BaseDriver):
         print("Renourishment factor, R_j\t\t%6.2f" % (R_j))
         print("Design Volume, Vol_D\t\t\t%6.2f %s" % (Vol_D, self.labelUnitVolumeRate))
 
-        dataDict = {"Vol_i": Vol_i, "M_R": M_R, "ro_n": ro_n, "M_b": M_b,\
-            "ro_b": ro_b, "R_A": R_A, "R_j": R_j, "Vol_D": Vol_D }
+        dataDict.update({"R_A": R_A, "R_j": R_j, "Vol_D": Vol_D })
         self.fileOutputWriteMain(dataDict, caseIndex)
     # end performCalculations
 
@@ -216,10 +226,13 @@ class BeachNourishment(BaseDriver):
         self.fileRef.write("M_b\t%6.2f %s\n" % (dataDict["M_b"], self.labelUnitGrain))
         self.fileRef.write("ro_b\t%6.2f\n\n" % (dataDict["ro_b"]))
 
-        self.fileRef.write("Overfill Ratio, R_A\t\t\t%6.2f\n" % (dataDict["R_A"]))
-        self.fileRef.write("Renourishment factor, R_j\t\t%6.2f\n" % (dataDict["R_j"]))
-        self.fileRef.write("Design Volume, Vol_D\t\t\t%6.2f %s\n" %\
-            (dataDict["Vol_D"], self.labelUnitVolumeRate))
+        if self.errorMsg != None:
+            self.fileRef.write("%s\n" % self.errorMsg)
+        else:
+            self.fileRef.write("Overfill Ratio, R_A\t\t\t%6.2f\n" % (dataDict["R_A"]))
+            self.fileRef.write("Renourishment factor, R_j\t\t%6.2f\n" % (dataDict["R_j"]))
+            self.fileRef.write("Design Volume, Vol_D\t\t\t%6.2f %s\n" %\
+                (dataDict["Vol_D"], self.labelUnitVolumeRate))
         
         exportData = [dataDict["Vol_i"], dataDict["M_R"], dataDict["ro_n"],\
             dataDict["M_b"], dataDict["ro_b"]]

@@ -197,7 +197,11 @@ class SnellsLaw(BaseDriver):
             return
 
         #determine deepwater wave properties
-        alpha0, H0 = LWTDWS(alpha1, c1, cg1, c0, H1)
+        alpha0, H0, self.errorMsg = LWTDWS(alpha1, c1, cg1, c0, H1)
+        if self.errorMsg != None:
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
+            return
 
         E0 = (1.0/8.0)*self.rho*self.g*(H0**2)
         P0 = E0*cg0
@@ -217,7 +221,7 @@ class SnellsLaw(BaseDriver):
 
         Hb, db = ERRWAVBRK3(H0, L0, T, m)
         if not (H2 < Hb):
-            self.errorMsg = "Error: Subject wave broken (Hb = %6.2f %s, hb = %6.2f %s" %\
+            self.errorMsg = "Error: Subject wave broken (Hb = %6.2f %s, hb = %6.2f %s)" %\
                 (Hb, self.labelUnitDist, db, self.labelUnitDist)
             
             print(self.errorMsg)
@@ -313,7 +317,7 @@ class SnellsLaw(BaseDriver):
                 dataDict["cg2"], dataDict["E1"], dataDict["E0"],\
                 dataDict["E2"], dataDict["P1"], dataDict["P0"],\
                 dataDict["P2"], dataDict["Ur1"], dataDict["Ur2"],\
-                dataDict["HL"]]
+                dataDict["HL"], dataDict["Hb"], dataDict["db"]]
         self.exporter.writeData(exportData)
     # end fileOutputWriteData
 

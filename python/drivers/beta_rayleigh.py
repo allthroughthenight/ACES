@@ -1,5 +1,6 @@
 import sys
 import math
+import scipy.special as sp
 import matplotlib.pyplot as plt
 sys.path.append('../functions')
 
@@ -210,7 +211,7 @@ class BetaRayleigh(BaseDriver):
             alpha = (K1*(K2 - K1))/(K1**2 - K2)
             beta = ((1 - K1)*(K2 - K1))/(K1**2 - K2)
 
-            term1 = (2*math.gamma(alpha + beta))/(math.gamma(alpha)*math.gamma(beta))
+            term1 = (2*sp.gamma(alpha + beta))/(sp.gamma(alpha)*sp.gamma(beta))
 
             H = []
             p = []
