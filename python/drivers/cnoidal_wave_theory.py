@@ -58,8 +58,9 @@ from EXPORTER import EXPORTER
 #-------------------------------------------------------------
 
 class CnoidalWaveTheory(BaseDriver):
-    def __init__(self, H = None, T = None, d = None, z = None, xL = None):
-        self.exporter = EXPORTER("output/exportCnoidalWaveTheory")
+    def __init__(self, H = None, T = None, d = None, z = None, xL = None,\
+        O = None):
+        self.exporter = EXPORTER("output/exportCnoidalWaveTheory.txt")
 
         if H != None:
             self.isSingleCase = True
@@ -76,6 +77,9 @@ class CnoidalWaveTheory(BaseDriver):
         if xL != None:
             self.isSingleCase = True
             self.defaultValue_xL = xL
+        if O != None:
+            self.isSingleCase = True
+            self.defaultValue_O = O
             
         super(CnoidalWaveTheory, self).__init__()
 
@@ -88,10 +92,10 @@ class CnoidalWaveTheory(BaseDriver):
         self.waterType, self.rho =\
             USER_INPUT.SALT_FRESH_WATER(self.isMetric)
 
-        self.O = USER_INPUT.FINITE_CHOICE(\
-            "Enter O: order approximation (1 or 2): ",\
-            ["1", "2"])
-        self.O = int(self.O)
+#        self.O = USER_INPUT.FINITE_CHOICE(\
+#            "Enter O: order approximation (1 or 2): ",\
+#            ["1", "2"])
+#        self.O = int(self.O)
     # end userInput
 
     def defineInputDataList(self):
@@ -114,6 +118,10 @@ class CnoidalWaveTheory(BaseDriver):
             self.inputList.append(BaseField(\
                 "xL: horizontal coordinate as fraction of wavelength (x/L)",\
                 0.0, 1.0))
+        if not hasattr(self, "defaultValue_O"):
+            self.inputList.append(BaseField(\
+                "O: order approximation (1 or 2)",\
+                1.0, 2.0))
     # end defineInputDataList
 
     def fileOutputRequestInit(self):
@@ -151,13 +159,20 @@ class CnoidalWaveTheory(BaseDriver):
         else:
             xL = caseInputList[currIndex]
             currIndex = currIndex + 1
+            
+        if hasattr(self, "defaultValue_O"):
+            O = self.defaultValue_O
+        else:
+            O = caseInputList[currIndex]
+            currIndex = currIndex + 1
+        O = int(O)
 
-        return H, T, d, z, xL
+        return H, T, d, z, xL, O
     # end getCalcValues
 
     def performCalculations(self, caseInputList, caseIndex = 0):
-        H, T, d, z, xL = self.getCalcValues(caseInputList)
-        dataDict = {"H": H, "T": T, "d": d, "z": z, "xL": xL}
+        H, T, d, z, xL, O = self.getCalcValues(caseInputList)
+        dataDict = {"H": H, "T": T, "d": d, "z": z, "xL": xL, "O": O}
         
         time = 0
 
@@ -173,7 +188,7 @@ class CnoidalWaveTheory(BaseDriver):
             return
 
         # First Order Approximation
-        if self.O == 1: #determining m using bisection method
+        if O == 1: #determining m using bisection method
             a = 1.0*10**-12
             b = 1.0-10**-12
             while (b - a)/2.0 >= 0.00001:
@@ -376,12 +391,12 @@ class CnoidalWaveTheory(BaseDriver):
         self.fileOutputWriteMain(dataDict, caseIndex)
 
         if self.isSingleCase:
-            self.plotDict = {"K": K, "time": time, "T": T, "m": m,\
+            self.plotDict = {"O": O, "K": K, "time": time, "T": T, "m": m,\
                 "d": d, "A0": A0, "A1": A1, "B00": B00,\
                 "B10": B10, \
                 "z": z, "L": L}
 
-            if self.O == 2:
+            if O == 2:
                 self.plotDict["A2"] = A2
                 self.plotDict["B01"] = B01
                 self.plotDict["B20"] = B20
@@ -410,7 +425,7 @@ class CnoidalWaveTheory(BaseDriver):
         if self.errorMsg != None:
             self.fileRef.write("\n%s\n" % self.errorMsg)
         else:
-            if self.O == 1:
+            if dataDict["O"] == 1:
                 self.fileRef.write("\nFirst Order Approximations\n")
             else:
                 self.fileRef.write("\nSecond Order Approximations\n")
@@ -438,9 +453,10 @@ class CnoidalWaveTheory(BaseDriver):
                 (dataDict["pres"], self.labelUnitWt, self.labelUnitDist))
         
         
-        exportData = [dataDict["H"], dataDict["T"], dataDict["d"], dataDict["z"], dataDict["xL"]]
+        exportData = [dataDict["H"], dataDict["T"], dataDict["d"],\
+            dataDict["z"], dataDict["xL"], dataDict["O"]]
         if self.errorMsg != None:
-            exportData.append(self.errorMsg)
+            exportData.append("Error")
         else:
             exportData = exportData + [dataDict["L"], dataDict["C"],\
                 dataDict["E"], dataDict["Ef"], dataDict["eta"],\
@@ -460,7 +476,7 @@ class CnoidalWaveTheory(BaseDriver):
         pSN, pCN, pDN, pPH = sp.ellipj(plottheta, self.plotDict["m"])
         pCSD = pSN*pCN*pDN
 
-        if self.O == 1:
+        if self.plotDict["O"] == 1:
             ploteta = self.plotDict["d"]*\
                 (self.plotDict["A0"] + self.plotDict["A1"]*pCN**2)
             plotu = math.sqrt(self.g*self.plotDict["d"])*\
