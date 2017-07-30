@@ -324,4 +324,4 @@ class BetaRayleigh(BaseDriver):
     # end fileOutputPlotWriteData
 
 
-driver = BetaRayleigh(5.0, 6.3, 10.2)
+driver = BetaRayleigh()
