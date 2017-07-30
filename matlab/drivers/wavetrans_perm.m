@@ -64,98 +64,65 @@ if single_case
     
     [T] = USER_INPUT_DATA_VALUE('Enter T: wave period (s): ', 1.0, 1000.0);
     
-    [ds] = USER_INPUT_DATA_VALUE(['Enter ds: water depth at structure toe (' labelUnitDist '): '], 0.1, 200.0);
-    
-    [NM] = USER_INPUT_DATA_VALUE('Enter NM: number of materials comprising the breakwater: ', 1, 4);
-    
-    d50 = [];
-    por = [];
-    for matIndex = 1:NM
-        [d50Input] = USER_INPUT_DATA_VALUE(['Enter d50: mean diameter of material #' num2str(matIndex) ' (' labelUnitDist '): '], 0.05, 99.0);
-
-        [porInput] = USER_INPUT_DATA_VALUE(['Enter p: porosity of material #' num2str(matIndex) ' (%): '], 0.0, 100.0);
-        
-        d50 = [d50 d50Input];
-        por = [por porInput];
-    end
-    por = por/100;
-    fprintf('%s \n\n','Breakwater geometry input: ');
-    [hs] = USER_INPUT_DATA_VALUE(['Enter hs: structure height above toe (' labelUnitDist '): '], 0.1, 200.0);
-    
-    [cottheta] = USER_INPUT_DATA_VALUE('Enter cottheta: cotangent of structure slope: ', 1.0, 5.0);
-    
-    [b] = USER_INPUT_DATA_VALUE(['Enter b: structure crest width (' labelUnitDist '): '], 0.1, 200.0);
-    
-    [NL] = USER_INPUT_DATA_VALUE('Enter NL: number of horizontal layers in the breakwater: ', 1, 4);
-    
-    th = [];
-    for layIndex = 1:NL
-        [thInput] = USER_INPUT_DATA_VALUE(['Enter th: thickness of horizontal layer #' num2str(layIndex) ' (' labelUnitDist '): '], 0.1, 200.0);
-        
-        th = [th thInput];
-    end
-    
-    hlen = [];
-    for matIndex = 1:NM
-        hlenTemp = [];
-        
-        for layIndex = 1:NL
-            [hlenInput] = USER_INPUT_DATA_VALUE(['Enter hlen: horizontal length of matertial # ' num2str(matIndex) ' in layer #' num2str(layIndex) ' (' labelUnitDist '): '], 0.0, 200.0);
-            
-            hlenTemp = [hlenTemp hlenInput];
-        end
-        
-        if matIndex == 1
-            hlen = hlenTemp;
-        else
-            hlen = [hlen; hlenTemp];
-        end
-    end
-    numCases =1;
+    numCases = 1;
 else
     multiCaseData = {...
             ['H: wave height (' labelUnitDist ')'], 0.1, 200.0;...
-            'T: wave period (sec)', 1.0, 1000.0;...
-            ['ds: water depth (' labelUnitDist ')'], 0.1, 5000.0;...
-            'NM: number of materials comprising the breakwater', 1, 4};
-    d50 = [];
-    por = [];
-    for matIndex = 1:NM
-            multiCaseData = [ multiCaseData; {['d50: mean diameter of material #' num2str(matIndex) ' (' labelUnitDist '): '], 0.05, 99.0;...
-                ['p: porosity of material #' num2str(matIndex) ' (%): '], 0.0, 100.0}];
-      
-            d50 = [d50 d50Input];
-            por = [por porInput];
-    end
-    multiCaseData = [ multiCaseData; {['hs: structure height above toe (' labelUnitDist '): '], 0.1, 200.0;...
-                     'cottheta: cotangent of structure slope: ', 1.0, 5.0;...
-                     ['b: structure crest width (' labelUnitDist '): '], 0.1, 200.0;...
-                     'NL: number of horizontal layers in the breakwater: ', 1, 4}];
-                 
-    th = [];
-    hlen = [];
-    for matIndex = 1:NL
-        multiCaseData = [ multiCaseData; {['th: thickness of horizontal layer #' num2str(layIndex) ' (' labelUnitDist '): '], 0.1, 200.0}];
-        for layerindex=1:NL
-            multiCaseData = [ multiCaseData; {['hlen: horizontal length of matertial # ' num2str(matIndex) ' in layer #' num2str(layIndex) ' (' labelUnitDist '): '], 0.0, 200.0}];   
-        end
-    end
-               
+            'T: wave period (sec)', 1.0, 1000.0};
     [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
     
     HList = varData(1, :);
     TList = varData(2, :);
-    dsList = varData(3, :);
-    NMList = varData(4, :);
-    d50List = varData(5, :);
-    porList = varData(6, :);
-    hsList = varData(7, :);
-    cotthetaList = varData(8, :);
-    BList = varData(9, :);
-    NLList = varData(10, :);
-    thList = varData(11, :);
-    hlenList = varData(12, :);
 end
+
+[ds] = USER_INPUT_DATA_VALUE(['Enter ds: water depth at structure toe (' labelUnitDist '): '], 0.1, 200.0);
+
+[NM] = USER_INPUT_DATA_VALUE('Enter NM: number of materials comprising the breakwater: ', 1, 4);
+
+d50 = [];
+por = [];
+for matIndex = 1:NM
+    [d50Input] = USER_INPUT_DATA_VALUE(['Enter d50: mean diameter of material #' num2str(matIndex) ' (' labelUnitDist '): '], 0.05, 99.0);
+    d50 = [d50 d50Input];
+end
+for matIndex = 1:NM
+    [porInput] = USER_INPUT_DATA_VALUE(['Enter p: porosity of material #' num2str(matIndex) ' (%): '], 0.0, 100.0);
+    por = [por porInput];
+end
+por = por/100;
+fprintf('%s \n\n','Breakwater geometry input: ');
+[hs] = USER_INPUT_DATA_VALUE(['Enter hs: structure height above toe (' labelUnitDist '): '], 0.1, 200.0);
+
+[cottheta] = USER_INPUT_DATA_VALUE('Enter cottheta: cotangent of structure slope: ', 1.0, 5.0);
+
+[b] = USER_INPUT_DATA_VALUE(['Enter b: structure crest width (' labelUnitDist '): '], 0.1, 200.0);
+
+[NL] = USER_INPUT_DATA_VALUE('Enter NL: number of horizontal layers in the breakwater: ', 1, 4);
+
+th = [];
+for layIndex = 1:NL
+    [thInput] = USER_INPUT_DATA_VALUE(['Enter th: thickness of horizontal layer #' num2str(layIndex) ' (' labelUnitDist '): '], 0.1, 200.0);
+
+    th = [th thInput];
+end
+
+hlen = [];
+for matIndex = 1:NM
+    hlenTemp = [];
+
+    for layIndex = 1:NL
+        [hlenInput] = USER_INPUT_DATA_VALUE(['Enter hlen: horizontal length of matertial # ' num2str(matIndex) ' in layer #' num2str(layIndex) ' (' labelUnitDist '): '], 0.0, 200.0);
+
+        hlenTemp = [hlenTemp hlenInput];
+    end
+
+    if matIndex == 1
+        hlen = hlenTemp;
+    else
+        hlen = [hlen; hlenTemp];
+    end
+end
+
 
 if ~metric
     if strcmp(water,'S') || strcmp(water,'s')
@@ -172,20 +139,19 @@ else
     end
 end
 
+% File Output
+fileOutputArgs = {};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+if fileOutputData{1}
+    fId = fopen('output/wavetrans_perm.txt', 'wt');
+    exporter = EXPORTER('output/exporterWavetransPerm');
+end
+
 for loopIndex = 1:numCases
     if ~single_case
         H = HList(loopIndex);
         T = TList(loopIndex);
-        ds = dsList(loopIndex);
-        NM = NMList(loopIndex);
-        d50 = d50List(loopIndex);
-        por = porList(loopIndex);
-        hs = hsList(loopIndex);
-        cottheta = cotthetaList(loopIndex);
-        B = BList(loopIndex);
-        NL = NLList(loopIndex);
-        th = thList(loopIndex);
-        hlen = hlenList(loopIndex);
     end
     
     errorMsg = '';
@@ -233,4 +199,77 @@ for loopIndex = 1:numCases
             end
         end
     end
+    
+    if fileOutputData{1}
+        if ~single_case
+            fprintf(fId, 'Case #%d\n\n', loopIndex);
+        end
+        
+        fprintf(fId, 'Input\n');
+        fprintf(fId, 'H\t\t%6.2f %s\n', H, labelUnitDist);
+        fprintf(fId, 'T\t\t%6.2f s\n', T);
+        fprintf(fId, 'ds\t\t%6.2f %s\n', ds, labelUnitDist);
+        for d50Index = 1:length(d50)
+            fprintf(fId, 'd50 #%d\t\t%6.2f %s\n', d50Index, d50(d50Index), labelUnitDist);
+        end
+        for porIndex = 1:length(por)
+            fprintf(fId, 'por #%i\t\t%6.2f%%\n', porIndex, por(porIndex)*100);
+        end
+        fprintf(fId, 'hs\t\t%6.2f %s\n', hs, labelUnitDist);
+        fprintf(fId, 'cottheta\t%6.2f\n', cottheta);
+        fprintf(fId, 'b\t\t%6.2f %s\n', b, labelUnitDist);
+        for thIndex = 1:length(th)
+            fprintf(fId, 'th #%d\t\t%6.2f %s\n', thIndex, th(thIndex), labelUnitDist);
+        end
+        for hlenIndex1 = 1:size(hlen, 1)
+            for hlenIndex2 = 1:size(hlen, 2)
+                fprintf(fId, 'Len mat %d,\t%6.2f %s\n  layer %d\n',...
+                    hlenIndex1, hlen(hlenIndex1, hlenIndex2),...
+                    labelUnitDist, hlenIndex2);
+            end
+        end
+        
+        if length(errorMsg)
+            fprintf(fId, '\n%s\n', errorMsg);
+        else
+            fprintf(fId, '\nReflection coefficient, Kr\t\t%-6.3f\n', Kr);
+            fprintf(fId, 'Wave transmission coefficient\n');
+            fprintf(fId, 'Wave Transmission (Through), KTt\t%-6.3f\n', KTt);
+            fprintf(fId, 'Wave Transmission (Overtopping), KTo\t%-6.3f\n', Kto);
+            fprintf(fId, 'Wave Transmission (Total), KT\t\t%-6.3f\n', KT);
+            fprintf(fId, 'Transmitted wave height, Ht\t\t%-6.2f %s\n', Ht, labelUnitDist);
+        end
+        
+        if loopIndex < numCases
+            fprintf(fId, '\n--------------------------------------\n\n');
+        end
+        
+        exportData = {H, T, ds};
+        for exportDataVal = d50
+            exportData = [exportData {exportDataVal}];
+        end
+        for exportDataVal = por
+            exportData = [exportData {exportDataVal*100}];
+        end
+        exportData = [exportData {hs, cottheta, b}];
+        for exportDataVal = th
+            exportData = [exportData {exportDataVal}];
+        end
+        for hlenIndex1 = 1:size(hlen, 1)
+            for hlenIndex2 = 1:size(hlen, 2)
+                exportData = [exportData {hlen(hlenIndex1, hlenIndex2)}];
+            end
+        end
+        if length(errorMsg) > 0
+            exportData = [exportData {errorMsg}];
+        else
+            exportData = [exportData {Kr, KTt, Kto, KT, Ht}];
+        end
+        exporter.writeData(exportData);
+    end
+end
+
+if fileOutputData{1}
+    fclose(fId);
+    exporter.close();
 end

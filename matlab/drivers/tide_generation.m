@@ -74,6 +74,7 @@ delt = outputDataList(6);
 gauge0 = outputDataList(7);
 glong = outputDataList(8);
 
+exporter = EXPORTER('output/exporterTideGeneration.txt');
 
 accepted = false;
 while ~accepted
@@ -131,6 +132,7 @@ plot(xtim,ytide)
 xlabel('Time [hr]')
 ylabel(['Elevation [' labelUnitDist ']']) %output same units as amplitude, datum input
 
+
 % File Output
 fileOutputArgs = {'Enter the description for this file: '};
 [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
@@ -147,6 +149,16 @@ if fileOutputData{1}
             xtim(loopIndex),...
             ytide(loopIndex));
     end
-
+    
+    exportData = {year, mon, day, hr, tlhrs, delt, gauge0, glong};
+        if length(errorMsg) > 0
+            exportData = [exportData {errorMsg}];
+        else
+            exportData = [exportData {Hrms, Hmed, Hout(2), Hout(3), Hout(4)}];
+        end
+    exporter.writeData(exportData);
+    
     fclose(fId);
+    exporter.close();
 end
+

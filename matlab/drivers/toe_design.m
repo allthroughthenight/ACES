@@ -96,6 +96,8 @@ if fileOutputData{1}
     fId = fopen('output/toe_design.txt', 'wt');
 
     fprintf(fId, 'Toe Protection Design Output\n\n');
+    
+    exporter = EXPORTER('output/exporterToeDesign');
 end
 
 for loopIndex = 1:numCases
@@ -187,9 +189,18 @@ for loopIndex = 1:numCases
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
+        
+        exportData = {H, T, ds, cotphi, Kp, de, ht, unitwt};
+        if length(errorMsg) > 0
+            exportData = [exportData {errorMsg}];
+        else
+            exportData = [exportData {b, w, dl}];
+        end
+        exporter.writeData(exportData);
     end
 end
 
 if fileOutputData{1}
     fclose(fId);
+    exporter.close();
 end

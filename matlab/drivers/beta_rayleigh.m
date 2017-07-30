@@ -61,8 +61,6 @@ else
     dList = varData(3, :);
 end
 
-exporter = EXPORTER('output/exporterBetaRayleigh.txt');
-
 Htype(1)=0.50; %Hmed;
 Htype(2)=0.66; %H1/3 (1-1/3);
 Htype(3)=0.90; %H1/10 (1-1/10);
@@ -74,6 +72,7 @@ fileOutputArgs = {};
 
 if fileOutputData{1}
     fId = fopen('output/beta_rayleigh.txt', 'wt');
+    exporter = EXPORTER('output/exporterBetaRayleigh');
 end
 
 for loopIndex = 1:numCases
@@ -261,9 +260,9 @@ end
 
 if fileOutputData{1}
     fclose(fId);
+    exporter.close();
 end
 
-exporter.close();
 
 if single_case && length(errorMsg) == 0
     table=cat(2,H',p');

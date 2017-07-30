@@ -274,10 +274,12 @@ fileOutputArgs = {};
 [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
 
 if fileOutputData{1}
-    fId = fopen('output/wind_adj.txt', 'wt');
+    fId = fopen('output/wind_adj', 'wt');
     
     fprintf(fId, '%s\n', windObsList{windobs});
     fprintf(fId, '%s\n\n', wgTypeList{wgtyp});
+    
+    exporter = EXPORTER('output/exporterWindAdj');
 end
 
 for loopIndex = 1:numCases
@@ -420,9 +422,37 @@ for loopIndex = 1:numCases
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
+        
+        exportData = {zobs, Uobs, dtemp, duro, durf, lat};
+        if is_water_open
+            exportData = [exportData {F}];
+        end
+        if is_water_shallow
+            exportData = [exportData {d}];
+        end
+        if ~is_water_open
+            exportData = [exportData {wdir}];
+        end
+        
+        if length(errorMsg) > 0
+            exportData = [exportData {errorMsg}];
+        else
+            if ~is_water_open
+                exportData = [exportData {F}];
+            end
+            exportData = [exportData {ue/conversionSpeed, ua/conversionSpeed}];
+            if ~is_water_open
+                exportData = [exportData {theta}];
+            end
+            exportData = [exportData {Hmo/conversionDist, Tp, wgmsg}];
+        end
+        
+        exporter.writeData(exportData);
     end
 end
 
 if fileOutputData{1}
     fclose(fId);
+    
+    exporter.close();
 end
