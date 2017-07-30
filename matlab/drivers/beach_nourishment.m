@@ -70,12 +70,14 @@ else
     ro_bLList = varData(5, :);
 end
 
+
 % File Output
 fileOutputArgs = {};
 [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
 
 if fileOutputData{1}
     fId = fopen('output/beach_nourishment.txt', 'wt');
+    exporter = EXPORTER('output/exporterBeachNourishment');
 end
 
 for loopIndex = 1:numCases
@@ -86,6 +88,8 @@ for loopIndex = 1:numCases
         M_b = M_bList(loopIndex);
         ro_b = ro_bLList(loopIndex);
     end
+    
+    errorMsg = '';
 
     catg= zeros; % category of the material according to table 6-4-1 in Aces manual
 
@@ -146,15 +150,19 @@ for loopIndex = 1:numCases
         R_A  = 1.0/(1-fn2+fn1+fn3);
     end
 
-    assert(R_A>=1.0,'Error: Overfill ratio (R_A) < 1.0 Respecify data',R_A)
+%     assert(R_A>=1.0,'Error: Overfill ratio (R_A) < 1.0 Respecify data',R_A)
+    if R_A < 1.0
+        errorMsg = 'Error: Overfill ratio (R_A) < 1.0 Respecify data';
+        disp(errorMsg);
+    else
+        R_j = exp((delta-0.5*((ro_b^2/ro_n^2)-1)));
 
-    R_j = exp((delta-0.5*((ro_b^2/ro_n^2)-1)));
+        Vol_D = R_A * Vol_i;
 
-    Vol_D = R_A * Vol_i;
-
-    fprintf('%s \t\t\t %-6.2f \t \n','Overfill Ratio, R_A',R_A);
-    fprintf('%s \t\t %-6.2f \t \n','Renourishment factor, R_j',R_j);
-    fprintf('%s \t\t\t %-6.2f %s \t \n','Design Volume, Vol_D',Vol_D,labelUnitVolumeRate);
+        fprintf('%s \t\t\t %-6.2f \t \n','Overfill Ratio, R_A',R_A);
+        fprintf('%s \t\t %-6.2f \t \n','Renourishment factor, R_j',R_j);
+        fprintf('%s \t\t\t %-6.2f %s \t \n','Design Volume, Vol_D',Vol_D,labelUnitVolumeRate);
+    end
 
     if fileOutputData{1}
         if ~single_case
@@ -168,16 +176,29 @@ for loopIndex = 1:numCases
         fprintf(fId, 'M_b\t%6.2f %s\n', M_b, labelUnitGrain);
         fprintf(fId, 'ro_b\t%6.2f\n\n', ro_b);
 
-        fprintf(fId, '%s \t\t %6.2f \t \n','Overfill Ratio, R_A',R_A);
-        fprintf(fId, '%s \t %6.2f \t \n','Renourishment factor, R_j',R_j);
-        fprintf(fId, '%s \t\t %6.2f %s \t \n','Design Volume, Vol_D',Vol_D,labelUnitVolumeRate);
+        if length(errorMsg) > 0
+            fprintf(fId, '%s\n', errorMsg);
+        else
+            fprintf(fId, '%s \t\t %6.2f \t \n','Overfill Ratio, R_A',R_A);
+            fprintf(fId, '%s \t %6.2f \t \n','Renourishment factor, R_j',R_j);
+            fprintf(fId, '%s \t\t %6.2f %s \t \n','Design Volume, Vol_D',Vol_D,labelUnitVolumeRate);
+        end
 
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
+        
+        exportData = {Vol_i, M_R, ro_n, M_b, ro_b};
+        if length(errorMsg) > 0
+            exportData = [exportData {errorMsg}];
+        else
+            exportData = [exportData {R_A, R_j, Vol_D}];
+        end
+        exporter.writeData(exportData);
     end
 end
 
 if fileOutputData{1}
     fclose(fId);
+    exporter.close();
 end

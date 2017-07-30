@@ -99,14 +99,13 @@ else
     d2List = varData(6, :);
 end
 
-exporter = EXPORTER('output/exporterSnellsLaw.txt');
-
 % File Output
 fileOutputArgs = {};
 [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
 
 if fileOutputData{1}
     fId = fopen('output\snells_law.txt', 'wt');
+    exporter = EXPORTER('output/exporterSnellsLaw');
 end
 
 for loopIndex = 1:numCases
@@ -141,48 +140,51 @@ for loopIndex = 1:numCases
             disp(errorMsg);
         else
             %determine deepwater wave properties
-            [alpha0,H0]=LWTDWS(alpha1,c1,cg1,c0,H1);
-
-            E0=(1/8)*rho*g*(H0^2);
-            P0=E0*cg0;
-            HL=H0/L0;
-
-%             assert(HL<(1/7),'Error: Deepwater wave unstable, [H0/L0] > (1/7)')
-            if not(HL<(1/7))
-                errorMsg = 'Error: Deepwater wave unstable, [H0/L0] > (1/7)';
+            [alpha0,H0,errorMsg]=LWTDWS(alpha1,c1,cg1,c0,H1);
+            if length(errorMsg) > 0
                 disp(errorMsg);
             else
-                %determine subject wave properties
-                [c2,c0,cg2,cg0,k2,L2,L0,reldep2]=LWTGEN(d2,T,g);
-                [alpha2,H2,kr,ks]=LWTTWS(alpha0,c2,cg2,c0,H0);
-                [E2,P2,Ur2,setdown2]=LWTTWM(cg2,d2,H2,L2,reldep2,rho,g,k2);
+                E0=(1/8)*rho*g*(H0^2);
+                P0=E0*cg0;
+                HL=H0/L0;
 
-                [Hb,db]=ERRWAVBRK3(H0,L0,T,m);
-%                 assert(H2<Hb,'Error: Subject wave broken (Hb = %6.2f m, hb = %6.2f %s)',Hb,db,labelUnitDist)
-                if not(H2<Hb)
-                    errorMsg = sprintf('Error: Subject wave broken (Hb = %6.2f m, hb = %6.2f %s)',Hb,db,labelUnitDist);
+    %             assert(HL<(1/7),'Error: Deepwater wave unstable, [H0/L0] > (1/7)')
+                if not(HL<(1/7))
+                    errorMsg = 'Error: Deepwater wave unstable, [H0/L0] > (1/7)';
                     disp(errorMsg);
                 else
-                    [steep,maxstp]=ERRSTP(H2,d2,L2);
-    %                 assert(steep<maxstp,'Error: Subject wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
-                    if not(steep<maxstp)
-                        errorMsg = sprintf('Error: Subject wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep');
+                    %determine subject wave properties
+                    [c2,c0,cg2,cg0,k2,L2,L0,reldep2]=LWTGEN(d2,T,g);
+                    [alpha2,H2,kr,ks]=LWTTWS(alpha0,c2,cg2,c0,H0);
+                    [E2,P2,Ur2,setdown2]=LWTTWM(cg2,d2,H2,L2,reldep2,rho,g,k2);
+
+                    [Hb,db]=ERRWAVBRK3(H0,L0,T,m);
+    %                 assert(H2<Hb,'Error: Subject wave broken (Hb = %6.2f m, hb = %6.2f %s)',Hb,db,labelUnitDist)
+                    if not(H2<Hb)
+                        errorMsg = sprintf('Error: Subject wave broken (Hb = %6.2f %s, hb = %6.2f %s)',Hb,labelUnitDist,db,labelUnitDist);
                         disp(errorMsg);
                     else
-                        fprintf('\t\t\t\t\t %s \t\t %s \t\t %s \t\t %s\n','Known','Deepwater','Subject','Units');
-                        fprintf('%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s \n','Wave height',H1,H0,H2,labelUnitDist)
-                        fprintf('%s \t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t deg \n','Wave crest angle',alpha1,alpha0,alpha2)
-                        fprintf('%s \t\t\t %-5.2f \t %-5.2f \t\t %-5.2f \t\t %s \n','Wavelength',L1,L0,L2,labelUnitDist)
-                        fprintf('%s \t\t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s/s \n','Celerity',c1,c0,c2,labelUnitDist)
-                        fprintf('%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s/s \n','Group speed',cg1,cg0,cg2,labelUnitDist)
-                        fprintf('%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t %s-%s/%s^2 \n','Energy density',E1,E0,E2,labelUnitDist,labelUnitWt,labelUnitDist)
-                        fprintf('%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t %s-%s/sec-%s \n','Energy flux',P1,P0,P2,labelUnitDist,labelUnitWt,labelUnitDist)
-                        fprintf('%s \t\t %-5.2f \t\t\t\t\t\t %-5.2f \n','Ursell number',Ur1,Ur2)
-                        fprintf('%s \t\t\t\t\t %-5.2f \n','Wave steepness',HL)
-                        fprintf('\n')
-                        fprintf('%s \t\t\t\n','Breaking parameters')
-                        fprintf('%s \t\t %-5.2f %s \t\n','Breaking height',Hb,labelUnitDist)
-                        fprintf('%s \t\t\t %-5.2f %s \t\n','Breaking depth',db,labelUnitDist)
+                        [steep,maxstp]=ERRSTP(H2,d2,L2);
+        %                 assert(steep<maxstp,'Error: Subject wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+                        if not(steep<maxstp)
+                            errorMsg = sprintf('Error: Subject wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep');
+                            disp(errorMsg);
+                        else
+                            fprintf('\t\t\t\t\t %s \t\t %s \t\t %s \t\t %s\n','Known','Deepwater','Subject','Units');
+                            fprintf('%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s \n','Wave height',H1,H0,H2,labelUnitDist)
+                            fprintf('%s \t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t deg \n','Wave crest angle',alpha1,alpha0,alpha2)
+                            fprintf('%s \t\t\t %-5.2f \t %-5.2f \t\t %-5.2f \t\t %s \n','Wavelength',L1,L0,L2,labelUnitDist)
+                            fprintf('%s \t\t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s/s \n','Celerity',c1,c0,c2,labelUnitDist)
+                            fprintf('%s \t\t %-5.2f \t\t %-5.2f \t\t\t %-5.2f \t\t\t %s/s \n','Group speed',cg1,cg0,cg2,labelUnitDist)
+                            fprintf('%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t %s-%s/%s^2 \n','Energy density',E1,E0,E2,labelUnitDist,labelUnitWt,labelUnitDist)
+                            fprintf('%s \t\t %-8.2f \t %-8.2f \t\t %-8.2f \t\t %s-%s/sec-%s \n','Energy flux',P1,P0,P2,labelUnitDist,labelUnitWt,labelUnitDist)
+                            fprintf('%s \t\t %-5.2f \t\t\t\t\t\t %-5.2f \n','Ursell number',Ur1,Ur2)
+                            fprintf('%s \t\t\t\t\t %-5.2f \n','Wave steepness',HL)
+                            fprintf('\n')
+                            fprintf('%s \t\t\t\n','Breaking parameters')
+                            fprintf('%s \t\t %-5.2f %s \t\n','Breaking height',Hb,labelUnitDist)
+                            fprintf('%s \t\t\t %-5.2f %s \t\n','Breaking depth',db,labelUnitDist)
+                        end
                     end
                 end
             end
@@ -221,24 +223,23 @@ for loopIndex = 1:numCases
             fprintf(fId, '%s \t\t %-5.2f %s \t\n','Breaking depth',db,labelUnitDist);
         end
         
+        if loopIndex < numCases
+            fprintf(fId, '\n--------------------------------------\n\n');
+        end
+        
         exportData = {H1, T, d1, alpha1, cotphi, d2};
         if length(errorMsg) > 0
-            exportData = [exportData {'Error'}];
+            exportData = [exportData {errorMsg}];
         else
             exportData = [exportData {H1,H0,H2,alpha1,alpha0,alpha2,...
                 L1,L0,L2,c1,c0,c2,cg1,cg0,cg2,E1,E0,E2,P1,P0,P2,...
                 Ur1,Ur2,HL,Hb,db}];
         end
         exporter.writeData(exportData);
-        
-        if loopIndex < numCases
-            fprintf(fId, '\n--------------------------------------\n\n');
-        end
     end
 end
 
 if fileOutputData{1}
     fclose(fId);
+    exporter.close();
 end
-
-exporter.close();
