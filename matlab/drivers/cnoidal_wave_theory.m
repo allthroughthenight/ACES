@@ -353,11 +353,11 @@ for loopIndex = 1:numCases
         end
         
         exportData = {H, T, d, z, xL, O, time};
-            if length(errorMsg) > 0
-                exportData = [exportData {errorMsg}];
-            else
-                exportData = [exportData {L, C, E, Ef, Ur, eta, u, w, dudt, dwdt, pres}];
-            end
+        if length(errorMsg) > 0
+            exportData = [exportData {errorMsg}];
+        else
+            exportData = [exportData {L, C, E, Ef, Ur, eta, u, w, dudt, dwdt, pres}];
+        end
         exporter.writeData(exportData);
     end
 end
