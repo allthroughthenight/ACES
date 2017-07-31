@@ -1,6 +1,13 @@
 import math
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import sys
 sys.path.append('../functions')
+
+from base_driver import BaseDriver
+from helper_objects import BaseField
+from helper_objects import ComplexUtil
+import USER_INPUT
 from ERRSTP import ERRSTP
 from ERRWAVBRK1 import ERRWAVBRK1
 from ERRWAVBRK2 import ERRWAVBRK2
@@ -10,7 +17,9 @@ from WFVW2 import WFVW2
 from WFVW3 import WFVW3
 from WFVW4 import WFVW4
 
-## ACES Update to MATLAB
+from EXPORTER import EXPORTER
+
+## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Nonbreaking Wave Forces at Vertical Walls (page 4-3 of ACES
 # User's Guide). Provides pressure distribution and resultant force and
@@ -60,84 +69,316 @@ from WFVW4 import WFVW4
 #   Sintt: array containing Sainflou incremental values at trough
 #-------------------------------------------------------------
 
-def wave_forces(d, Hi, T, chi, cotphi):
-    g = 32.17 #ft/sec^2
-    rho = 1.989 #slugs/ft^3 (sea water)
-    H20weight = rho * g
+class WaveForces(BaseDriver):
+    def __init__(self, d = None, Hi = None, T = None, chi = None, cotphi = None):
+        self.exporter = EXPORTER("output/exportWaveForces")
 
-    d = 15
-    Hi = 8.0
-    T = 10.0
-    chi = 1.0
-    cotphi = 100.0
+        if d != None:
+            self.isSingleCase = True
+            self.defaultValue_d = d
+        if Hi != None:
+            self.isSingleCase = True
+            self.defaultValueHi = Hi
+        if T != None:
+            self.isSingleCase = True
+            self.defaultValueT = T
+        if chi != None:
+            self.isSingleCase = True
+            self.defaultValue_chi = chi
+        if cotphi != None:
+            self.isSingleCase = True
+            self.defaultValue_cotphi = cotphi
 
-    m = 1 / cotphi
+        super(WaveForces, self).__init__()
 
-    if m == 0:
-        Hbs = ERRWAVBRK1(d,  0.78)
-    else:
-        Hbs = ERRWAVBRK2(T,  m,  d)
+        self.exporter.close()
+    # end __init__
 
-    assert (Hi < Hbs),  ('Error: Wave broken at structure (Hbs = %6.2f m)' % Hbs)
+    def userInput(self):
+        super(WaveForces, self).userInput()
+        
+        self.water, self.rho = USER_INPUT.SALT_FRESH_WATER(self.isMetric)
+    # end userInput
 
-    L,  k = WAVELEN(d,  T,  50,  g)
+    def defineInputDataList(self):
+        self.inputList = []
 
-    steep,  maxstp = ERRSTP(Hi,  d,  L)
-    assert (steep < maxstp),  ('Error: Input wave unstable (Max: %0.4f,  [H/L] = %0.4f)' % (maxstp,  steep))
+        if not hasattr(self, "defaultValue_d"):
+            self.inputList.append(BaseField("d: depth for sea water level (%s)" %\
+                self.labelUnitDist, 0.1, 200.0))
+        if not hasattr(self, "defaultValueHi"):
+            self.inputList.append(BaseField("Hi: incident wave height (%s)" %\
+                self.labelUnitDist, 0.1, 100.0))
+        if not hasattr(self, "defaultValueT"):
+            self.inputList.append(BaseField("T: wave period (s)", 1.0, 100.0))
+        if not hasattr(self, "defaultValue_chi"):
+            self.inputList.append(BaseField(\
+                "chi: wave reflection coefficient", 0.9, 1.0))
+        if not hasattr(self, "defaultValue_cotphi"):
+            self.inputList.append(BaseField(\
+                "cotphi: cotangent of nearshore slope", 5.0, 10000.0))
+    # end defineInputDataList
 
-    MR, S, MRintc, MRintt, Sintc, Sintt = WFVW1(d, Hi, chi, L, H20weight)
-    print('\n\t\t\t\t\t\t %s \t\t\t %s \n' % ('Miche-Rundgren', 'Sainflou'))
-    print('%s \t %s \t\t %s \t\t %s \t\t %s \n' % ('Wave Position at Wall', 'Crest', 'Trough', 'Crest', 'Trough'))
-    print('%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \n' % ('Hgt above bottom', MR[1], MR[4], S[1], S[4]))
-    print('%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \n' % ('Integrated force', MR[2], MR[5], S[2], S[5]))
-    print('%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \n' % ('Integrated moment', MR[3], MR[6], S[3], S[6]))
+    def fileOutputRequestInit(self):
+        self.fileOutputRequestMain(defaultFilename = "wave_forces")
 
-    # TODO graphing portion
+    def getCalcValues(self, caseInputList):
+        currIndex = 0
 
-    '''
-    figure(1)
-    subplot(2, 1, 1) plot(MRintc(:, 2), MRintc(:, 1), 'k-', MRintc(:, 3), MRintc(:, 1), 'k--', MRintc(:, 4), MRintc(:, 1), 'k:')
-    legend('Wave Pressure', 'Hyrdostatic Pressure', 'Wave and Hydrostatic Pressue')
-    xlabel('Pressure [lb/ft^2]')
-    ylabel('Elevation [ft]')
-    title('Miche-Rundgren Pressure Distribution - Crest at Wall')
-    hold on
-    hline = refline([0 0])
-    set(hline, 'LineStyle', '--')
-    hold off
+        if hasattr(self, "defaultValue_d"):
+            d = self.defaultValue_d
+        else:
+            d = caseInputList[currIndex]
+            currIndex = currIndex + 1
 
-    subplot(2, 1, 2) plot(MRintt(:, 2), MRintt(:, 1), 'k-', MRintt(:, 3), MRintt(:, 1), 'k--', MRintt(:, 4), MRintt(:, 1), 'k:')
-    legend('Wave Pressure', 'Hydrostatic Pressure', 'Wave and Hydrostatic Pressue')
-    xlabel('Pressure [lb/ft^2]')
-    ylabel('Elevation [ft]')
-    title('Miche-Rundgren Pressure Distribution - Trough at Wall')
-    hold on
-    hline = refline([0 0])
-    set(hline, 'LineStyle', '--')
-    rectangle('Position', [-50, floor(min(Sintt(:, 1))), 50, abs(floor(min(Sintt(:, 1))))+5], 'LineWidth', 2)
-    hold off
-    ylim([floor(min(Sintt(:, 1))) abs(floor(min(Sintt(:, 1))))-5])
+        if hasattr(self, "defaultValueHi"):
+            Hi = self.defaultValueHi
+        else:
+            Hi = caseInputList[currIndex]
+            currIndex = currIndex + 1
 
-    figure(2)
-    subplot(2, 1, 1) plot(Sintc(:, 2), Sintc(:, 1), 'k-', Sintc(:, 3), Sintc(:, 1), 'k--', Sintc(:, 4), Sintc(:, 1), 'k:')
-    legend('Wave Pressure', 'Hyrdostatic Pressure', 'Wave and Hydrostatic Pressue')
-    xlabel('Pressure [lb/ft^2]')
-    ylabel('Elevation [ft]')
-    title('Sainflou Pressure Distribution - Crest at Wall')
-    hold on
-    hline = refline([0 0])
-    set(hline, 'LineStyle', '--')
-    hold off
+        if hasattr(self, "defaultValueT"):
+            T = self.defaultValueT
+        else:
+            T = caseInputList[currIndex]
 
-    subplot(2, 1, 2) plot(Sintt(:, 2), Sintt(:, 1), 'k-', Sintt(:, 3), Sintt(:, 1), 'k--', Sintt(:, 4), Sintt(:, 1), 'k:')
-    legend('Wave Pressure', 'Hydrostatic Pressure', 'Wave and Hydrostatic Pressue')
-    xlabel('Pressure [lb/ft^2]')
-    ylabel('Elevation [ft]')
-    title('Sainflou Pressure Distribution - Trough at Wall')
-    hold on
-    hline = refline([0 0])
-    set(hline, 'LineStyle', '--')
-    rectangle('Position', [-50, floor(min(Sintt(:, 1))), 50, abs(floor(min(Sintt(:, 1))))+5], 'LineWidth', 2)
-    hold off
-    ylim([floor(min(Sintt(:, 1))) abs(floor(min(Sintt(:, 1))))-5])
-    '''
+        if hasattr(self, "defaultValue_chi"):
+            chi = self.defaultValue_chi
+        else:
+            chi = caseInputList[currIndex]
+
+        if hasattr(self, "defaultValue_cotphi"):
+            cotphi = self.defaultValue_cotphi
+        else:
+            cotphi = caseInputList[currIndex]
+
+        return d, Hi, T, chi, cotphi
+    # end getCalcValues
+
+    def performCalculations(self, caseInputList, caseIndex = 0):
+        d, Hi, T, chi, cotphi = self.getCalcValues(caseInputList)
+        dataDict = {"d": d, "Hi": Hi, "T": T, "chi": chi, "cotphi": cotphi}
+        
+        H20weight = self.rho * self.g
+        
+        m = 1.0 / cotphi
+        if np.isclose(m, 0.0):
+            Hbs = ERRWAVBRK1(d, 0.78)
+        else:
+            Hbs = ERRWAVBRK2(T, m, d)
+        
+        if not (Hi < Hbs):
+            self.errorMsg = "Error: Wave broken at structure (Hbs = %6.2f %s)" %\
+                (Hbs, self.labelUnitDist)
+            
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
+            return
+        
+        L, k = WAVELEN(d, T, 50, self.g)
+        
+        steep, maxstp = ERRSTP(Hi, d, L)
+#        assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+        if not ComplexUtil.lessThan(steep, maxstp):
+            self.errorMsg = "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)" %\
+                (maxstp.real, steep.real)
+    
+        MR, S, MRintc, MRintt, Sintc, Sintt = WFVW1(d, Hi, chi, L, H20weight)
+        print('\n\t\t\t\t %s \t\t %s' % ('Miche-Rundgren','Sainflou'))
+        print("Wave Position at Wall\t\tCrest\t\tTrough\t\tCrest\t\tTrough\t\tUnits")
+        print("Hgt above bottom \t\t %-6.2f \t %6.2f \t %-6.2f \t %6.2f \t %s" %\
+            (MR[0].real, MR[3].real, S[0].real, S[3].real, self.labelUnitDist))
+        print("Integrated force \t\t %-6.2f \t %6.2f \t %-6.2f \t %6.2f \t %s/%s" %\
+            (MR[1].real, MR[4].real, S[1].real, S[4].real, self.labelUnitWt, self.labelUnitDist))
+        print("Integrated moment \t\t %-6.2f \t %6.2f \t %-6.2f \t %6.2f \t %s-%s/%s" %\
+            (MR[2].real, MR[5].real, S[2].real, S[5].real, self.labelUnitWt, self.labelUnitDist, self.labelUnitDist))
+        
+        dataDict.update({"MR": MR, "S": S})
+        self.fileOutputWriteMain(dataDict, caseIndex)
+        
+        if self.isSingleCase:
+            self.plotDict = {"MRintc": MRintc, "MRintt": MRintt,\
+                "Sintc": Sintc, "Sintt": Sintt}
+    # end performCalculations
+
+    def fileOutputWriteData(self, dataDict):
+        self.fileRef.write("Input\n")
+        self.fileRef.write("d\t%6.2f %s\n" % (dataDict["d"], self.labelUnitDist))
+        self.fileRef.write("Hi\t%6.2f %s\n" % (dataDict["Hi"], self.labelUnitDist))
+        self.fileRef.write("T\t%6.2f s\n" % dataDict["T"])
+        self.fileRef.write("chi\t%6.2f\n" % dataDict["chi"])
+        self.fileRef.write("cotphi\t%6.2f\n" % dataDict["cotphi"])
+        
+        if self.errorMsg != None:
+            self.fileRef.write("\n%s\n" % self.errorMsg)
+        else:
+            self.fileRef.write('\n\t\t\t\t %s \t\t %s \n' % ('Miche-Rundgren','Sainflou'))
+            self.fileRef.write("Wave Position at Wall\t\tCrest\t\tTrough\t\tCrest\t\tTrough\t\tUnits\n")
+            self.fileRef.write("Hgt above bottom \t\t %-6.2f \t %6.2f \t %-6.2f \t %6.2f \t %s \n" %\
+                (dataDict["MR"][0].real, dataDict["MR"][3].real,\
+                dataDict["S"][0].real, dataDict["S"][3].real, self.labelUnitDist))
+            self.fileRef.write("Integrated force \t\t %-6.2f \t %6.2f \t %-6.2f \t %6.2f \t %s/%s \n" %\
+                (dataDict["MR"][1].real, dataDict["MR"][4].real,\
+                dataDict["S"][1].real, dataDict["S"][4].real,\
+                self.labelUnitWt, self.labelUnitDist))
+            self.fileRef.write("Integrated moment \t\t %-6.2f \t %6.2f \t %-6.2f \t %6.2f \t %s-%s/%s \n" %\
+                (dataDict["MR"][2].real, dataDict["MR"][5].real,\
+                dataDict["S"][2].real, dataDict["S"][5].real,\
+                self.labelUnitWt, self.labelUnitDist, self.labelUnitDist))
+        
+        exportData = [dataDict["d"], dataDict["Hi"], dataDict["T"],\
+            dataDict["chi"], dataDict["cotphi"]]
+        if self.errorMsg != None:
+            exportData.append(self.errorMsg)
+        else:
+            exportData = exportData + [dataDict["MR"][0], dataDict["MR"][3],\
+                dataDict["S"][0], dataDict["S"][3],\
+                dataDict["MR"][1], dataDict["MR"][4],\
+                dataDict["S"][1], dataDict["S"][4],\
+                dataDict["MR"][2], dataDict["MR"][5],\
+                dataDict["S"][2], dataDict["S"][5]]
+        self.exporter.writeData(exportData)
+    # end fileOutputWriteData
+
+    def hasPlot(self):
+        return True
+
+    def performPlot(self):
+        plt.figure(1, figsize = self.plotConfigDict["figSize"],\
+            dpi = self.plotConfigDict["dpi"])
+        plt.subplot(2, 1, 1)
+        plt.plot([i[1] for i in self.plotDict["MRintc"]],\
+            [i[0] for i in self.plotDict["MRintc"]], "g-",\
+            [i[2] for i in self.plotDict["MRintc"]],\
+            [i[0] for i in self.plotDict["MRintc"]], "c-.",\
+            [i[3] for i in self.plotDict["MRintc"]],\
+            [i[0] for i in self.plotDict["MRintc"]], "r:")
+        plt.axhline(y=0.0, color="r", LineStyle="--")
+        plt.legend(["Wave Pressure", "Hydrostatic Pressure",\
+            "Wave and Hydrostatic Pressure"])
+        plt.xlabel("Pressure [%s/%s^2]" % (self.labelUnitWt, self.labelUnitDist))
+        plt.ylabel("Elevation [%s]" % self.labelUnitDist)
+        plt.title("Miche-Rundgren Pressure Distribution - Crest at Wall")
+        
+        plt.subplot(2, 1, 2)
+        plt.plot([i[1] for i in self.plotDict["MRintt"]],\
+            [i[0] for i in self.plotDict["MRintt"]], "g-",\
+            [i[2] for i in self.plotDict["MRintt"]],\
+            [i[0] for i in self.plotDict["MRintt"]], "c-.",\
+            [i[3] for i in self.plotDict["MRintt"]],\
+            [i[0] for i in self.plotDict["MRintt"]], "r:")
+        plt.axhline(y=0.0, color="r", LineStyle="--")
+#				rectangle('Position',[-50,floor(min(Sintt(:,1))),50,abs(floor(min(Sintt(:,1))))+5],'LineWidth',2)
+        plt.ylim([math.floor(min([i[0].real for i in self.plotDict["Sintt"]])),\
+            abs(math.floor(min([i[0].real for i in self.plotDict["Sintt"]]))) - 5])
+        plt.legend(["Wave Pressure", "Hydrostatic Pressure",\
+            "Wave and Hydrostatic Pressure"])
+        plt.xlabel("Pressure [%s/%s^2]" % (self.labelUnitWt, self.labelUnitDist))
+        plt.ylabel("Elevation [%s]" % self.labelUnitDist)
+        plt.title("Miche-Rundgren Pressure Distribution - Trough at Wall")
+        plt.tight_layout(h_pad=1.0)
+        
+        plt.figure(2, figsize = self.plotConfigDict["figSize"],\
+            dpi = self.plotConfigDict["dpi"])
+        plt.subplot(2, 1, 1)
+        plt.plot([i[1] for i in self.plotDict["Sintc"]],\
+            [i[0] for i in self.plotDict["Sintc"]], "g-",\
+            [i[2] for i in self.plotDict["Sintc"]],\
+            [i[0] for i in self.plotDict["Sintc"]], "c-.",
+            [i[3] for i in self.plotDict["Sintc"]],\
+            [i[0] for i in self.plotDict["Sintc"]], "r:")
+        plt.axhline(y=0.0, color="r", LineStyle="--")
+        plt.legend(["Wave Pressure", "Hydrostatic Pressure",\
+            "Wave and Hydrostatic Pressure"])
+        plt.xlabel("Pressure [%s/%s^2]" % (self.labelUnitWt, self.labelUnitDist))
+        plt.ylabel("Elevation [%s]" % self.labelUnitDist)
+        plt.title("Sainflou Pressure Distribution - Crest at Wall")
+        
+        plt.subplot(2, 1, 2)
+        plt.plot([i[1] for i in self.plotDict["Sintt"]],\
+            [i[0] for i in self.plotDict["Sintt"]], "g-",\
+            [i[2] for i in self.plotDict["Sintt"]],\
+            [i[0] for i in self.plotDict["Sintt"]], "c-.",\
+            [i[3] for i in self.plotDict["Sintt"]],\
+            [i[0] for i in self.plotDict["Sintt"]], "r:")
+        plt.axhline(y=0.0, color="r", LineStyle="--")
+#        plotAx.add_patch(patches.Rectangle(\
+#            (-50, math.floor(min([i[0].real for i in self.plotDict["Sintt"]]))),\
+#            50, abs(math.floor(min([i[0].real for i in self.plotDict["Sintt"]]))) + 5,\
+#            linestyle=2))
+        plt.ylim([math.floor(min([i[0].real for i in self.plotDict["Sintt"]])),\
+            abs(math.floor(min([i[0].real for i in self.plotDict["Sintt"]]))) - 5])
+        plt.legend(["Wave Pressure", "Hydrostatic Pressure",\
+            "Wave and Hydrostatic Pressue"])
+        plt.xlabel("Pressure [%s/%s^2]" % (self.labelUnitWt, self.labelUnitDist))
+        plt.ylabel("Elevation [%s]" % self.labelUnitDist)
+        plt.title("Sainflou Pressure Distribution - Trough at Wall")
+        plt.tight_layout(h_pad=1.0)
+        
+        plt.show()
+        
+        self.fileOutputPlotWriteData()
+    # end performPlot
+
+    def fileOutputPlotWriteData(self):
+        self.fileRef.write('Partial Listing of Plot Output File\n\n')
+        
+        self.fileRef.write('Miche-Rundgren Pressure Distribution\n')
+        self.fileRef.write('Crest at Wall \n\n')
+        
+        self.fileRef.write('          Elevation    Wave Pressure    Hydrostatic Pressure    Wave & Hydrostatic Pressure\n')
+        self.fileRef.write('          (%s)         (%s/%s^2)        (%s/%s^2)               (%s/%s^2)\n' %\
+            (self.labelUnitDist, self.labelUnitWt, self.labelUnitDist,\
+            self.labelUnitWt, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
+        
+        index = 1
+        for i in self.plotDict["MRintc"]:
+            self.fileRef.write('%-6d    %-6.2f       %-6.2f           %-6.2f                  %-6.2f\n' %\
+                (index, i[0].real, i[1].real, i[2].real, i[3].real))
+            index += 1
+        
+        self.fileRef.write('\n\nMiche-Rundgren Pressure Distribution\n')
+        self.fileRef.write('Trough at Wall \n\n')
+        
+        self.fileRef.write('          Elevation    Wave Pressure    Hydrostatic Pressure    Wave & Hydrostatic Pressure\n')
+        self.fileRef.write('          (%s)         (%s/%s^2)        (%s/%s^2)               (%s/%s^2)\n' %\
+            (self.labelUnitDist, self.labelUnitWt, self.labelUnitDist,\
+            self.labelUnitWt, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
+        
+        index = 1
+        for i in self.plotDict["MRintt"]:
+            self.fileRef.write('%-6d    %-6.2f       %-6.2f           %-6.2f                  %-6.2f\n' %\
+                (index, i[0].real, i[1].real, i[2].real, i[3].real))
+            index += 1
+        
+        self.fileRef.write('\n\nSainflou Pressure Distribution\n')
+        self.fileRef.write('Crest at Wall \n\n')
+        
+        self.fileRef.write('          Elevation    Wave Pressure    Hydrostatic Pressure    Wave & Hydrostatic Pressure\n')
+        self.fileRef.write('          (%s)         (%s/%s^2)        (%s/%s^2)               (%s/%s^2)\n' %\
+            (self.labelUnitDist, self.labelUnitWt, self.labelUnitDist,\
+            self.labelUnitWt, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
+        
+        index = 1
+        for i in self.plotDict["Sintc"]:
+            self.fileRef.write('%-6d    %-6.2f       %-6.2f           %-6.2f                  %-6.2f\n' %\
+                (index, i[0].real, i[1].real, i[2].real, i[3].real))
+            index += 1
+        
+        self.fileRef.write('\n\nSainflou Pressure Distribution\n')
+        self.fileRef.write('Trough at Wall \n\n')
+        
+        self.fileRef.write('          Elevation    Wave Pressure    Hydrostatic Pressure    Wave & Hydrostatic Pressure\n')
+        self.fileRef.write('          (%s)         (%s/%s^2)        (%s/%s^2)               (%s/%s^2)\n' %\
+            (self.labelUnitDist, self.labelUnitWt, self.labelUnitDist,\
+            self.labelUnitWt, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
+        
+        index = 1
+        for i in self.plotDict["Sintt"]:
+            self.fileRef.write('%-6d    %-6.2f       %-6.2f           %-6.2f                  %-6.2f\n' %\
+                (index, i[0].real, i[1].real, i[2].real, i[3].real))
+            index += 1
+    # end fileOutputPlotWriteData
+
+
+driver = WaveForces()

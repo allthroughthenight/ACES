@@ -1,6 +1,10 @@
+from helper_objects import ComplexUtil
+
+from WFVW2 import WFVW2
+from WFVW3 import WFVW3
+from WFVW4 import WFVW4
 
 def WFVW1(d, H, x, L, ww):
-
     N = 90
 
     #Pressure values included hydrostatic pressure
@@ -8,7 +12,7 @@ def WFVW1(d, H, x, L, ww):
 
     ycs, yts, pcs, pts, mcs, mts = WFVW2(N, d, L, H, x, ww, 1)
 
-    ycrm = ycm(N + 1) + d
+    ycrm = ycm[N] + d
     ycrs = ycrm
 
     # Crest at Wall
@@ -25,7 +29,7 @@ def WFVW1(d, H, x, L, ww):
     mcrs = WFVW3(N, ycs, mcs)
 
     # Trough at Wall
-    ytrm = ytm(N + 1) + d
+    ytrm = ytm[N] + d
     ytrs = ytrm
 
     # Integrate for Miche-Rundgren force value
@@ -40,7 +44,8 @@ def WFVW1(d, H, x, L, ww):
     #Integrate for Sainfluo moment value
     mtrs = WFVW3(N, yts, mts)
 
-    if fcrm < fcrs and mcrm < mcrs: #Equation delivering lowest result should be used in design
+    if ComplexUtil.lessThan(fcrm, fcrs) and\
+        ComplexUtil.lessThan(mcrm, mcrs): #Equation delivering lowest result should be used in design
         print('Miche-Rundgren is recommendend for this case.')
     else:
         print('Sainflou is recommended for this case.')

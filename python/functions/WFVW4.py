@@ -1,3 +1,4 @@
+from helper_objects import ComplexUtil
 
 # Input value 'p' includes hydrostatic pressure
 # To define wave pressure 'wp' remove hydrostatic pressue from values of
@@ -6,13 +7,15 @@
 # Hydrostatic pressue increases from 0 at SWL to rho*g*d at the bottom.
 
 def WFVW4(N, y, p, ww):
-
-    for i in range(1, n  +  1):
-        if y[i] < 0:
-            wp[i][1] = p[i] + ww * y[i]
-            hp[i][1] = p[i] - wp[i][1]
+    wp = [0.0 for i in range(N + 1)]
+    hp = [0.0 for i in range(N + 1)]
+    
+    for i in range(N + 1):
+        if ComplexUtil.lessThan(y[i], 0.0):
+            wp[i] = p[i] + ww * y[i]
+            hp[i] = p[i] - wp[i]
         else:
-            wp[i][1] = p[i]
-            hp[i][1] = 0
-
+            wp[i] = p[i]
+            hp[i] = 0.0
+    
     return hp, wp
