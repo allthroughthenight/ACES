@@ -4,6 +4,7 @@ sys.path.append('../functions')
 
 from base_driver import BaseDriver
 from helper_objects import BaseField
+from helper_objects import ComplexUtil
 import USER_INPUT
 from ERRSTP import ERRSTP
 from ERRWAVBRK1 import ERRWAVBRK1
@@ -178,7 +179,8 @@ class SnellsLaw(BaseDriver):
 
         Hb = ERRWAVBRK1(d1, 0.78)
         if not (H1 < Hb):
-            self.errorMsg = "Error: Known wave broken (Hb = %6.2f %s)" % (Hb, self.labelUnitDist)
+            self.errorMsg = "Error: Known wave broken (Hb = %6.2f %s)" %\
+                (Hb, self.labelUnitDist)
             
             print(self.errorMsg)
             self.fileOutputWriteMain(dataDict, caseIndex)
@@ -189,8 +191,9 @@ class SnellsLaw(BaseDriver):
         E1, P1, Ur1, setdown1 = LWTTWM(cg1, d1, H1, L1, reldep1, self.rho, self.g, k1)
 
         steep, maxstp = ERRSTP(H1, d1, L1)
-        if not (steep < maxstp):
-            self.errorMsg = "Error: Known wave unstable (Max: %0.4f, [H/L] = %0.4f)" % (maxstp, steep)
+        if not ComplexUtil.lessThan(steep, maxstp):
+            self.errorMsg = "Error: Known wave unstable (Max: %0.4f, [H/L] = %0.4f)" %\
+                (maxstp.real, steep.real)
             
             print(self.errorMsg)
             self.fileOutputWriteMain(dataDict, caseIndex)
@@ -207,7 +210,7 @@ class SnellsLaw(BaseDriver):
         P0 = E0*cg0
         HL = H0/L0
 
-        if not (HL < (1.0/7.0)):
+        if not ComplexUtil.lessThan(HL, (1.0/7.0)):
             self.errorMsg = "Error: Deepwater wave unstable, [H0/L0] > (1/7)"
             
             print(self.errorMsg)
@@ -220,17 +223,18 @@ class SnellsLaw(BaseDriver):
         E2, P2, Ur2, sedown2 = LWTTWM(cg2, d2, H2, L2, reldep2, self.rho, self.g, k2)
 
         Hb, db = ERRWAVBRK3(H0, L0, T, m)
-        if not (H2 < Hb):
+        if not ComplexUtil.lessThan(H2, Hb):
             self.errorMsg = "Error: Subject wave broken (Hb = %6.2f %s, hb = %6.2f %s)" %\
-                (Hb, self.labelUnitDist, db, self.labelUnitDist)
+                (Hb.real, self.labelUnitDist, db.real, self.labelUnitDist)
             
             print(self.errorMsg)
             self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
         steep, maxstp = ERRSTP(H2, d2, L2)
-        if not (steep < maxstp):
-            self.errorMsg = "Error: Subject wave unstable (Max: %0.4f, [H/L] = %0.4f)" % (maxstp, steep)
+        if not ComplexUtil.lessThan(steep, maxstp):
+            self.errorMsg = "Error: Subject wave unstable (Max: %0.4f, [H/L] = %0.4f)" %\
+                (maxstp.real, steep.real)
             
             print(self.errorMsg)
             self.fileOutputWriteMain(dataDict, caseIndex)
@@ -238,25 +242,25 @@ class SnellsLaw(BaseDriver):
 
         print("\t\t\tKnown\t\tDeepwater\t\tSubject\t\tUnits")
         print("Wave height\t\t%-5.2f\t\t%-5.2f\t\t\t%-5.2f\t\t%s" %\
-            (H1, H0, H2, self.labelUnitDist))
+            (H1, H0.real, H2.real, self.labelUnitDist))
         print("Wave crest angle\t%-5.2f\t\t%-5.2f\t\t\t%-5.2f\t\tdeg" %\
-            (alpha1, alpha0, alpha2))
+            (alpha1, alpha0.real, alpha2.real))
         print("Wavelength\t\t%-5.2f\t\t%-5.2f\t\t\t%-5.2f\t\t%s" %\
-            (L1, L0, L2, self.labelUnitDist))
+            (L1.real, L0.real, L2.real, self.labelUnitDist))
         print("Celerity\t\t%-5.2f\t\t%-5.2f\t\t\t%-5.2f\t\t%s/s" %\
-            (c1, c0, c2, self.labelUnitDist))
+            (c1.real, c0.real, c2.real, self.labelUnitDist))
         print("Group speed\t\t%-5.2f\t\t%-5.2f\t\t\t%-5.2f\t\t%s/s" %\
-            (cg1, cg0, cg2, self.labelUnitDist))
+            (cg1.real, cg0.real, cg2.real, self.labelUnitDist))
         print("Energy density\t\t%-8.2f\t%-8.2f\t\t%-8.2f\t%s-%s/%s^2" %\
-            (E1, E0, E2, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
+            (E1.real, E0.real, E2.real, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
         print("Energy flux\t\t%-8.2f\t%-8.2f\t\t%-8.2f\t%s-%s/sec-%s" %\
-            (P1, P0, P2, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
-        print("Ursell number\t\t%-5.2f\t\t\t\t\t%-5.2f" % (Ur1, Ur2))
-        print("Wave steepness\t\t\t\t%-5.2f" % HL)
+            (P1.real, P0.real, P2.real, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
+        print("Ursell number\t\t%-5.2f\t\t\t\t\t%-5.2f" % (Ur1.real, Ur2.real))
+        print("Wave steepness\t\t\t\t%-5.2f" % HL.real)
 
         print("\nBreaking Parameters")
-        print("Breaking height\t\t%-5.2f %s" % (Hb, self.labelUnitDist))
-        print("Breaking depth\t\t%-5.2f %s" % (db, self.labelUnitDist))
+        print("Breaking height\t\t%-5.2f %s" % (Hb.real, self.labelUnitDist))
+        print("Breaking depth\t\t%-5.2f %s" % (db.real, self.labelUnitDist))
 
         dataDict.update({"H0": H0, "H2": H2,\
             "alpha0": alpha0, "alpha2": alpha2, "L1": L1,\
@@ -281,28 +285,28 @@ class SnellsLaw(BaseDriver):
         else:
             self.fileRef.write("\t\t\tKnown\t\tDeepwater\t\tSubject\t\tUnits\n")
             self.fileRef.write("Wave height\t\t%-5.2f\t\t%-5.2f\t\t\t%-5.2f\t\t%s\n" %\
-                (dataDict["H1"], dataDict["H0"], dataDict["H2"], self.labelUnitDist))
+                (dataDict["H1"], dataDict["H0"].real, dataDict["H2"].real, self.labelUnitDist))
             self.fileRef.write("Wave crest angle\t%-5.2f\t\t%-5.2f\t\t\t%-5.2f\t\tdeg\n" %\
-                (dataDict["alpha1"], dataDict["alpha0"], dataDict["alpha2"]))
+                (dataDict["alpha1"], dataDict["alpha0"].real, dataDict["alpha2"].real))
             self.fileRef.write("Wavelength\t\t%-5.2f\t\t%-5.2f\t\t\t%-5.2f\t\t%s\n" %\
-                (dataDict["L1"], dataDict["L0"], dataDict["L2"], self.labelUnitDist))
+                (dataDict["L1"].real, dataDict["L0"].real, dataDict["L2"].real, self.labelUnitDist))
             self.fileRef.write("Celerity\t\t%-5.2f\t\t%-5.2f\t\t\t%-5.2f\t\t%s/s\n" %\
-                (dataDict["c1"], dataDict["c0"], dataDict["c2"], self.labelUnitDist))
+                (dataDict["c1"].real, dataDict["c0"].real, dataDict["c2"].real, self.labelUnitDist))
             self.fileRef.write("Group speed\t\t%-5.2f\t\t%-5.2f\t\t\t%-5.2f\t\t%s/s\n" %\
-                (dataDict["cg1"], dataDict["cg0"], dataDict["cg2"], self.labelUnitDist))
+                (dataDict["cg1"].real, dataDict["cg0"].real, dataDict["cg2"].real, self.labelUnitDist))
             self.fileRef.write("Energy density\t\t%-8.2f\t%-8.2f\t\t%-8.2f\t%s-%s/%s^2\n" %\
-                (dataDict["E1"], dataDict["E0"], dataDict["E2"], self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
+                (dataDict["E1"].real, dataDict["E0"].real, dataDict["E2"].real, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
             self.fileRef.write("Energy flux\t\t%-8.2f\t%-8.2f\t\t%-8.2f\t%s-%s/sec-%s\n" %\
-                (dataDict["P1"], dataDict["P0"], dataDict["P2"], self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
+                (dataDict["P1"].real, dataDict["P0"].real, dataDict["P2"].real, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
             self.fileRef.write("Ursell number\t\t%-5.2f\t\t\t\t\t%-5.2f\n" %\
-                (dataDict["Ur1"], dataDict["Ur2"]))
-            self.fileRef.write("Wave steepness\t\t\t\t%-5.2f\n" % dataDict["HL"])
+                (dataDict["Ur1"].real, dataDict["Ur2"].real))
+            self.fileRef.write("Wave steepness\t\t\t\t%-5.2f\n" % dataDict["HL"].real)
     
             self.fileRef.write("\nBreaking Parameters\n")
             self.fileRef.write("Breaking height\t\t%-5.2f %s\n" %\
-                (dataDict["Hb"], self.labelUnitDist))
+                (dataDict["Hb"].real, self.labelUnitDist))
             self.fileRef.write("Breaking depth\t\t%-5.2f %s\n" %\
-                (dataDict["db"], self.labelUnitDist))
+                (dataDict["db"].real, self.labelUnitDist))
             
         exportData = [dataDict["H1"], dataDict["T"], dataDict["d1"],\
             dataDict["alpha1"], dataDict["cotphi"], dataDict["d2"]]

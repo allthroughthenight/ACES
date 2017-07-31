@@ -141,8 +141,6 @@ class BeachNourishment(BaseDriver):
         catg = 0 # category of the material according to table 6-4-1 in Aces manual
 
         if self.isMetric: # If Means are entered in mm, convert to phi units for computations.
-            print(M_R)
-            print(M_b)
             M_R = -(math.log(M_R) / math.log(2.0))
             M_b = -(math.log(M_b) / math.log(2.0))
 

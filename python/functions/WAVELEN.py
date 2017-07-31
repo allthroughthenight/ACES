@@ -21,7 +21,7 @@ def WAVELEN(d, T, n, g):
         if np.isclose(L1, 0.0):
             L2 = (g * (T**2) * 0.5 / math.pi)
         else:
-            L2 = (g * (T**2) * 0.5 / math.pi) * math.tanh(2.0 * math.pi * d / L1)
+            L2 = (g * (T**2) * 0.5 / math.pi) * cmath.tanh(2.0 * math.pi * d / L1)
         L1 = L2 # redo
 
     L = L2

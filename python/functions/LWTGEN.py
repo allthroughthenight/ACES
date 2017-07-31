@@ -1,4 +1,5 @@
 import math
+import cmath
 from WAVELEN import WAVELEN
 
 # Linear wave theory approximations
@@ -31,7 +32,7 @@ def LWTGEN(h, T, g):
     reldep = h / L
 
     c = L / T
-    n = 0.5 * (1 + ((2 * k * h) / math.sinh(2 * k * h)))
+    n = 0.5 * (1 + ((2 * k * h) / cmath.sinh(2 * k * h)))
     cg = n * c
 
     return c, c0, cg, cg0, k, L, L0, reldep

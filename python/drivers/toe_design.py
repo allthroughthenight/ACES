@@ -1,9 +1,11 @@
 import math
+import cmath
 import sys
 sys.path.append('../functions')
 
 from base_driver import BaseDriver
 from helper_objects import BaseField
+from helper_objects import ComplexUtil
 import USER_INPUT
 from ERRSTP import ERRSTP
 from ERRWAVBRK2 import ERRWAVBRK2
@@ -195,7 +197,7 @@ class ToeDesign(BaseDriver):
 
         Hbs = ERRWAVBRK2(T, m, ds)
         if not (H < Hbs):
-            self.errorMsg = "Error: Wave broken at structure (Hbs = %6.2f %s" %\
+            self.errorMsg = "Error: Wave broken at structure (Hbs = %6.2f %s)" %\
                 (Hbs, self.labelUnitDist)
             
             print(self.errorMsg)
@@ -205,8 +207,9 @@ class ToeDesign(BaseDriver):
         L, k = WAVELEN(dl, T, 50, self.g)
 
         steep, maxstp = ERRSTP(H, dl, L)
-        if not (steep < maxstp):
-            self.errorMsg = "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f" % (maxstp, steep)
+        if not ComplexUtil.lessThan(steep, maxstp):
+            self.errorMsg = "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)" %\
+                (maxstp.real, steep.real)
             
             print(self.errorMsg)
             self.fileOutputWriteMain(dataDict, caseIndex)
@@ -219,18 +222,20 @@ class ToeDesign(BaseDriver):
         b = max(b)
 
         arg1 = (4.0*math.pi*dl/L)
-        kappa = (arg1/math.sinh(arg1))*((math.sin(2.0*math.pi*b/L))**2)
+        kappa = (arg1/cmath.sinh(arg1))*((cmath.sin(2.0*math.pi*b/L))**2)
         arg2 = ((1.0 - kappa)/(kappa**(1.0/3.0)))*(dl/H)
-        Ns = 1.3*arg2 + 1.8*math.exp(-1.5*(1.0 - kappa)*arg2)
+        Ns = 1.3*arg2 + 1.8*cmath.exp(-1.5*(1.0 - kappa)*arg2)
 
-        Ns = max(Ns, 1.8)
+#        Ns = max(Ns, 1.8)
+        if ComplexUtil.getCompVal(Ns) < 1.8:
+            Ns = 1.8
 
         w = (unitwt*(H**3))/((Ns**3)*((specgrav - 1.0)**3))
 
         print("\nWidth of toe apron\t\t%6.2f %s" %\
             (b, self.labelUnitDist))
         print("Weight of individual armor unit\t%6.2f %s" %\
-            (w, self.labelUnitWt))
+            (w.real, self.labelUnitWt))
         print("Water depth at top of tow\t%6.2f %s" %\
             (dl, self.labelUnitDist))
 
@@ -260,7 +265,7 @@ class ToeDesign(BaseDriver):
             self.fileRef.write("\nWidth of toe apron\t\t%6.2f %s\n" %\
                 (dataDict["b"], self.labelUnitDist))
             self.fileRef.write("Weight of individual armor unit\t%6.2f %s\n" %\
-                (dataDict["w"], self.labelUnitWt))
+                (dataDict["w"].real, self.labelUnitWt))
             self.fileRef.write("Water depth at top of tow\t%6.2f %s\n" %\
                 (dataDict["dl"], self.labelUnitDist))
         

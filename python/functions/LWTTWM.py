@@ -1,4 +1,6 @@
-import math
+import cmath
+
+from helper_objects import ComplexUtil
 
 # Miscellaneous linear wave theory bulk values
 
@@ -24,8 +26,9 @@ def LWTTWM(cg, h, H, L, reldep, rho, g, k):
     P = E * cg
     Ur = (H * (L**2)) / (h**3)
 
-    if reldep < 0.5:
-        setdown = (k * H**2) / (8.0 * math.sinh(2 * k * h))
+#    if reldep < 0.5 or (isinstance(reldep, complex) and abs(reldep) < 0.5):
+    if ComplexUtil.lessThan(reldep, 0.5):
+        setdown = (k * H**2) / (8.0 * cmath.sinh(2 * k * h))
     else:
         setdown = 0
 

@@ -5,7 +5,11 @@ class EXPORTER(object):
 
     def writeData(self, dataList):
         for i in range(len(dataList)):
-            dataStr = str(dataList[i])
+            if isinstance(dataList[i], complex):
+                dataStr = str(dataList[i].real)
+            else:
+                dataStr = str(dataList[i])
+            
             if i == 0:
                 self.fileRef.write(dataStr)
             else:

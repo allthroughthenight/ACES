@@ -6,6 +6,7 @@ sys.path.append('../functions')
 
 from base_driver import BaseDriver
 from helper_objects import BaseField
+from helper_objects import ComplexUtil
 import USER_INPUT
 from ERRSTP import ERRSTP
 from ERRWAVBRK1 import ERRWAVBRK1
@@ -123,9 +124,10 @@ class BetaRayleigh(BaseDriver):
 
         L, k = WAVELEN(d, Tp, 50, self.g)
         steep, maxstp = ERRSTP(Hmo, d, L)
-        if steep >= maxstp:
+        if ComplexUtil.greaterThanEqual(steep, maxstp):
             self.errorMsg =\
-                "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)" % (maxstp, steep)
+                "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)" %\
+                    (maxstp.real, steep.real)
 
             print(self.errorMsg)
             self.fileOutputWriteMain(dataDict, caseIndex)
@@ -177,7 +179,7 @@ class BetaRayleigh(BaseDriver):
                 Hout.append(sum2 / (1 - Htype[k])) # computing centroid (areasum = 1-Htype)
         else:
             Hb = d
-            Hinc = Hb / 100
+            Hinc = Hb / 100.0
             print("Input conditions indicate Beta-Rayleigh distribution")
             a1 = 0.00089
             b1 = 0.834
@@ -209,7 +211,7 @@ class BetaRayleigh(BaseDriver):
             K2 = (Hrmsq**2) / (Hb**4)
 
             alpha = (K1*(K2 - K1))/(K1**2 - K2)
-            beta = ((1 - K1)*(K2 - K1))/(K1**2 - K2)
+            beta = ((1.0 - K1)*(K2 - K1))/(K1**2 - K2)
 
             term1 = (2*sp.gamma(alpha + beta))/(sp.gamma(alpha)*sp.gamma(beta))
 
@@ -219,8 +221,19 @@ class BetaRayleigh(BaseDriver):
             for i in range(101):
                 # Beta-Rayleigh distribution
                 H.append(Hinc*i)
-                term2 = (H[i]**(2*alpha - 1))/(Hb**(2*alpha))
-                term3 = (1 - (H[i]/Hb)**2)**(beta - 1)
+                
+                # Avoid division by zero
+                try:
+                    term2 = (H[i]**(2*alpha - 1))/(Hb**(2*alpha))
+                except:
+                    term2 = float('inf')
+                
+                # Avoid division by zero
+                try:
+                    term3 = (1.0 - (H[i]/Hb)**2)**(beta - 1.0)
+                except:
+                    term3 = float('inf')
+                
                 p.append(term1 * term2 * term3)
 
                 sum1 = sum1 + (p[i]*Hinc)
@@ -239,7 +252,13 @@ class BetaRayleigh(BaseDriver):
                 for i in range(1, 20):
                     Hnxt = Hstart + Hinc*i
                     term2 = (Hnxt**(2*alpha - 1))/(Hb**(2*alpha))
-                    term3 = (1 - (Hnxt/Hb)**2)**(beta - 1)
+                    
+                    # Avoid division by zero
+                    try:
+                        term3 = (1 - (Hnxt/Hb)**2)**(beta - 1)
+                    except:
+                        term3 = float('inf')
+                        
                     pnxt = term1*term2*term3
                     darea = 0.5*(pprv + pnxt)*Hinc # area of a trapezoid
                     sum2 = sum2 + (Hinc/2.0 + Hprv)*darea
