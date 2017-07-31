@@ -92,6 +92,16 @@ else
     cotphiList = varData(5, :);
 end
 
+% File Output
+fileOutputArgs = {};
+[fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
+
+if fileOutputData{1}
+	fId = fopen('output/wave_forces.txt', 'wt');
+  
+  exporter = EXPORTER('output/exporterWaveForces');
+end
+
 for loopIndex = 1:numCases
     if ~single_case
         d = dList(loopIndex);
@@ -101,6 +111,8 @@ for loopIndex = 1:numCases
         cotphi = cotphiList(loopIndex);
     end
     
+	errorMsg = '';
+	
     m=1/cotphi;
 
     if m==0
@@ -109,77 +121,127 @@ for loopIndex = 1:numCases
         [Hbs]=ERRWAVBRK2(T,m,d);
     end
 
-    assert(Hi<Hbs,'Error: Wave broken at structure (Hbs = %6.2f %s)', Hbs, labelUnitDist);
+%     assert(Hi<Hbs,'Error: Wave broken at structure (Hbs = %6.2f %s)', Hbs, labelUnitDist);
+	if Hi >= Hbs
+		errorMsg = sprintf('Error: Wave broken at structure (Hbs = %6.2f %s)',...
+			Hbs, labelUnitDist);
+		disp(errorMsg);
+	else
+		[L,k]=WAVELEN(d,T,50,g);
 
-    [L,k]=WAVELEN(d,T,50,g);
+		[steep,maxstp]=ERRSTP(Hi,d,L);
+%         assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+		if steep >= maxstp
+			errorMsg = sprintf('Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)', maxstp, steep)
+			disp(errorMsg)
+		else
+			[MR,S,MRintc,MRintt,Sintc,Sintt]=WFVW1(d,Hi,chi,L,H20weight);
+			
+			fprintf('\n\t\t\t\t\t\t %s \t\t\t %s \n','Miche-Rundgren','Sainflou')
+			fprintf('%s \t %s \t\t %s \t\t %s \t\t %s \t\t %s \n','Wave Position at Wall','Crest','Trough','Crest','Trough', 'Units')
+			fprintf('%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \t\t %s \n','Hgt above bottom',MR(1),MR(4),S(1),S(4), labelUnitDist)
+			fprintf('%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \t\t %s/%s \n','Integrated force',MR(2),MR(5),S(2),S(5), labelUnitWt, labelUnitDist)
+			fprintf('%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \t\t %s-%s/%s \n','Integrated moment',MR(3),MR(6),S(3),S(6), labelUnitWt, labelUnitDist, labelUnitDist)
 
-    [steep,maxstp]=ERRSTP(Hi,d,L);
-    assert(steep<maxstp,'Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)',maxstp,steep')
+			if single_case
+				figure(1)
+				subplot(2,1,1); plot(MRintc(:,2),MRintc(:,1),'g-',MRintc(:,3),MRintc(:,1),'c-.',MRintc(:,4),MRintc(:,1),'r:')
+				hold on
+				hline = refline([0 0]);
+				set(hline,'LineStyle','--')
+				hold off
+				legend('Wave Pressure','Hydrostatic Pressure','Wave and Hydrostatic Pressue')
+				xlabel(['Pressure [' labelUnitWt '/' labelUnitDist '^2]'])
+				ylabel(['Elevation [' labelUnitDist ']'])
+				title('Miche-Rundgren Pressure Distribution - Crest at Wall')
+				
+				subplot(2,1,2); plot(MRintt(:,2),MRintt(:,1),'g-',MRintt(:,3),MRintt(:,1),'c-.',MRintt(:,4),MRintt(:,1),'r:')
+				hold on
+				hline = refline([0 0]);
+				set(hline,'LineStyle','--')
+				rectangle('Position',[-50,floor(min(Sintt(:,1))),50,abs(floor(min(Sintt(:,1))))+5],'LineWidth',2)
+				hold off
+				ylim([floor(min(Sintt(:,1))) abs(floor(min(Sintt(:,1))))-5])
+				legend('Wave Pressure','Hydrostatic Pressure','Wave and Hydrostatic Pressure')
+				xlabel(['Pressure [' labelUnitWt '/' labelUnitDist '^2]'])
+				ylabel(['Elevation [' labelUnitDist ']'])
+				title('Miche-Rundgren Pressure Distribution - Trough at Wall')
 
-    [MR,S,MRintc,MRintt,Sintc,Sintt]=WFVW1(d,Hi,chi,L,H20weight);
-    fprintf('\n\t\t\t\t\t\t %s \t\t\t %s \n','Miche-Rundgren','Sainflou')
-    fprintf('%s \t %s \t\t %s \t\t %s \t\t %s \t\t %s \n','Wave Position at Wall','Crest','Trough','Crest','Trough', 'Units')
-    fprintf('%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \t\t %s \n','Hgt above bottom',MR(1),MR(4),S(1),S(4), labelUnitDist)
-    fprintf('%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \t\t %s/%s \n','Integrated force',MR(2),MR(5),S(2),S(5), labelUnitWt, labelUnitDist)
-    fprintf('%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \t\t %s-%s/%s \n','Integrated moment',MR(3),MR(6),S(3),S(6), labelUnitWt, labelUnitDist, labelUnitDist)
-
-    if single_case
-        figure(1)
-        subplot(2,1,1); plot(MRintc(:,2),MRintc(:,1),'g-',MRintc(:,3),MRintc(:,1),'c-.',MRintc(:,4),MRintc(:,1),'r:')
-        hold on
-        hline = refline([0 0]);
-        set(hline,'LineStyle','--')
-        hold off
-        legend('Wave Pressure','Hyrdostatic Pressure','Wave and Hydrostatic Pressue')
-        xlabel(['Pressure [' labelUnitWt '/' labelUnitDist '^2]'])
-        ylabel(['Elevation [' labelUnitDist ']'])
-        title('Miche-Rundgren Pressure Distribution - Crest at Wall')
-        
-        subplot(2,1,2); plot(MRintt(:,2),MRintt(:,1),'g-',MRintt(:,3),MRintt(:,1),'c-.',MRintt(:,4),MRintt(:,1),'r:')
-        hold on
-        hline = refline([0 0]);
-        set(hline,'LineStyle','--')
-        rectangle('Position',[-50,floor(min(Sintt(:,1))),50,abs(floor(min(Sintt(:,1))))+5],'LineWidth',2)
-        hold off
-        ylim([floor(min(Sintt(:,1))) abs(floor(min(Sintt(:,1))))-5])
-        legend('Wave Pressure','Hydrostatic Pressure','Wave and Hydrostatic Pressue')
-        xlabel(['Pressure [' labelUnitWt '/' labelUnitDist '^2]'])
-        ylabel(['Elevation [' labelUnitDist ']'])
-        title('Miche-Rundgren Pressure Distribution - Trough at Wall')
-
-        
-        figure(2)
-        subplot(2,1,1); plot(Sintc(:,2),Sintc(:,1),'g-',Sintc(:,3),Sintc(:,1),'c-.',Sintc(:,4),Sintc(:,1),'r:')
-        hold on
-        hline = refline([0 0]);
-        set(hline,'LineStyle','--')
-        hold off
-        legend('Wave Pressure','Hyrdostatic Pressure','Wave and Hydrostatic Pressue')
-        xlabel(['Pressure [' labelUnitWt '/' labelUnitDist '^2]'])
-        ylabel(['Elevation [' labelUnitDist ']'])
-        title('Sainflou Pressure Distribution - Crest at Wall')
+				
+				figure(2)
+				subplot(2,1,1); plot(Sintc(:,2),Sintc(:,1),'g-',Sintc(:,3),Sintc(:,1),'c-.',Sintc(:,4),Sintc(:,1),'r:')
+				hold on
+				hline = refline([0 0]);
+				set(hline,'LineStyle','--')
+				hold off
+				legend('Wave Pressure','Hydrostatic Pressure','Wave and Hydrostatic Pressure')
+				xlabel(['Pressure [' labelUnitWt '/' labelUnitDist '^2]'])
+				ylabel(['Elevation [' labelUnitDist ']'])
+				title('Sainflou Pressure Distribution - Crest at Wall')
+			
+				subplot(2,1,2); plot(Sintt(:,2),Sintt(:,1),'g-',Sintt(:,3),Sintt(:,1),'c-.',Sintt(:,4),Sintt(:,1),'r:')
+				hold on
+				hline = refline([0 0]);
+				set(hline,'LineStyle','--')
+				rectangle('Position',[-50,floor(min(Sintt(:,1))),50,abs(floor(min(Sintt(:,1))))+5],'LineWidth',2)
+				hold off
+				ylim([floor(min(Sintt(:,1))) abs(floor(min(Sintt(:,1))))-5])
+				legend('Wave Pressure','Hydrostatic Pressure','Wave and Hydrostatic Pressue')
+				xlabel(['Pressure [' labelUnitWt '/' labelUnitDist '^2]'])
+				ylabel(['Elevation [' labelUnitDist ']'])
+				title('Sainflou Pressure Distribution - Trough at Wall')
+			end
+		end
+    end
     
-        subplot(2,1,2); plot(Sintt(:,2),Sintt(:,1),'g-',Sintt(:,3),Sintt(:,1),'c-.',Sintt(:,4),Sintt(:,1),'r:')
-        hold on
-        hline = refline([0 0]);
-        set(hline,'LineStyle','--')
-        rectangle('Position',[-50,floor(min(Sintt(:,1))),50,abs(floor(min(Sintt(:,1))))+5],'LineWidth',2)
-        hold off
-        ylim([floor(min(Sintt(:,1))) abs(floor(min(Sintt(:,1))))-5])
-        legend('Wave Pressure','Hydrostatic Pressure','Wave and Hydrostatic Pressue')
-        xlabel(['Pressure [' labelUnitWt '/' labelUnitDist '^2]'])
-        ylabel(['Elevation [' labelUnitDist ']'])
-        title('Sainflou Pressure Distribution - Trough at Wall')
-   end
+    if fileOutputData{1}
+        if ~single_case
+            fprintf(fId, 'Case #%d\n\n', loopIndex);
+        end
+        
+        fprintf(fId, 'Input\n');
+        fprintf(fId, 'd\t%6.2f %s\n', d, labelUnitDist);
+        fprintf(fId, 'Hi\t%6.2f %s\n', Hi, labelUnitDist);
+        fprintf(fId, 'T\t%6.2f s\n', T, labelUnitDist);
+        fprintf(fId, 'chi\t%6.2f\n', chi);
+        fprintf(fId, 'cotphi\t%6.2f\n', cotphi);
+        
+        if length(errorMsg) > 0
+            fprintf(fId, '\n%s\n', errorMsg);
+        else
+            fprintf(fId, '\n\t\t\t\t\t\t %s \t\t\t %s \n','Miche-Rundgren','Sainflou')
+            fprintf(fId, '%s \t %s \t\t %s \t\t %s \t\t %s \t\t %s \n','Wave Position at Wall','Crest','Trough','Crest','Trough', 'Units')
+            fprintf(fId, '%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \t\t %s \n','Hgt above bottom',...
+                MR(1),MR(4),S(1),S(4), labelUnitDist)
+            fprintf(fId, '%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \t\t %s/%s \n','Integrated force',...
+                MR(2),MR(5),S(2),S(5), labelUnitWt, labelUnitDist)
+            fprintf(fId, '%s \t\t %-6.2f \t %6.2f \t\t %-6.2f \t %6.2f \t\t %s-%s/%s \n','Integrated moment',...
+                MR(3),MR(6),S(3),S(6), labelUnitWt, labelUnitDist, labelUnitDist)
+        end
+        
+        if loopIndex < numCases
+            fprintf(fId, '\n--------------------------------------\n\n');
+        end
+        
+        exportData = {d, Hi, T, chi, cotphi};
+        if length(errorMsg) > 0
+            exportData = [exportData {errorMsg}];
+        else
+            exportData = [exportData {MR(1),MR(4),S(1),S(4),MR(2),MR(5),...
+                S(2),S(5),MR(3),MR(6),S(3),S(6)}];
+        end
+        exporter.writeData(exportData);
+    end
+end
+
+if fileOutputData{1}
+    fclose(fId);
+    exporter.close();
 end
 
 if single_case
-    % File Output
-    fileOutputArgs = {};
-    [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
-    
-    if fileOutputData{1}
-        fId = fopen('output/wave_forces.txt', 'wt');
+	if fileOutputData{1}
+      	fId = fopen('output/wave_forces_plot.txt', 'wt');
         
         fprintf(fId, 'Partial Listing of Plot Output File \n\n');
         
@@ -220,7 +282,7 @@ if single_case
         end
         
         fprintf(fId, '\n\nSainflou Pressure Distribution\n');
-        fprintf(fId, 'Trough at Wall (Figure 4-3-5)\n\n');
+        fprintf(fId, 'Trough at Wall \n\n');
         
         fprintf(fId, '          Elevation    Wave Pressure    Hydrostatic Pressure    Wave & Hydrostatic Pressure\n');
         fprintf(fId, '          (%s)         (%s/%s^2)        (%s/%s^2)               (%s/%s^2)\n',...
