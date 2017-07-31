@@ -14,6 +14,8 @@ from NFACS import NFACS
 from ORBIT import ORBIT
 from TIDELV import TIDELV
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to python
 #-------------------------------------------------------------
 # Driver for Constituent Tide Record Generation (page 1-4 in ACES User's Guide)
@@ -65,6 +67,8 @@ from TIDELV import TIDELV
 class TideGeneration(BaseDriver):
     def __init__(self, year = None, mon = None, day = None, hr = None,\
         tlhrs = None, delt = None, gauge0 = None, glong = None):
+        self.exporter = EXPORTER("output/exportTideGeneration")
+        
         self.isSingleCase = True
 
         if year != None:
@@ -85,6 +89,8 @@ class TideGeneration(BaseDriver):
             self.defaultValue_glong = glong
 
         super(TideGeneration, self).__init__()
+        
+        self.exporter.close()
     # end __init__
 
     def userInput(self):
@@ -353,6 +359,12 @@ class TideGeneration(BaseDriver):
         for i in range(len(self.plotDict["xtim"])):
             self.fileRef.write("%-6.2f\t%-6.2f\n" %\
                 (self.plotDict["xtim"][i], self.plotDict["ytide"][i]))
+        
+        exportData = []
+        for i in range(len(self.plotDict["xtim"])):
+            exportData = exportData + [self.plotDict["xtim"][i],\
+                self.plotDict["ytide"][i]]
+        self.exporter.writeData(exportData)
     # end fileOutputPlotWriteData
 
 

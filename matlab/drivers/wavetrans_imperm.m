@@ -181,6 +181,8 @@ if option==3
     end
 end
 
+exporter = EXPORTER('output/exporterWavetransImperm.txt');
+
 % File Output
 fileOutputArgs = {};
 [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
@@ -232,7 +234,7 @@ for loopIndex = 1:numCases
         [Hbs]=ERRWAVBRK2(T,m,ds);
 %         assert(H<Hbs,'Error: Wave broken at structure (Hbs = %6.2f m)',Hbs)
         if not(H<Hbs)
-            errorMsg = sprintf('Error: Wave broken at structure (Hbs = %6.2f m)',Hbs);
+            errorMsg = sprintf('Error: Wave broken at structure (Hbs = %6.2f %s)',Hbs,labelUnitDist);
             disp(errorMsg);
         else
             [steep,maxstp]=ERRSTP(H,ds,L);
@@ -334,9 +336,32 @@ for loopIndex = 1:numCases
         if loopIndex < numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
+        
+        exportData = {H, T, cotphi, ds, cottheta, hs, B};
+        if option == 1
+            exportData = [exportData {R}];
+        end
+        if option == 2
+            exportData = [exportData {hB}];
+        end
+        if option == 3
+            exportData = [exportData {a, b}];
+        end
+        
+        if length(errorMsg) > 0
+            exportData = [exportData {errorMsg}];
+        else
+            if option == 3 || option == 4
+                exportData = [exportData {R}];
+            end
+            exportData = [exportData {Ht}];
+        end
+        exporter.writeData(exportData);
     end
 end
 
 if fileOutputData{1}
     fclose(fId);
 end
+
+exporter.close();

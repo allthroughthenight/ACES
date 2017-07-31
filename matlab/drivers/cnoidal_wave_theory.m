@@ -65,6 +65,9 @@ if single_case
     
     [xL] = USER_INPUT_DATA_VALUE('Enter xL: horizontal coordinate as fraction of wavelength (x/L): ', 0.0, 1.0);
     
+    [O] = USER_INPUT_DATA_VALUE('Enter O: order approximation (1 or 2): ', 1.0, 2.0);
+    O = floor(O);
+    
     numCases = 1;
 else
     multiCaseData = {...
@@ -72,7 +75,8 @@ else
             'T: wave period (sec)', 1.0, 1000.0;...
             ['d: water depth (' labelUnitDist ')'], 0.1, 5000.0;...
             ['z: vertical coordinate (' labelUnitDist ')'], -5100.0, 100.0;...
-            'xL: horizontal coordinate as fraction of wavelength (x/L)', 0.0, 1.0};
+            'xL: horizontal coordinate as fraction of wavelength (x/L)', 0.0, 1.0;...
+            'O: order approximation (1 or 2)', 1.0, 2.0};
     [varData, numCases] = USER_INPUT_MULTI_MODE(multiCaseData);
     
     HList = varData(1, :);
@@ -80,17 +84,11 @@ else
     dList = varData(3, :);
     zList = varData(4, :);
     xLList = varData(5, :);
+    OList = varData(6, :);
+    OList = floor(OList);
 end
-
-exporter = EXPORTER('output/exporterCnoidal.txt');
 
 twopi=2*pi;
-
-O = 0;
-while O ~= 1 && O ~= 2
-    prompt = 'Enter O: order approximation (1 or 2): ';
-    O = input(prompt);
-end
 
 prompt = 'Enter time: time-coordinate (default=0): ';
 time = input(prompt);
@@ -102,6 +100,8 @@ fileOutputArgs = {'Enter the filename (no extension): ', 'Enter the description 
 if fileOutputData{1}
     fId = fopen(['output\' fileOutputData{2} '.txt'], 'wt');
     fprintf(fId, '%s\n\n', fileOutputData{3});
+    
+    exporter = EXPORTER('output/exporterCnoidal');
 end
 
 
@@ -112,6 +112,7 @@ for loopIndex = 1:numCases
         d = dList(loopIndex);
         z = zList(loopIndex);
         xL = xLList(loopIndex);
+        O = OList(loopIndex);
     end
     
     errorMsg = '';
@@ -352,7 +353,7 @@ for loopIndex = 1:numCases
             fprintf(fId, '\n--------------------------------------\n\n');
         end
         
-        exportData = {H, T, d, z, xL, O, time};
+        exportData = {H, T, d, z, xL, O};
         if length(errorMsg) > 0
             exportData = [exportData {errorMsg}];
         else
