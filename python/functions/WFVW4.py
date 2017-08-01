@@ -11,8 +11,8 @@ def WFVW4(N, y, p, ww):
     hp = [0.0 for i in range(N + 1)]
     
     for i in range(N + 1):
-        if ComplexUtil.lessThan(y[i], 0.0):
-            wp[i] = p[i] + ww * y[i]
+        if y[i].real < 0.0:
+            wp[i] = p[i] + ww * y[i].real
             hp[i] = p[i] - wp[i]
         else:
             wp[i] = p[i]

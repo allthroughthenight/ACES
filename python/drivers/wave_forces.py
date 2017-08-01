@@ -247,12 +247,12 @@ class WaveForces(BaseDriver):
         plt.figure(1, figsize = self.plotConfigDict["figSize"],\
             dpi = self.plotConfigDict["dpi"])
         plt.subplot(2, 1, 1)
-        plt.plot([i[1] for i in self.plotDict["MRintc"]],\
-            [i[0] for i in self.plotDict["MRintc"]], "g-",\
-            [i[2] for i in self.plotDict["MRintc"]],\
-            [i[0] for i in self.plotDict["MRintc"]], "c-.",\
-            [i[3] for i in self.plotDict["MRintc"]],\
-            [i[0] for i in self.plotDict["MRintc"]], "r:")
+        plt.plot(self.plotDict["MRintc"][1],\
+            self.plotDict["MRintc"][0], "g-",\
+            self.plotDict["MRintc"][2],\
+            self.plotDict["MRintc"][0], "c-.",\
+            self.plotDict["MRintc"][3],\
+            self.plotDict["MRintc"][0], "r:")
         plt.axhline(y=0.0, color="r", LineStyle="--")
         plt.legend(["Wave Pressure", "Hydrostatic Pressure",\
             "Wave and Hydrostatic Pressure"])
@@ -261,16 +261,18 @@ class WaveForces(BaseDriver):
         plt.title("Miche-Rundgren Pressure Distribution - Crest at Wall")
         
         plt.subplot(2, 1, 2)
-        plt.plot([i[1] for i in self.plotDict["MRintt"]],\
-            [i[0] for i in self.plotDict["MRintt"]], "g-",\
-            [i[2] for i in self.plotDict["MRintt"]],\
-            [i[0] for i in self.plotDict["MRintt"]], "c-.",\
-            [i[3] for i in self.plotDict["MRintt"]],\
-            [i[0] for i in self.plotDict["MRintt"]], "r:")
+        plt.plot(self.plotDict["MRintt"][1],\
+            self.plotDict["MRintt"][0], "g-",\
+            self.plotDict["MRintt"][2],\
+            self.plotDict["MRintt"][0], "c-.",\
+            self.plotDict["MRintt"][3],\
+            self.plotDict["MRintt"][0], "r:")
         plt.axhline(y=0.0, color="r", LineStyle="--")
 #				rectangle('Position',[-50,floor(min(Sintt(:,1))),50,abs(floor(min(Sintt(:,1))))+5],'LineWidth',2)
-        plt.ylim([math.floor(min([i[0].real for i in self.plotDict["Sintt"]])),\
-            abs(math.floor(min([i[0].real for i in self.plotDict["Sintt"]]))) - 5])
+#        plt.ylim([math.floor(min([i[0].real for i in self.plotDict["Sintt"]])),\
+#            abs(math.floor(min([i[0].real for i in self.plotDict["Sintt"]]))) - 5])
+        plt.ylim([math.floor(min([i.real for i in self.plotDict["Sintt"][0]])),\
+            abs(math.floor(min([i.real for i in self.plotDict["Sintt"][0]]))) - 5])
         plt.legend(["Wave Pressure", "Hydrostatic Pressure",\
             "Wave and Hydrostatic Pressure"])
         plt.xlabel("Pressure [%s/%s^2]" % (self.labelUnitWt, self.labelUnitDist))
@@ -281,12 +283,12 @@ class WaveForces(BaseDriver):
         plt.figure(2, figsize = self.plotConfigDict["figSize"],\
             dpi = self.plotConfigDict["dpi"])
         plt.subplot(2, 1, 1)
-        plt.plot([i[1] for i in self.plotDict["Sintc"]],\
-            [i[0] for i in self.plotDict["Sintc"]], "g-",\
-            [i[2] for i in self.plotDict["Sintc"]],\
-            [i[0] for i in self.plotDict["Sintc"]], "c-.",
-            [i[3] for i in self.plotDict["Sintc"]],\
-            [i[0] for i in self.plotDict["Sintc"]], "r:")
+        plt.plot(self.plotDict["Sintc"][1],\
+            self.plotDict["Sintc"][0], "g-",\
+            self.plotDict["Sintc"][2],\
+            self.plotDict["Sintc"][0], "c-.",
+            self.plotDict["Sintc"][3],\
+            self.plotDict["Sintc"][0], "r:")
         plt.axhline(y=0.0, color="r", LineStyle="--")
         plt.legend(["Wave Pressure", "Hydrostatic Pressure",\
             "Wave and Hydrostatic Pressure"])
@@ -295,19 +297,19 @@ class WaveForces(BaseDriver):
         plt.title("Sainflou Pressure Distribution - Crest at Wall")
         
         plt.subplot(2, 1, 2)
-        plt.plot([i[1] for i in self.plotDict["Sintt"]],\
-            [i[0] for i in self.plotDict["Sintt"]], "g-",\
-            [i[2] for i in self.plotDict["Sintt"]],\
-            [i[0] for i in self.plotDict["Sintt"]], "c-.",\
-            [i[3] for i in self.plotDict["Sintt"]],\
-            [i[0] for i in self.plotDict["Sintt"]], "r:")
+        plt.plot(self.plotDict["Sintt"][1],\
+            self.plotDict["Sintt"][0], "g-",\
+            self.plotDict["Sintt"][2],\
+            self.plotDict["Sintt"][0], "c-.",\
+            self.plotDict["Sintt"][3],\
+            self.plotDict["Sintt"][0], "r:")
         plt.axhline(y=0.0, color="r", LineStyle="--")
 #        plotAx.add_patch(patches.Rectangle(\
 #            (-50, math.floor(min([i[0].real for i in self.plotDict["Sintt"]]))),\
 #            50, abs(math.floor(min([i[0].real for i in self.plotDict["Sintt"]]))) + 5,\
 #            linestyle=2))
-        plt.ylim([math.floor(min([i[0].real for i in self.plotDict["Sintt"]])),\
-            abs(math.floor(min([i[0].real for i in self.plotDict["Sintt"]]))) - 5])
+        plt.ylim([math.floor(min([i.real for i in self.plotDict["Sintt"][0]])),\
+            abs(math.floor(min([i.real for i in self.plotDict["Sintt"][0]]))) - 5])
         plt.legend(["Wave Pressure", "Hydrostatic Pressure",\
             "Wave and Hydrostatic Pressue"])
         plt.xlabel("Pressure [%s/%s^2]" % (self.labelUnitWt, self.labelUnitDist))
@@ -331,11 +333,12 @@ class WaveForces(BaseDriver):
             (self.labelUnitDist, self.labelUnitWt, self.labelUnitDist,\
             self.labelUnitWt, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
         
-        index = 1
-        for i in self.plotDict["MRintc"]:
+        for i in range(len(self.plotDict["MRintc"][0])):
             self.fileRef.write('%-6d    %-6.2f       %-6.2f           %-6.2f                  %-6.2f\n' %\
-                (index, i[0].real, i[1].real, i[2].real, i[3].real))
-            index += 1
+                ((i + 1), self.plotDict["MRintc"][0][i].real,\
+                self.plotDict["MRintc"][1][i].real,\
+                self.plotDict["MRintc"][2][i].real,\
+                self.plotDict["MRintc"][3][i].real))
         
         self.fileRef.write('\n\nMiche-Rundgren Pressure Distribution\n')
         self.fileRef.write('Trough at Wall \n\n')
@@ -345,11 +348,12 @@ class WaveForces(BaseDriver):
             (self.labelUnitDist, self.labelUnitWt, self.labelUnitDist,\
             self.labelUnitWt, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
         
-        index = 1
-        for i in self.plotDict["MRintt"]:
+        for i in range(len(self.plotDict["MRintt"][0])):
             self.fileRef.write('%-6d    %-6.2f       %-6.2f           %-6.2f                  %-6.2f\n' %\
-                (index, i[0].real, i[1].real, i[2].real, i[3].real))
-            index += 1
+                ((i + 1), self.plotDict["MRintt"][0][i].real,\
+                self.plotDict["MRintt"][1][i].real,\
+                self.plotDict["MRintt"][2][i].real,\
+                self.plotDict["MRintt"][3][i].real))
         
         self.fileRef.write('\n\nSainflou Pressure Distribution\n')
         self.fileRef.write('Crest at Wall \n\n')
@@ -359,11 +363,12 @@ class WaveForces(BaseDriver):
             (self.labelUnitDist, self.labelUnitWt, self.labelUnitDist,\
             self.labelUnitWt, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
         
-        index = 1
-        for i in self.plotDict["Sintc"]:
+        for i in range(len(self.plotDict["Sintc"][0])):
             self.fileRef.write('%-6d    %-6.2f       %-6.2f           %-6.2f                  %-6.2f\n' %\
-                (index, i[0].real, i[1].real, i[2].real, i[3].real))
-            index += 1
+                ((i + 1), self.plotDict["Sintc"][0][i].real,\
+                self.plotDict["Sintc"][1][i].real,\
+                self.plotDict["Sintc"][2][i].real,\
+                self.plotDict["Sintc"][3][i].real))
         
         self.fileRef.write('\n\nSainflou Pressure Distribution\n')
         self.fileRef.write('Trough at Wall \n\n')
@@ -373,11 +378,12 @@ class WaveForces(BaseDriver):
             (self.labelUnitDist, self.labelUnitWt, self.labelUnitDist,\
             self.labelUnitWt, self.labelUnitDist, self.labelUnitWt, self.labelUnitDist))
         
-        index = 1
-        for i in self.plotDict["Sintt"]:
+        for i in range(len(self.plotDict["Sintt"][0])):
             self.fileRef.write('%-6d    %-6.2f       %-6.2f           %-6.2f                  %-6.2f\n' %\
-                (index, i[0].real, i[1].real, i[2].real, i[3].real))
-            index += 1
+                ((i + 1), self.plotDict["Sintt"][0][i].real,\
+                self.plotDict["Sintt"][1][i].real,\
+                self.plotDict["Sintt"][2][i].real,\
+                self.plotDict["Sintt"][3][i].real))
     # end fileOutputPlotWriteData
 
 
