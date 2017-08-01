@@ -50,3 +50,9 @@ class ComplexUtil(object):
         
         return compVal1 >= compVal2
     # end greaterThan
+    
+    def getDisplayVal(num):
+        if not isinstance(num, complex):
+            return num
+        
+        return num.real
