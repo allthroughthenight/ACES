@@ -1,4 +1,5 @@
 import math
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import sys
@@ -260,7 +261,7 @@ class WaveForces(BaseDriver):
         plt.ylabel("Elevation [%s]" % self.labelUnitDist)
         plt.title("Miche-Rundgren Pressure Distribution - Crest at Wall")
         
-        plt.subplot(2, 1, 2)
+        ax = plt.subplot(2, 1, 2)
         plt.plot(self.plotDict["MRintt"][1],\
             self.plotDict["MRintt"][0], "g-",\
             self.plotDict["MRintt"][2],\
@@ -268,9 +269,10 @@ class WaveForces(BaseDriver):
             self.plotDict["MRintt"][3],\
             self.plotDict["MRintt"][0], "r:")
         plt.axhline(y=0.0, color="r", LineStyle="--")
-#				rectangle('Position',[-50,floor(min(Sintt(:,1))),50,abs(floor(min(Sintt(:,1))))+5],'LineWidth',2)
-#        plt.ylim([math.floor(min([i[0].real for i in self.plotDict["Sintt"]])),\
-#            abs(math.floor(min([i[0].real for i in self.plotDict["Sintt"]]))) - 5])
+        ax.add_patch(patches.Rectangle(\
+            (-50.0, math.floor(min([i.real for i in self.plotDict["Sintt"][0]]))),\
+            50.0, abs(math.floor(min([i.real for i in self.plotDict["Sintt"][0]]))) + 5,\
+            lineWidth=2, fill=None))
         plt.ylim([math.floor(min([i.real for i in self.plotDict["Sintt"][0]])),\
             abs(math.floor(min([i.real for i in self.plotDict["Sintt"][0]]))) - 5])
         plt.legend(["Wave Pressure", "Hydrostatic Pressure",\
@@ -296,7 +298,7 @@ class WaveForces(BaseDriver):
         plt.ylabel("Elevation [%s]" % self.labelUnitDist)
         plt.title("Sainflou Pressure Distribution - Crest at Wall")
         
-        plt.subplot(2, 1, 2)
+        ax = plt.subplot(2, 1, 2)
         plt.plot(self.plotDict["Sintt"][1],\
             self.plotDict["Sintt"][0], "g-",\
             self.plotDict["Sintt"][2],\
@@ -304,10 +306,10 @@ class WaveForces(BaseDriver):
             self.plotDict["Sintt"][3],\
             self.plotDict["Sintt"][0], "r:")
         plt.axhline(y=0.0, color="r", LineStyle="--")
-#        plotAx.add_patch(patches.Rectangle(\
-#            (-50, math.floor(min([i[0].real for i in self.plotDict["Sintt"]]))),\
-#            50, abs(math.floor(min([i[0].real for i in self.plotDict["Sintt"]]))) + 5,\
-#            linestyle=2))
+        ax.add_patch(patches.Rectangle(\
+            (-50.0, math.floor(min([i.real for i in self.plotDict["Sintt"][0]]))),\
+            50.0, abs(math.floor(min([i.real for i in self.plotDict["Sintt"][0]]))) + 5,\
+            lineWidth=2, fill=None))
         plt.ylim([math.floor(min([i.real for i in self.plotDict["Sintt"][0]])),\
             abs(math.floor(min([i.real for i in self.plotDict["Sintt"][0]]))) - 5])
         plt.legend(["Wave Pressure", "Hydrostatic Pressure",\
