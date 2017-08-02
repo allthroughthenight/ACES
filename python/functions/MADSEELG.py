@@ -50,6 +50,8 @@ from WAVELEN import WAVELEN
 #   freeb: breakwater freeboard
 
 def MADSEELG(H, T, d, hs, b, numlay, thk, hlen, nummat, diam, por, cotssl, nu, g):
+    errorMsg = None
+    
     deg2rads = math.pi / 180.0
     A = H/2.0 # incident wave amplitude
 
@@ -70,18 +72,24 @@ def MADSEELG(H, T, d, hs, b, numlay, thk, hlen, nummat, diam, por, cotssl, nu, g
     tmin = math.sqrt((2.0*math.pi*1.25*lsub)/\
         (g*math.tanh(2.0*math.pi*d/(1.25*lsub))))
     if not (T > tmin):
-        print("Error: Minimum wave period to be analyzed is %4.2f s." % tmin)
-        return
+        errorMsg = "Error: Minimum wave period to be analyzed is %4.2f s." % tmin
+        return None, None, None, None, None, L, errorMsg
 
     phi = 5.0*deg2rads
 
     # begin iterating for phi
     diff = 100.0
+    loopCount = 0
     while diff > (10.0**-3):
         RIi, Ru, fs = MADSN2(lsub, phi, ko)
         newphi = 0.29*(diam[0]/d)**0.2 * (Ru*2.0*A/(d/cotssl))**0.3 * fs
         newphi = math.atan(newphi)/2.0
         diff = abs(newphi - phi)
+        
+        loopCount += 1
+        if loopCount > 20:
+            break
+        
         phi = newphi
     # end while loop
 
@@ -102,12 +110,17 @@ def MADSEELG(H, T, d, hs, b, numlay, thk, hlen, nummat, diam, por, cotssl, nu, g
 
     # begin iterating for recthead to find head difference across equivalent
     # rectangular breakwater
+    loopCount = 0
     while diff > 0.005:
         lequiv = EQBWLE(dhe, dht, d, nummat, numlay, diam, por, thk, hlen, porref, diamref)
         Ti, Ri = EQBWTRCO(porref, ko, diamref, AIhomog, d, nu, lequiv, g)
         olddhe = dhe
         dhe = (1.0 + Ri)*RIi*A
         diff = abs(olddhe - dhe)
+        
+        loopCount += 1
+        if loopCount > 20:
+            break
 
     Kr = Ri*RIi
     KTt = Ti*RIi
@@ -140,4 +153,4 @@ def MADSEELG(H, T, d, hs, b, numlay, thk, hlen, nummat, diam, por, cotssl, nu, g
 
     Ht = H*KT
 
-    return KTt, Kto, KT, Kr, Ht, L
+    return KTt, Kto, KT, Kr, Ht, L, errorMsg

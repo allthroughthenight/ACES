@@ -14,8 +14,8 @@ from EXPORTER import EXPORTER
 # nourishment ratios. (Aces Tech Manual Chapter 6-4-1)
 
 # Updated by: Yaprak Onat
-# Date Created: June 21, 2016
-# Date Modified:
+# Date Created: Feb 21, 2017
+# Date Modified:July 31, 2017
 
 # Requires the following functions:
 
@@ -34,9 +34,9 @@ from EXPORTER import EXPORTER
 #   Vol_D = Design Volume (yd**3 or m**3)
 
 #   OTHERS
-#   g: gravity [32.17 ft / s**2]
-#   rho: density of water [1.989 (salt water) or 1.94 (fresh water) slugs / ft**3]
-#   rhos: density of sediment [5.14 slugs / ft**3 in FORTRAN source code]
+#   g: gravity 
+#   rho: density of water 
+#   rhos: density of sediment s
 #-------------------------------------------------------------
 
 class BeachNourishment(BaseDriver):

@@ -39,6 +39,7 @@ function [Ti,Ri]=EQBWTRCO(pref,k,dref,aI,d,nu,lequ,g)
     diff=100;
     lambda=1.0;
     F=0.0;
+    loopCount=0;
     while diff>0.02
         Fnew=F;
         U=aI*sqrt(g/d)/(1+lambda);
@@ -47,6 +48,11 @@ function [Ti,Ri]=EQBWTRCO(pref,k,dref,aI,d,nu,lequ,g)
         F=F*(sqrt(1+(1+Rc/Rd)*(16*betar*aI*lequ/(3*pi*d)))-1);
         lambda=k*lequ*F/(2*pref); %calculate new lambda
         diff=abs(Fnew-F)/F;
+        
+        loopCount=loopCount+1;
+        if loopCount>20
+            break;
+        end
     end
     
     % used in solving the transmission and reflection coefficients

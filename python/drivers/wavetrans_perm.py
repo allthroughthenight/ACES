@@ -5,6 +5,7 @@ sys.path.append('../functions')
 
 from base_driver import BaseDriver
 from helper_objects import BaseField
+from helper_objects import ComplexUtil
 import USER_INPUT
 from ERRSTP import ERRSTP
 from ERRWAVBRK1 import ERRWAVBRK1
@@ -21,11 +22,9 @@ from EXPORTER import EXPORTER
 # wave heights for permeable breakwaters with crest elevations at or
 # above the still-water level.
 
-# Updated by: Yaprak Onat
+# Modified by: Yaprak Onat
 # Date Created: June 21, 2016
-# Date Modified:
-
-#Requires English units
+# Date Modified: July 31, 2017
 
 # Requires the following functions:
 # ERRSTP
@@ -259,9 +258,9 @@ class WavetransPerm(BaseDriver):
         L, k = WAVELEN(ds, T, 50, self.g)
 
         steep, maxstp = ERRSTP(H, ds, L)
-        if not (steep < maxstp):
+        if not ComplexUtil.lessThan(steep, maxstp):
             self.errorMsg = "Error: Input wave unstable (Max: %0.4f, [H/L] = %0.4f)" %\
-                (maxstp, steep)
+                (ComplexUtil.getDisplayVal(maxstp), ComplexUtil.getDisplayVal(steep))
                 
             print(self.errorMsg)
             self.fileOutputWriteMain(dataDict, caseIndex)
@@ -281,8 +280,12 @@ class WavetransPerm(BaseDriver):
             self.fileOutputWriteMain(dataDict, caseIndex)
             return
 
-        KTt, Kto, KT, Kr, Ht, L = MADSEELG(\
+        KTt, Kto, KT, Kr, Ht, L, self.errorMsg = MADSEELG(\
             H, T, ds, hs, b, self.NL, th, hlen, self.NM, d50, por, cottheta, nu, self.g)
+        if self.errorMsg != None:
+            print(self.errorMsg)
+            self.fileOutputWriteMain(dataDict, caseIndex)
+            return
 
         print("Reflection coefficient, Kr\t\t%-6.3f" % Kr)
         print("Wave transmission coefficient")
@@ -341,7 +344,7 @@ class WavetransPerm(BaseDriver):
             [i for i in dataDict["th"]] +\
             [j for i in dataDict["hlen"] for j in i]
         if self.errorMsg != None:
-            exportData.append(self.errorMsg)
+            exportData.append("Error")
         else:
             exportData = exportData + [dataDict["Kr"], dataDict["KTt"],\
                 dataDict["Kto"], dataDict["KT"], dataDict["Ht"]]

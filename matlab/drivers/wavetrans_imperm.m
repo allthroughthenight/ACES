@@ -11,6 +11,8 @@ clc
 % Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
 % Date Created: April 19, 2011
 % Date Verified: June 6, 2012 
+% Modified by: Yaprak Onat
+% Last date modified: July 31, 2017
 
 % Requires the following functions:
 % ERRSTP
@@ -181,14 +183,13 @@ if option==3
     end
 end
 
-exporter = EXPORTER('output/exporterWavetransImperm.txt');
-
 % File Output
 fileOutputArgs = {};
 [fileOutputData] = USER_INPUT_FILE_OUTPUT(fileOutputArgs);
 
 if fileOutputData{1}
     fId = fopen('output/wavetrans_imperm.txt', 'wt');
+    exporter = EXPORTER('output/exporterWavetransImperm');
 end
 
 for loopIndex = 1:numCases
@@ -295,7 +296,7 @@ for loopIndex = 1:numCases
         
         fprintf(fId, 'Input\n');
         fprintf(fId, 'H\t\t%6.2f %s\n', H, labelUnitDist);
-        fprintf(fId, 'T\t\t%6.2f %s\n', T, labelUnitDist);
+        fprintf(fId, 'T\t\t%6.2f s\n', T);
         fprintf(fId, 'cotphi\t\t%6.2f\n', cotphi);
         fprintf(fId, 'ds\t\t%6.2f %s\n', ds, labelUnitDist);
         fprintf(fId, 'cottheta\t%6.2f\n', cottheta);
@@ -362,6 +363,5 @@ end
 
 if fileOutputData{1}
     fclose(fId);
+    exporter.close();
 end
-
-exporter.close();

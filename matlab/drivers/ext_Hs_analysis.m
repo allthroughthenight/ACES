@@ -436,4 +436,34 @@ if fileOutputData{1}
     end
 
     fclose(fId);
+    
+    exporter = EXPORTER('output/exporterExtHsAnalysis');
+    
+    exportData = {N, Nt, nu, K, lambda};
+    if length(errorMsg) > 0
+        exportData = [exportData {errorMsg}];
+    else
+        exportData = [exportData {Sx/N, standev}];
+        for distIndex = 1:length(distList)
+            exportData = [exportData {alpha(distIndex),...
+                beta(distIndex), rxy(distIndex), sumresid(distIndex)}];
+            
+            for loopIndex = 1:length(Hs)
+                exportData = [exportData {Hs(loopIndex),...
+                    yact(loopIndex, distIndex), ym(loopIndex, distIndex),...
+                    xxr(loopIndex, distIndex),...
+                    Hs(loopIndex)-xxr(loopIndex, distIndex)}];
+            end
+            
+            for loopIndex = 1:length(index)
+                exportData = [exportData {Hsr(index(loopIndex), distIndex),...
+                    sigr(index(loopIndex), distIndex),...
+                    Hsr(index(loopIndex), distIndex) - 1.28*sigr(index(loopIndex), distIndex),...
+                    Hsr(index(loopIndex), distIndex) + 1.28*sigr(index(loopIndex), distIndex)}];
+            end
+        end
+    end
+    exporter.writeData(exportData);
+    
+    exporter.close();
 end

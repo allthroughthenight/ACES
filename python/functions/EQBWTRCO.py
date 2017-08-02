@@ -1,5 +1,6 @@
 import math
 
+from helper_objects import ComplexUtil
 from MADSN1 import MADSN1
 
 # Determines wave transmission and reflection coefficients for the
@@ -42,7 +43,8 @@ def EQBWTRCO(pref, k, dref, aI, d, nu, lequ, g):
     diff = 100.0
     lambdaVal = 1.0
     F = 0.0
-    while diff > 0.02:
+    loopCount = 0
+    while ComplexUtil.greaterThan(diff, 0.02):
         Fnew = F
         U = aI*math.sqrt(g/d)/(1.0 + lambdaVal)
         Rd = U*dref/nu
@@ -50,6 +52,10 @@ def EQBWTRCO(pref, k, dref, aI, d, nu, lequ, g):
         F = F*(math.sqrt(1.0 + (1.0 + Rc/Rd)*(16.0*betar*aI*lequ/(3.0*math.pi*d))) - 1)
         lambdaVal = k*lequ*F/(2.0*pref); #calculate new lambda
         diff = abs(Fnew - F)/F
+        
+        loopCount += 1
+        if loopCount > 20:
+            break
     
     # used in solving the transmission and reflection coefficients
     fos = F/ss;

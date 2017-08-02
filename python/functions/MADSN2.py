@@ -3,6 +3,8 @@ import cmath
 import scipy.integrate as integrate
 import scipy.special as sp
 
+from helper_objects import ComplexUtil
+
 # Solves for reflection coefficient, non-dimensional runup amplitude, and
 # friction slope for rough impermeable slopes
 
@@ -41,7 +43,7 @@ def MADSN2(lsub, phi, k):
     rueq = cmath.exp(complex(0.0, c1/2.0))/denom
     Ru = abs(rueq)
 
-    if lsol < 0.05:
+    if ComplexUtil.lessThan(lsol, 0.05):
         fsc = 0.84242
     else:
         topint, err = integrate.quad(integrandTop, 0.0, 1.0, args=(psi))
@@ -53,7 +55,7 @@ def MADSN2(lsub, phi, k):
 
 
 def integrandTop(y, psi):
-    return abs((sp.jv(1.0, 2.0*psi*math.sqrt(y))/(psi*math.sqrt(y)))**3)
+    return abs((sp.jv(1.0, 2.0*psi*cmath.sqrt(y))/(psi*cmath.sqrt(y)))**3)
 
 def integrandBottom(y, psi):
-    return abs(y*(sp.jv(1.0, 2.0*psi*math.sqrt(y))/(psi*math.sqrt(y)))**2)
+    return abs(y*(sp.jv(1.0, 2.0*psi*cmath.sqrt(y))/(psi*cmath.sqrt(y)))**2)

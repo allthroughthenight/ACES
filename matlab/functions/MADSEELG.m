@@ -42,8 +42,16 @@
 %   R: runup on a stone breakwater
 %   freeb: breakwater freeboard
 
-function [KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,d,hs,b,numlay,thk,len,nummat,diam,por,cotssl,nu,g)
+function [KTt,Kto,KT,Kr,Ht,L,errorMsg]=MADSEELG(H,T,d,hs,b,numlay,thk,len,nummat,diam,por,cotssl,nu,g)
 
+    KTt = 0;
+    Kto = 0;
+    KT = 0;
+    Kr = 0;
+    Ht = 0;
+    L = 0;
+    errorMsg = '';
+    
     deg2rads=pi/180;
     A=H/2; % incident wave amplitude 
     
@@ -63,18 +71,29 @@ function [KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,d,hs,b,numlay,thk,len,nummat,diam,por
     lsl = lsub/L; % relative slope length 
     
     tmin=sqrt((2*pi*1.25*lsub)/(g*tanh(2*pi*d/(1.25*lsub))));
-    assert(T>tmin,'Error: Minimum wave period to be analyzed is %4.2f s.', tmin);
+%     assert(T>tmin,'Error: Minimum wave period to be analyzed is %4.2f s.', tmin);
+    if not(T>tmin)
+        errorMsg = sprintf('Error: Minimum wave period to be analyzed is %4.2f s.', tmin);
+        return;
+    end
 
     phi=5.0*deg2rads;
 
     % begin iterating for phi
     diff=100;
+    loopCount = 0;
     while diff>(10^-3)
         [RIi,Ru,fs]=MADSN2(lsub,phi,ko);
         %[RIi,Ru,fs]=MADSN2(lsl,phi,ko);
         newphi=0.29*(diam(1)/d)^0.2*(Ru*2*A/(d/cotssl))^0.3*fs;
         newphi=atan(newphi)/2;
         diff=abs(newphi-phi);
+        
+        loopCount = loopCount + 1;
+        if loopCount > 20
+            break;
+        end
+        
         phi=newphi;
     end
 
@@ -97,12 +116,18 @@ function [KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,d,hs,b,numlay,thk,len,nummat,diam,por
 
     % begin iterating for recthead to find head difference across equivalent
     % rectangular breakwater
+    loopCount=0;
     while diff>0.005  
         [lequiv]=EQBWLE(dhe,dht,d,nummat,numlay,diam,por,thk,len,porref,diamref);
         [Ti,Ri]=EQBWTRCO(porref,ko,diamref,AIhomog,d,nu,lequiv,g);
         olddhe=dhe;
         dhe=(1+Ri)*RIi*A;
         diff=abs(olddhe-dhe);
+        
+        loopCount = loopCount + 1;
+        if loopCount > 20
+            break;
+        end
     end
 
     Kr=Ri*RIi;

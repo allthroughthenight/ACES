@@ -11,6 +11,8 @@ from ERRSTP import ERRSTP
 from ERRWAVBRK1 import ERRWAVBRK1
 from WAVELEN import WAVELEN
 
+from EXPORTER import EXPORTER
+
 ## ACES Update to MATLAB
 #-------------------------------------------------------------
 # Driver for Extremal Significant Wave Height Analysis (page 1-3 of ACES
@@ -48,6 +50,8 @@ from WAVELEN import WAVELEN
 class ExtHsAnalysis(BaseDriver):
     def __init__(self, Nt = None, K = None, d = None,\
         Hs = None, option = None):
+        self.exporter = EXPORTER("output/exportExtHsAnalysis")
+
         self.isSingleCase = True
 
         if Nt != None:
@@ -62,6 +66,8 @@ class ExtHsAnalysis(BaseDriver):
             self.defaultValue_option = option
 
         super(ExtHsAnalysis, self).__init__()
+        
+        self.exporter.close()
     # end __init__
 
     def userInput(self):
@@ -203,8 +209,6 @@ class ExtHsAnalysis(BaseDriver):
             alpha.append((N*Sxy[m] - Sx*Slly[m])/(N*Syy[m] - Slly[m]**2))
             beta.append((1.0/N)*(Sx - alpha[m]*Slly[m]))
 
-        print("--------------")
-
         yest = []
         for j in range(N):
             yest.append([])
@@ -320,7 +324,6 @@ class ExtHsAnalysis(BaseDriver):
             for m in range(5):
                 xxr[i].append(ym[i][m]*alpha[m] + beta[m])
 
-        print(pe)
         printpe = [[j for j in i] for i in pe]
         printside = [2, 5, 10, 25, 50, 100]
         printpe[0][0] = 999
@@ -457,7 +460,7 @@ class ExtHsAnalysis(BaseDriver):
                 self.fileRef.write("PERIOD\t(%s)\t(%s)\t(%s)\t\t(%s)\n" %\
                     (self.labelUnitDist, self.labelUnitDist, self.labelUnitDist, self.labelUnitDist))
                 self.fileRef.write("(Yr)\tEq. 6\tEq. 10\n")
-    
+                
                 for loopIndex in range(len(dataDict["indexList"])):
                     self.fileRef.write("%-6.2f\t%-6.2f\t%-6.2f\t%-6.2f\t\t%-6.2f\n" %\
                         (dataDict["printside"][loopIndex],\
@@ -466,6 +469,36 @@ class ExtHsAnalysis(BaseDriver):
                         dataDict["Hsr"][dataDict["indexList"][loopIndex]][distIndex] - 1.28*dataDict["sigr"][dataDict["indexList"][loopIndex]][distIndex],\
                         dataDict["Hsr"][dataDict["indexList"][loopIndex]][distIndex] + 1.28*dataDict["sigr"][dataDict["indexList"][loopIndex]][distIndex]))
         # end if
+        
+        exportData = [dataDict["N"], dataDict["Nt"], dataDict["nu"],\
+            dataDict["K"], dataDict["lambdaVal"]]
+        if self.errorMsg != None:
+            exportData.append(self.errorMsg)
+        else:
+            exportData = exportData + [dataDict["Sx"]/dataDict["N"],\
+                dataDict["standev"]]
+            for distIndex in range(len(distList)):
+                exportData = exportData + [dataDict["alpha"][distIndex],\
+                    dataDict["beta"][distIndex], dataDict["rxy"][distIndex],\
+                    dataDict["sumresid"][distIndex]]
+                
+                for loopIndex in range(len(self.Hs)):
+                    exportData = exportData + [self.Hs[loopIndex],\
+                        dataDict["yact"][loopIndex][distIndex],\
+                        dataDict["ym"][loopIndex][distIndex],\
+                        dataDict["xxr"][loopIndex][distIndex],\
+                        (self.Hs[loopIndex] - dataDict["xxr"][loopIndex][distIndex])]
+                
+                for loopIndex in range(len(dataDict["indexList"])):
+                    exportData = exportData + [dataDict["printside"][loopIndex],\
+                        dataDict["Hsr"][dataDict["indexList"][loopIndex]][distIndex],\
+                        dataDict["sigr"][dataDict["indexList"][loopIndex]][distIndex],\
+                        dataDict["Hsr"][dataDict["indexList"][loopIndex]][distIndex] -\
+                            1.28*dataDict["sigr"][dataDict["indexList"][loopIndex]][distIndex],\
+                        dataDict["Hsr"][dataDict["indexList"][loopIndex]][distIndex] +\
+                            1.28*dataDict["sigr"][dataDict["indexList"][loopIndex]][distIndex]]
+        # end if
+        self.exporter.writeData(exportData)
     # end fileOutputWrite
 
     def hasPlot(self):

@@ -26,6 +26,8 @@ from EXPORTER import EXPORTER
 # Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
 # Date Created: April 19, 2011
 # Date Verified: June 6, 2012 
+# Modified by: Yaprak Onat
+# Last date modified: July 31, 2017
 
 # Requires the following functions:
 # ERRSTP

@@ -10,9 +10,8 @@ clc
 
 % Updated by: Mary Anderson, USACE-CHL-Coastal Processes Branch
 % Date Created: April 19, 2011
-% Date Verified: June 7, 2012 
-
-%Requires English units
+% Modified by: Yaprak Onat
+% Last Modified: July 31, 17
 
 % Requires the following functions:
 % ERRSTP
@@ -186,14 +185,17 @@ for loopIndex = 1:numCases
                         errorMsg = 'Error: Water depth must equal sum of all layer thicknesses.';
                         disp(errorMsg);
                     else
-                        [KTt,Kto,KT,Kr,Ht,L]=MADSEELG(H,T,ds,hs,b,NL,th,hlen,NM,d50,por,cottheta,nu,g);
-
-                        fprintf('%s \t\t\t %-6.3f \n','Reflection coefficient, Kr', Kr)
-                        fprintf('%s \n','Wave transmission coefficient')
-                        fprintf('%s \t %-6.3f \n','Wave Transmission (Through), KTt', KTt)
-                        fprintf('%s  %-6.3f \n','Wave Transmission (Overtopping), KTo', Kto)
-                        fprintf('%s \t\t %-6.3f \n','Wave Transmission (Total), KT', KT)
-                        fprintf('%s \t\t %-6.2f \n','Transmitted wave height, Ht', Ht)
+                        [KTt,Kto,KT,Kr,Ht,L, errorMsg]=MADSEELG(H,T,ds,hs,b,NL,th,hlen,NM,d50,por,cottheta,nu,g);
+                        if length(errorMsg) > 0
+                            disp(errorMsg);
+                        else
+                            fprintf('%s \t\t\t %-6.3f \n','Reflection coefficient, Kr', Kr)
+                            fprintf('%s \n','Wave transmission coefficient')
+                            fprintf('%s \t %-6.3f \n','Wave Transmission (Through), KTt', KTt)
+                            fprintf('%s  %-6.3f \n','Wave Transmission (Overtopping), KTo', Kto)
+                            fprintf('%s \t\t %-6.3f \n','Wave Transmission (Total), KT', KT)
+                            fprintf('%s \t\t %-6.2f \n','Transmitted wave height, Ht', Ht)
+                        end    
                     end
                 end
             end
