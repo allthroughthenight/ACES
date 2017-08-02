@@ -191,6 +191,8 @@ class CnoidalWaveTheory(BaseDriver):
         if O == 1: #determining m using bisection method
             a = 1.0*10**-12
             b = 1.0-10**-12
+            
+            loopCount = 0
             while (b - a)/2.0 >= 0.00001:
                 xi = (a + b) / 2.0
                 if self.F1(xi, H, T, d) == 0:
@@ -200,6 +202,10 @@ class CnoidalWaveTheory(BaseDriver):
                         a = xi
                     elif self.F1(xi, H, T, d)*self.F1(a, H, T, d) < 0.0:
                         b = xi
+                
+                loopCount += 1
+                if loopCount >= 20:
+                    break
             # end while loop
 
             m = xi
@@ -267,6 +273,7 @@ class CnoidalWaveTheory(BaseDriver):
             a = 1.0*10**-12
             b = 1.0-10**-12
 
+            loopCount = 0
             while (b - a)/2.0 >= 0.00001:
                 xi = (a + b)/2.0
                 if self.F2(xi, H, T, d, epsi) == 0:
@@ -276,6 +283,10 @@ class CnoidalWaveTheory(BaseDriver):
                         a = xi
                     elif self.F2(xi, H, T, d, epsi)*self.F2(a, H, T, d, epsi) < 0.0:
                         b = xi
+                
+                loopCount += 1
+                if loopCount >= 20:
+                    break
             # end while loop
 
             m = xi

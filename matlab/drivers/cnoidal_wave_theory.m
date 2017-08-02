@@ -130,6 +130,8 @@ for loopIndex = 1:numCases
             a=1*10^-12;
             b=1-10^-12;
             F=@(m)(16*m*ellipke(m)^2/3)-(g*H*T^2/d^2);
+            
+            loopCount = 0;
             while (b-a)/2>=0.00001
                 xi=(a+b)/2;
                 if F(xi)==0
@@ -140,6 +142,11 @@ for loopIndex = 1:numCases
                     elseif F(xi)*F(a)<0
                         b=xi;
                     end
+                end
+                
+                loopCount = loopCount + 1;
+                if loopCount >= 20
+                    break;
                 end
             end
             m=xi;
@@ -216,6 +223,8 @@ for loopIndex = 1:numCases
             a=1*10^-12;
             b=1-10^-12;
             F=@(m)(16*m*ellipke(m)^2/3)-(g*H*T^2/d^2)*(1-epsi*((1+2*((1-m)/m))/4));
+            
+            loopCount = 0;
             while (b-a)/2>=0.00001
                 xi=(a+b)/2;
                 if F(xi)==0
@@ -226,6 +235,11 @@ for loopIndex = 1:numCases
                     elseif F(xi)*F(a)<0
                         b=xi;
                     end
+                end
+                
+                loopCount = loopCount + 1;
+                if loopCount >= 20
+                    break;
                 end
             end
             m=xi;
@@ -365,9 +379,8 @@ end
 
 if fileOutputData{1}
     fclose(fId);
+    exporter.close();
 end
-
-exporter.close();
 
 if single_case && length(errorMsg) == 0
     if O == 1
